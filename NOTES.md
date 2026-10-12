@@ -49,4 +49,18 @@ Raised by spike-01:
 ## Experiments
 
 - `experiments/spike-01/`: first pass, four prompt variants, Haiku 5.5 (low),
-  CSV input. See its README for setup and results.
+  CSV input, agent with tools. See its README for setup and results.
+- `experiments/spike-02/`: the same four prompts pasted into a chat with no
+  tools, 3 repeats each. Only the plain prompt made the model retype the
+  sheet; any mention of "script" or "checksums" made it write a script instead.
+  The retyped sheets copied every non-date value exactly; mistakes were in the
+  dates.
+
+## Open questions
+
+- How to make retyping happen when checksums are asked for, e.g. by
+  forbidding scripts or asking for the sheet inline. This is the case where
+  made-up checksums would show up.
+- Run without Claude Code's environment note, i.e. through the API directly.
+- Larger sheets and other models, to find where retyping starts to drop or
+  change cells.
