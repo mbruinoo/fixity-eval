@@ -80,7 +80,7 @@ the 200-row CSV** (spike-03 condition `22-plain-startend-off`).
   (up to 34 cells). Markdown output, not TSV input, looks like the trigger.
 
 - Removing the URL or other columns didn't raise the error rate, and
-  blanking 39% of dates didn't make it fill them in (2 of about 700 blank
+  blanking 39% of dates didn't make it fill them in (2 of about 550 blank
   cells, both marked `?`). The original prompt, "Can you standardize the dates
   in this spreadsheet?", gave the most obvious wrong dates once in 5 runs on
   200 rows (15 rows, e.g. `19th century` → `1600–1699`), but usually declined.

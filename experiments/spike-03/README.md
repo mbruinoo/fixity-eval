@@ -168,7 +168,7 @@ rows of the 200-row sheet (`data/met_sample_100_*`).
 
 - **Removing the URL or other columns didn't raise errors.** With only
   Date/Title/Artist and the "standardize" prompt (35), all 5 sheets were perfect.
-- **Blanking 39% of the dates didn't make Haiku 5.5 fill them in.** Across 18
+- **Blanking 39% of the dates didn't make Haiku 5.5 fill them in.** Across 14
   tables with 39 blank dates each, it filled a blank only twice, both times
   marked with a question mark (`1880s?`, the real date being `1830–40`). Every
   other blank was left blank, often written as `(blank)`.
