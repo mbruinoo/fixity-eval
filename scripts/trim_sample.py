@@ -13,10 +13,10 @@ import hashlib
 import pandas as pd
 
 COLUMNS = [
-    "Object Number",
+    "Object Date",
     "Title",
     "Artist Display Name",
-    "Object Date",
+    "Object Number",
     "Link Resource",
 ]
 
