@@ -23,3 +23,18 @@ python scripts/sample_met.py MetObjects.csv data/met_sample_200.csv
 
 The Met updates the upstream file from time to time. If the source checksum
 doesn't match the one above, you'll get a different sample.
+
+## `met_sample_200_trimmed.csv`
+
+The same 200 rows, in the same order, with just five columns: `Object Number`,
+`Title`, `Artist Display Name`, `Object Date`, `Link Resource`. Values are
+copied exactly. Some cells are empty in the source and stay empty here:
+75 `Artist Display Name`, 9 `Object Date`, 8 `Title`.
+
+- **Sample file:** SHA-256 `ef53067301623ce9a591086c4ba37fc45c0ec9608561241660d7c1624290d9f9`
+
+To regenerate from the full sample:
+
+```
+python scripts/trim_sample.py data/met_sample_200.csv data/met_sample_200_trimmed.csv
+```
