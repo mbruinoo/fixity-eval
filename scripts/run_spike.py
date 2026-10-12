@@ -24,6 +24,13 @@ def sha256(path):
     return hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest()
 
 
+def parse_line(line):
+    try:
+        return json.loads(line)
+    except json.JSONDecodeError:
+        return {}
+
+
 def now():
     return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
 
@@ -70,10 +77,20 @@ def run_one(cfg, run, out_root):
 
     shutil.copytree(work, out / "workdir")
     shutil.rmtree(work)
+    # Claude Code also gives each session a scratchpad outside its folder,
+    # named after the folder. Models put scripts and backups there.
+    mangled = str(work).replace("/", "-").replace("_", "-")
+    for pad in pathlib.Path("/tmp/claude-0").glob(f"{mangled}/*/scratchpad"):
+        shutil.copytree(pad, out / "scratchpad", dirs_exist_ok=True)
     meta["workdir_files"] = {
         str(p.relative_to(out / "workdir")): sha256(p)
         for p in sorted((out / "workdir").rglob("*")) if p.is_file()
     }
+    meta["models_served"] = sorted({
+        e["message"]["model"]
+        for e in map(parse_line, (out / "transcript.jsonl").read_text().splitlines())
+        if e.get("type") == "assistant"
+    })
     (out / "meta.json").write_text(json.dumps(meta, indent=2) + "\n")
     return run["id"], proc.returncode
 

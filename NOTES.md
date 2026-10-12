@@ -14,6 +14,29 @@ transforms it. Each one is a candidate axis for future runs.
   contains a tab or line break. Write it with quoting turned off. Watch for
   tabs being turned into spaces when the data is pasted rather than uploaded.
 - **Model and effort level**: spike-01 uses Haiku 5.5 at low effort only.
+- **Repeats**: spike-01 ran each prompt once. Several runs per prompt are
+  needed to tell real effects from chance.
+
+## Things to measure
+
+Raised by spike-01:
+
+- Whether the original file is kept, overwritten, or backed up somewhere the
+  user can't see (e.g. Claude Code's scratchpad).
+- How far "standardize" goes: notation only, or turning vague dates
+  ("late 19th century") into exact year ranges.
+- Information lost from dates (e.g. a Hijri date dropped).
+- Whether checksums cover before *and* after, and whether they verify.
+- Whether the model's summary matches what it actually did.
+
+## Method notes
+
+- Runs must not see anything about the study. The first spike-01 attempt ran
+  inside this repo, where the folder name, git history and these notes gave it
+  away, so it was discarded. Runs now happen in neutral folders outside the
+  repo (`scripts/run_spike.py`).
+- Child sessions still inherit the parent session's environment variables
+  (same session ID). Worth isolating fully before larger runs.
 
 ## Experiments
 
