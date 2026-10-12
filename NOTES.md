@@ -14,6 +14,14 @@ transforms it. Each one is a candidate axis for future runs.
   contains a tab or line break. Write it with quoting turned off. Watch for
   tabs being turned into spaces when the data is pasted rather than uploaded.
 - **Model and effort level**: spike-01 uses Haiku 5.5 at low effort only.
+- **Row count** (e.g. 10, 25, 50, 200, 2,000), file still on disk. Tests
+  whether smaller sheets make the model edit directly instead of writing a
+  script. The 200-row file is only ~7k tokens, and spike-01 runs read every
+  date, so size alone probably didn't force scripts: even the plain prompt
+  (run 1) wrote one.
+- **Delivery: file in an agent vs. pasted into a chat with no tools.** Likely
+  the bigger driver of script use. Without tools the model must retype every
+  row, so this is where integrity is most at risk.
 - **Repeats**: spike-01 ran each prompt once. Several runs per prompt are
   needed to tell real effects from chance.
 
