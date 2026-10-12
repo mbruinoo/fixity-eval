@@ -1,0 +1,25 @@
+# Data
+
+## `met_sample_200.csv`
+
+200 rows sampled from the Metropolitan Museum of Art Open Access dataset
+([`MetObjects.csv`](https://github.com/metmuseum/openaccess/blob/master/MetObjects.csv), CC0).
+
+- **Method:** stratified by `Department` with proportional allocation (largest
+  remainder), random within each department, rows shuffled. Seed `42`.
+  See `scripts/sample_met.py`.
+- **Columns:** all 54 original columns, values unchanged. Rows with an empty
+  `Object Date` are kept (9 of 200, about the same as the ~2.8% in the full set).
+- **Source file:** 484,956 rows, downloaded 2026-10-12,
+  SHA-256 `de617b9c947458e426111207f81a65bd1379a151c0077d3ce29cfc22fc0b9183`
+- **Sample file:** SHA-256 `0c91e70c4e9bff3143ee2db961ec42ec2595db26c74463bd06bc6f370577fdf4`
+
+To regenerate:
+
+```
+curl -L -o MetObjects.csv https://media.githubusercontent.com/media/metmuseum/openaccess/master/MetObjects.csv
+python scripts/sample_met.py MetObjects.csv data/met_sample_200.csv
+```
+
+The Met updates the upstream file from time to time. If the source checksum
+doesn't match the one above, you'll get a different sample.
