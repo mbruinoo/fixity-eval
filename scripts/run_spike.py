@@ -1,10 +1,18 @@
 """Run each prompt in a fresh headless Claude Code session and record the results.
 
 Each run gets its own random folder outside the repo (no git history, no notes,
-nothing that hints at what is being tested) holding only the input
-spreadsheet under a neutral name. The model is sent the prompt plus one line
-naming the file. When the session finishes, the whole folder and the full
-transcript are copied into the experiment directory.
+nothing that hints at what is being tested). When the session finishes, the
+whole folder and the full transcript are copied into the experiment directory.
+
+Two modes, set by "mode" in the config:
+- "agent" (default): the folder holds only the input spreadsheet under a
+  neutral name, the model has Claude Code's normal tools, and it is sent the
+  prompt plus one line naming the file.
+- "chat": no tools, no system prompt, no skills or MCP servers. The model is
+  sent the prompt, a blank line, then the spreadsheet's text, and its reply
+  is saved as response.md.
+
+"repeats" in the config runs every prompt that many times (ids get -r1, -r2...).
 
 Usage:
     python scripts/run_spike.py experiments/spike-01/config.json
@@ -41,20 +49,30 @@ def run_one(cfg, run, out_root):
         raise SystemExit(f"{out} already exists; refusing to overwrite")
     out.mkdir(parents=True)
 
+    mode = cfg.get("mode", "agent")
     work = pathlib.Path(tempfile.mkdtemp(prefix="work-", dir=cfg["work_parent"]))
-    shutil.copyfile(cfg["input"], work / cfg["input_name"])
-    message = f"{run['prompt']}\n\nThe spreadsheet is {cfg['input_name']}."
-
     cmd = [
-        "claude", "-p", message,
+        "claude", "-p", None,
         "--model", cfg["model"],
         "--effort", cfg["effort"],
-        "--permission-mode", "bypassPermissions",
         "--output-format", "stream-json",
         "--verbose",
     ]
+    if mode == "agent":
+        shutil.copyfile(cfg["input"], work / cfg["input_name"])
+        message = f"{run['prompt']}\n\nThe spreadsheet is {cfg['input_name']}."
+        cmd += ["--permission-mode", "bypassPermissions"]
+    elif mode == "chat":
+        text = pathlib.Path(cfg["input"]).read_text(encoding="utf-8")
+        message = f"{run['prompt']}\n\n{text}"
+        cmd += ["--tools", "", "--system-prompt", "", "--strict-mcp-config",
+                "--disable-slash-commands"]
+    else:
+        raise SystemExit(f"unknown mode {mode!r}")
+    cmd[2] = message
     meta = {
         "id": run["id"],
+        "mode": mode,
         "prompt": run["prompt"],
         "message_sent": message,
         "model": cfg["model"],
@@ -63,7 +81,7 @@ def run_one(cfg, run, out_root):
             ["claude", "--version"], capture_output=True, text=True
         ).stdout.strip(),
         "input": cfg["input"],
-        "input_name": cfg["input_name"],
+        "input_name": cfg.get("input_name"),
         "input_sha256": sha256(cfg["input"]),
         "started": now(),
     }
@@ -91,6 +109,15 @@ def run_one(cfg, run, out_root):
         for e in map(parse_line, (out / "transcript.jsonl").read_text().splitlines())
         if e.get("type") == "assistant"
     })
+    if mode == "chat":
+        results = [
+            e for e in map(parse_line, (out / "transcript.jsonl").read_text().splitlines())
+            if e.get("type") == "result"
+        ]
+        if results:
+            (out / "response.md").write_text(results[-1].get("result") or "", encoding="utf-8")
+            meta["usage"] = results[-1].get("usage")
+            meta["cost_usd"] = results[-1].get("total_cost_usd")
     (out / "meta.json").write_text(json.dumps(meta, indent=2) + "\n")
     return run["id"], proc.returncode
 
@@ -99,8 +126,14 @@ def main():
     cfg_path = pathlib.Path(sys.argv[1])
     cfg = json.loads(cfg_path.read_text())
     out_root = cfg_path.parent / "runs"
-    with concurrent.futures.ThreadPoolExecutor(len(cfg["runs"])) as ex:
-        for run_id, code in ex.map(lambda r: run_one(cfg, r, out_root), cfg["runs"]):
+    repeats = cfg.get("repeats", 1)
+    runs = [
+        {**r, "id": f"{r['id']}-r{k}" if repeats > 1 else r["id"]}
+        for r in cfg["runs"] for k in range(1, repeats + 1)
+    ]
+    workers = min(len(runs), cfg.get("parallel", 4))
+    with concurrent.futures.ThreadPoolExecutor(workers) as ex:
+        for run_id, code in ex.map(lambda r: run_one(cfg, r, out_root), runs):
             print(f"{run_id}: exit {code}")
 
 
