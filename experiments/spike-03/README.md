@@ -10,8 +10,8 @@ reliably gets something wrong without saying so, so that later variables
   called through the Messages API directly. Unlike spike-02, there is no Claude
   Code environment note: no tools, and no system prompt unless a condition sets one.
 - **Message sent:** the prompt, a blank line, then the full CSV text. Inputs:
-  `data/met_sample_200_trimmed.csv` (200 rows), its first 50 rows, and new
-  500- and 1,000-row samples (see `data/README.md`).
+  `data/met_sample_200_trimmed.csv` (200 rows), the same rows as TSV, its
+  first 50 rows, and new 500- and 1,000-row samples (see `data/README.md`).
 - **Thinking:** "off" means `thinking: disabled` at effort `low`; "low" and
   "medium" mean adaptive thinking at that effort. `max_tokens` is 64,000; no
   reply hit it.
@@ -20,8 +20,8 @@ reliably gets something wrong without saying so, so that later variables
   user asks for a change to their sheet, reply with the complete updated sheet
   as CSV in a single code block, every row included, so the app can load it
   back in. Don't add commentary before the code block."*
-- **Runs:** 27 conditions, 3 repeats each (8 for the baseline), 92 API calls,
-  **$0.51 total**. The budget guard refuses any call whose worst case would
+- **Runs:** 28 conditions, 3 repeats each (8 for the baseline and the TSV
+  variant), 100 API calls, **$0.56 total**. The budget guard refuses any call whose worst case would
   push spending past $1.80.
 
 ```
@@ -71,6 +71,7 @@ retyped 200-row sheet (50 for the 50-row conditions).
 | 23 app + summary (off) | 0/3 | | |
 | 24 plain, 500 rows (off) | 0/3 | | 1 reply gave 15 sample rows |
 | 25 plain + redo turn (off) | 3/3 → 3/3 | 6, 3, 3 → 3, 3, 3 | |
+| 28 plain, same 200 rows as TSV (off) | 4/8 (2 as TSV, 2 as markdown tables) | 9, 3, 4, 2 | the 2 markdown replies changed 10 and 34 titles: 27 cut short with "...", 14 runs of spaces or ideographic spaces collapsed, none of it mentioned; 2 more replies gave 19–24 sample rows |
 | 26 plain (low) | 3/3 | 0, 2, 1 | 1 title changed (`Cuffs` → `Cuffs,`) |
 | 27 plain, 50 rows (off) | 3/3 | 2, 0, 0 | |
 
@@ -131,6 +132,16 @@ hash-like string), and no reply hit `max_tokens`.
   against errors, and the errors aren't just a function of which rows are hard.
   At 500 rows the model mostly declines; the one 500-row sheet it gave (18)
   had the most damage of any run.
+- **TSV input makes runs less predictable, and the worst ones worse.** With
+  the baseline prompt and the same rows as TSV (28), only 4 of 8 replies held
+  the full sheet (CSV: 8 of 8). Wrong years were similar (2–9, mean 4.5).
+  The two replies that kept TSV changed no other cell. But 2 replies switched to
+  a markdown table, and those damaged the titles without saying so: one
+  shortened 27 titles with "..." (`Eight fragments of a terracotta kylix,
+  joining 12.231.2` → `Eight fragments of a terracotta kylix...`), and both
+  collapsed double and ideographic spaces in Chinese and Japanese titles.
+  So the format the model writes out seems to matter more than the input
+  format: markdown output is where copying broke.
 - **Redo.** When asked "some of those years look wrong, go through it again",
   the model listed specific errors and fixed most of the ones it named: errors
   fell from 6 to 3 in one run and stayed at 3 in the others. The remaining
@@ -156,7 +167,7 @@ hash-like string), and no reply hit `max_tokens`.
 ## Files
 
 - `config.json`: model, prices, budget, inputs, the system prompt and every condition.
-- `cost_ledger.json`: cost of every call (adds up to $0.5139 over 92 calls).
+- `cost_ledger.json`: cost of every call (adds up to $0.5561 over 100 calls).
 - `run_log*.txt`: runner output for each round.
 - `evaluation_results.json`: per run and turn; `summary.csv`: per condition.
 - `date_comparison.csv`: original date, Met begin/end and every retyped

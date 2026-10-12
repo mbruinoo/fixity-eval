@@ -45,6 +45,8 @@ python scripts/trim_sample.py data/met_sample_200.csv data/met_sample_200_trimme
   five-column trim. SHA-256 `5aaa5979…7f43` (full) and `195c8e74…0ee9` (trimmed).
 - **500:** the first 500 rows of the 1,000-row trim.
 - **50:** the first 50 rows of `met_sample_200_trimmed.csv`.
+- **`met_sample_200_trimmed.tsv`:** the 200-row trim as TSV (fields joined by
+  tabs, no quoting; no value contains a tab or line break). SHA-256 `ca42753f…6656`.
 
 ```
 python scripts/sample_met.py MetObjects.csv data/met_sample_1000.csv --n 1000 --seed 43

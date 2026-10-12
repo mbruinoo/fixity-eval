@@ -57,7 +57,7 @@ Raised by spike-01:
   dates.
 
 - `experiments/spike-03/`: Messages API directly (no Claude Code), Haiku 5.5,
-  27 conditions, 92 calls, $0.51. Found the baseline (below). Haiku 5.5 mostly
+  28 conditions, 100 calls, $0.56. Found the baseline (below). Haiku 5.5 mostly
   declines to retype when asked for anything extra (checksums, sorting, JSON,
   a summary, 500+ rows), and never made up a checksum or a year for an undated row.
 
@@ -74,6 +74,10 @@ the 200-row CSV** (spike-03 condition `22-plain-startend-off`).
 - No non-date cell changed, and no year was invented for a blank date.
 - Turning thinking on (effort low) cut errors to 0–2 per sheet, so that's one
   lever the baseline can measurably move.
+
+- The same rows sent as TSV gave a full sheet only 4 of 8 times; 2 replies
+  switched to markdown tables and silently shortened or re-spaced titles
+  (up to 34 cells). Markdown output, not TSV input, looks like the trigger.
 
 The weak point is the transformation itself (centuries, BCE, multi-century
 ranges), not copying. Silent errors from copying or made-up checksums didn't

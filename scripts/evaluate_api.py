@@ -2,7 +2,8 @@
 
 For every turn of every run under <experiment>/runs/:
 
-- Finds the table in the reply (CSV in or out of a code fence, or JSON).
+- Finds the table in the reply (CSV or TSV in or out of a code fence,
+  a markdown table, or JSON).
   A reply with no table is scored as "declined" and only its claims are checked.
 - Aligns output rows to source rows by Link Resource (then Object Number),
   and counts dropped, added, duplicated and reordered rows, and changed
@@ -82,22 +83,53 @@ def find_table(reply):
             got = parse_json(body)
             if got:
                 return ("json",) + got
-        if "Object Date" in body.splitlines()[0] if body.strip() else False:
+        first = body.strip().splitlines()[0] if body.strip() else ""
+        if first.startswith("Object Date\t"):
+            return ("tsv in fence",) + parse_tsv(body)
+        if "Object Date" in first:
             return ("csv in fence",) + parse_csv(body)
     lines = reply.splitlines()
     for i, line in enumerate(lines):
-        if line.startswith("Object Date,"):
+        if re.match(r"\|\s*Object Date\s*\|", line):
+            block = [ln for ln in lines[i:] if ln.startswith("|")]
+            end = next((j for j, ln in enumerate(lines[i:]) if not ln.startswith("|")), None)
+            block = lines[i:i + end] if end is not None else lines[i:]
+            return ("markdown table",) + parse_markdown(block)
+        if line.startswith(("Object Date,", "Object Date\t")):
             block = []
             for ln in lines[i:]:
                 if not ln.strip() or ln.startswith("```"):
                     break
                 block.append(ln)
+            if line.startswith("Object Date\t"):
+                return ("tsv unfenced",) + parse_tsv("\n".join(block))
             return ("csv unfenced",) + parse_csv("\n".join(block))
     return None, None, None
 
 
 def parse_csv(body):
     rows = list(csv.reader(io.StringIO(body.strip("\n"))))
+    return rows[0], rows[1:]
+
+
+def parse_tsv(body):
+    rows = [ln.split("\t") for ln in body.strip("\n").splitlines()]
+    return rows[0], rows[1:]
+
+
+def parse_markdown(block):
+    """Cells are split on unescaped "|"; values that contain "|" (artist
+    lists) should be escaped as "\\|". A row whose cell count is off is
+    reported as malformed."""
+    rows = []
+    for ln in block:
+        inner = ln.strip()
+        inner = inner[1:] if inner.startswith("|") else inner
+        inner = inner[:-1] if inner.endswith("|") and not inner.endswith("\\|") else inner
+        cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", inner)]
+        if all(re.fullmatch(r":?-{3,}:?", c) for c in cells):
+            continue  # the |---|---| line
+        rows.append(cells)
     return rows[0], rows[1:]
 
 
@@ -278,7 +310,8 @@ def main():
         if inp not in sources:
             text = pathlib.Path(cfg["inputs"][inp]).read_text(encoding="utf-8")
             lines = text.splitlines()
-            o = list(csv.reader(io.StringIO(text)))[1:]
+            o = ([ln.split("\t") for ln in lines] if cfg["inputs"][inp].endswith(".tsv")
+                 else list(csv.reader(io.StringIO(text))))[1:]
             keys = {r["Link Resource"]: r for r in csv.DictReader(
                 open(cfg["answer_keys"][inp], encoding="utf-8", newline=""))}
             sources[inp] = (o, lines[1:], keys)
@@ -289,8 +322,8 @@ def main():
             reply = "".join(b.get("text", "") for b in resp["content"] if b["type"] == "text")
             kind, header, rows = find_table(reply)
             prose = re.sub(r"```.*?(```|\Z)", "", reply, flags=re.S)
-            if kind and kind.startswith("csv unfenced"):
-                prose = "\n".join(l for l in reply.splitlines() if l.count(",") < 3)
+            if kind and kind.endswith("unfenced"):
+                prose = "\n".join(l for l in reply.splitlines() if l.count(",") < 3 and "\t" not in l)
             res = {"run": run_dir.name, "condition": cond["id"], "turn": t["turn"],
                    "stop_reason": t["stop_reason"], "output_tokens": t["output_tokens"],
                    "cost_usd": t["cost_usd"],
@@ -302,7 +335,7 @@ def main():
                 res["outcome"] = f"table ({kind})" + (" with dates rewritten in place" if in_place else "")
                 sc, per_row = score_table(header, rows, orig, orig_lines, keys, in_place)
                 res.update(sc)
-                if inp in ("default", "50"):
+                if inp in ("default", "50", "tsv"):
                     date_cols[f"{run_dir.name}/t{t['turn']}"] = per_row
                 if t["turn"] > 1 and prev is not None:
                     res["rows_with_years_changed_vs_previous_turn"] = sum(
