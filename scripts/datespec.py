@@ -30,7 +30,7 @@ CENT = re.compile(
 ERA_WORD = r"(?:\s*(?:bce|b\.c\.|bc|ce|a\.d\.|ad))?"
 RANGE = re.compile(r"\d{1,4}s?" + ERA_WORD + r"\s*[–—‒-]\s*" + ERA_WORD + r"\s*\d")
 ORDINAL_WORDS = {"1st": "first", "2nd": "second", "3rd": "third", "4th": "fourth"}
-BLANK = {"", "n.d.", "nd", "unknown", "undated", "n. d.", "date unknown"}
+BLANK = {"", "n.d.", "nd", "unknown", "undated", "n. d.", "date unknown", "no date"}
 
 
 def _century(n, bce):

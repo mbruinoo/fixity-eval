@@ -20,8 +20,7 @@ reliably gets something wrong without saying so, so that later variables
   user asks for a change to their sheet, reply with the complete updated sheet
   as CSV in a single code block, every row included, so the app can load it
   back in. Don't add commentary before the code block."*
-- **Runs:** 28 conditions, 3 repeats each (8 for the baseline and the TSV
-  variant), 100 API calls, **$0.56 total**. The budget guard refuses any call whose worst case would
+- **Runs:** 39 conditions, 3–8 repeats each, 155 API calls, **$0.72 total**. The budget guard refuses any call whose worst case would
   push spending past $1.80.
 
 ```
@@ -149,6 +148,40 @@ hash-like string), and no reply hit `max_tokens`.
   for rows that were already right ("should be −1981 to −1550, not
   −1981/−1550 with a bad ordering") and changed only one row.
 
+## Follow-up: fewer columns, the original prompt, blank dates
+
+Three more questions, all with thinking off and 5 runs each, on the first 100
+rows of the 200-row sheet (`data/met_sample_100_*`).
+
+| Condition | Full sheet | Wrong years per sheet | Other |
+|---|---|---|---|
+| 29 Start/End, no URL | 5/5 | 1, 2, 1, 0, 2 | |
+| 30 Start/End, only Date/Title/Artist | 5/5 | 0, 4, 2, 4, 4 | |
+| 31, 32 Start/End with no date column at all | 0/10 | | all declined; none guessed years |
+| 33 "Can you standardize the dates in this spreadsheet?" | 4/5 | 1, 1, 1, (3)* | *dropped a row, 3 cells changed |
+| 34 same, no URL | 5/5 | 1, 0, 1, 6, 0 | |
+| 35 same, only Date/Title/Artist | 5/5 | 0, 0, 0, 0, 0 | |
+| 36 same prompt, 200 rows | 2/5 | 15, (1)* | *2 rows lost to broken quoting; 3 declined |
+| 37 same prompt, 100 rows, 35 more dates blanked (39% blank) | 3/5 | 2, 0, 1 | 2 more gave cut-down tables (dates only, or 3 columns with shortened titles) |
+| 38 same as 37, TSV | 4/5 (all as markdown tables) | 1, 2, 1, 3 | 23 cells changed (en dashes put into titles and object numbers, spaces collapsed); 2 runs wrote `1880s?` for a blanked `1830–40` |
+| 39 Start/End, 35 dates blanked | 5/5 | 1, 1, 4, 1, 0 | |
+
+- **Removing the URL or other columns didn't raise errors.** With only
+  Date/Title/Artist and the "standardize" prompt (35), all 5 sheets were perfect.
+- **Blanking 39% of the dates didn't make Haiku 5.5 fill them in.** Across 18
+  tables with 39 blank dates each, it filled a blank only twice, both times
+  marked with a question mark (`1880s?`, the real date being `1830–40`). Every
+  other blank was left blank, often written as `(blank)`.
+- **The most obvious errors came from the "standardize" prompt on 200 rows
+  (36-r3).** That run gave 15 wrong dates that a non-specialist could spot:
+  `19th century` → `1600–1699`, `mid-16th century` → `1450–1499`,
+  `ca. 1981–1295 B.C.` → `1550–1458 BCE` (another row's dates), and
+  `ca. 3rd–7th century CE` → `200–499`. But only 2 of 5 runs gave a sheet at all.
+- **TSV again led to markdown tables, and markdown again changed cells**
+  (38: 4–7 per sheet, against 0 for the CSV version).
+- None of this reaches the 40% rate seen earlier with a different setup;
+  see NOTES.md.
+
 ## Caveats
 
 - 3 repeats per condition except the baseline (8). Refusal rates of 0/3 vs
@@ -167,7 +200,7 @@ hash-like string), and no reply hit `max_tokens`.
 ## Files
 
 - `config.json`: model, prices, budget, inputs, the system prompt and every condition.
-- `cost_ledger.json`: cost of every call (adds up to $0.5561 over 100 calls).
+- `cost_ledger.json`: cost of every call (adds up to $0.7238 over 155 calls).
 - `run_log*.txt`: runner output for each round.
 - `evaluation_results.json`: per run and turn; `summary.csv`: per condition.
 - `date_comparison.csv`: original date, Met begin/end and every retyped

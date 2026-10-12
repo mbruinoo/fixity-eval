@@ -165,12 +165,20 @@ def years_from_text(text):
 
 # ---------------------------------------------------------------- scoring
 
-def score_table(header, rows, orig, orig_lines, key_rows, in_place):
+def score_table(header, rows, orig, orig_lines, key_rows, in_place, in_cols=HEADER):
+    """orig rows always have all five columns; in_cols are the ones the model saw."""
     by_link = {r[4]: i for i, r in enumerate(orig)}
     by_num = {r[3]: i for i, r in enumerate(orig)}
+    by_title = {}
+    for i, r in enumerate(orig):
+        by_title.setdefault(r[1], []).append(i)
     ci = {h: col(header, h.lower()) for h in HEADER}
-    s_col = col(header, "start year", "start", "begin year", "start_year")
-    e_col = col(header, "end year", "end", "end year")
+    # A new column holding the rewritten date ("Standardized Date"), if any.
+    std_col = next((j for j, h in enumerate(header) if "date" in h.lower()
+                    and h.strip() not in HEADER and not re.search(r"start|end|begin|qualifier", h, re.I)), None)
+    has_date = "Object Date" in in_cols
+    s_col = col(header, "start year", "start", "begin year", "date start", "start date", "year start")
+    e_col = col(header, "end year", "end", "date end", "end date", "year end")
     ck_cols = [i for i, h in enumerate(header) if re.search(r"checksum|hash|sha|md5|crc", h, re.I)]
 
     res = {"rows_out": len(rows), "rows_in": len(orig), "header": header,
@@ -180,6 +188,11 @@ def score_table(header, rows, orig, orig_lines, key_rows, in_place):
         r = r + [""] * (len(header) - len(r))
         get = lambda h: r[ci[h]] if ci[h] is not None else None
         i = by_link.get(get("Link Resource"), by_num.get(get("Object Number")))
+        if i is None and ci["Link Resource"] is None and ci["Object Number"] is None:
+            # No ID column: match on title, preferring the row at the same position.
+            cands = by_title.get(get("Title"), [])
+            pos = len(matched) + unmatched
+            i = pos if pos in cands else next((c for c in cands if c not in [m for m, _ in matched]), None)
         if i is None:
             unmatched += 1
         else:
@@ -201,19 +214,26 @@ def score_table(header, rows, orig, orig_lines, key_rows, in_place):
     for i, r in matched:
         o = orig[i]
         for h in NON_DATE:
-            if ci[h] is not None and r[ci[h]] != o[HEADER.index(h)]:
+            if h in in_cols and ci[h] is not None and r[ci[h]] != o[HEADER.index(h)]:
                 cell_changes += 1
                 if len(examples) < 8:
                     examples.append({"row": i + 1, "col": h, "was": o[HEADER.index(h)], "now": r[ci[h]]})
         new_date = r[ci["Object Date"]] if ci["Object Date"] is not None else None
-        if not in_place and new_date is not None and new_date != o[0]:
+        if has_date and (not in_place or std_col is not None) and new_date is not None and new_date != o[0]:
             date_text_changed += 1
         if in_place:
-            st, en = years_from_text(new_date or "")
+            st, en = years_from_text((r[std_col] if std_col is not None else new_date) or "")
         elif s_col is not None and e_col is not None:
             st, en = datespec.to_year(r[s_col]), datespec.to_year(r[e_col])
         else:
             st = en = None
+        if not has_date:
+            # The sheet gave no date, so any year is supplied from outside it.
+            lab = "left_blank" if st is None and en is None else (
+                "supplied_" + datespec.judge(o[0], st, en, tol=CA_TOLERANCE))
+            labels[lab] = labels.get(lab, 0) + 1
+            per_row_dates[i] = (st, en, lab)
+            continue
         lab = datespec.judge(o[0], st, en, tol=CA_TOLERANCE)
         labels[lab] = labels.get(lab, 0) + 1
         slab = datespec.judge(o[0], st, en, tol=0)
@@ -270,7 +290,7 @@ def write_summary(path, report):
     for r in report:
         key = r["condition"] + ("" if r["turn"] == 1 else f" (turn {r['turn']})")
         groups.setdefault(key, []).append(r)
-    cols = ["condition", "runs", "tables", "full_tables", "declined", "year_errors_per_full_table",
+    cols = ["condition", "runs", "tables", "full_tables", "declined_or_no_full_columns", "year_errors_per_full_table",
             "runs_with_year_error", "non_date_cells_changed", "object_date_text_changed",
             "rows_dropped", "rows_duplicated", "made_up_checksums", "row_count_claims_wrong", "cost_usd"]
     with open(path, "w", newline="", encoding="utf-8") as f:
@@ -278,9 +298,10 @@ def write_summary(path, report):
         w.writerow(cols)
         for key, rs in groups.items():
             tables = [r for r in rs if "rows_out" in r]
+            others = [r for r in rs if r["outcome"].startswith("other table")]
             full = [r for r in tables if r["rows_dropped"] == 0]
             w.writerow([
-                key, len(rs), len(tables), len(full), len(rs) - len(tables),
+                key, len(rs), len(tables), len(full), len(rs) - len(tables) - len(others),
                 " ".join(str(r["year_errors"]) for r in full),
                 sum(r["year_errors"] > 0 for r in full),
                 sum(r["non_date_cells_changed"] for r in tables),
@@ -311,11 +332,15 @@ def main():
             text = pathlib.Path(cfg["inputs"][inp]).read_text(encoding="utf-8")
             lines = text.splitlines()
             o = ([ln.split("\t") for ln in lines] if cfg["inputs"][inp].endswith(".tsv")
-                 else list(csv.reader(io.StringIO(text))))[1:]
+                 else list(csv.reader(io.StringIO(text))))
+            in_cols, o = o[0], o[1:]
+            if in_cols != HEADER:  # column subset of the 200-row sheet: score against full rows
+                full = list(csv.reader(open(cfg["inputs"]["default"], encoding="utf-8", newline="")))[1:]
+                o = full[:len(o)]
             keys = {r["Link Resource"]: r for r in csv.DictReader(
                 open(cfg["answer_keys"][inp], encoding="utf-8", newline=""))}
-            sources[inp] = (o, lines[1:], keys)
-        orig, orig_lines, keys = sources[inp]
+            sources[inp] = (o, lines[1:], keys, in_cols)
+        orig, orig_lines, keys, in_cols = sources[inp]
         prev = None
         for t in meta["turns"]:
             resp = json.loads((run_dir / f"response_turn{t['turn']}.json").read_text())
@@ -329,13 +354,15 @@ def main():
                    "cost_usd": t["cost_usd"],
                    "hash_like_strings_in_reply": len(re.findall(r"\b[0-9a-f]{16,64}\b", reply))}
             if not kind:
-                res["outcome"] = "declined (no table)"
+                other = [ln for ln in reply.splitlines() if ln.startswith("|")]
+                res["outcome"] = (f"other table ({len(other) - 2} rows: {other[0].strip()})"
+                                  if len(other) > 20 else "declined (no table)")
             else:
-                in_place = col(header, "start year", "start", "start_year") is None
+                in_place = col(header, "start year", "start", "date start", "start date", "year start") is None
                 res["outcome"] = f"table ({kind})" + (" with dates rewritten in place" if in_place else "")
-                sc, per_row = score_table(header, rows, orig, orig_lines, keys, in_place)
+                sc, per_row = score_table(header, rows, orig, orig_lines, keys, in_place, in_cols)
                 res.update(sc)
-                if inp in ("default", "50", "tsv"):
+                if inp in ("default", "50", "tsv", "100", "100_nourl", "100_date_title_artist", "100_blanked35", "100_blanked35_tsv"):
                     date_cols[f"{run_dir.name}/t{t['turn']}"] = per_row
                 if t["turn"] > 1 and prev is not None:
                     res["rows_with_years_changed_vs_previous_turn"] = sum(
@@ -345,7 +372,7 @@ def main():
             report.append(res)
             print(json.dumps({k: v for k, v in res.items() if k not in ("header", "non_date_change_examples")}))
 
-    orig, _, keys = sources["default"]
+    orig, _, keys, _ = sources["default"]
     with open(root / "date_comparison.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f, lineterminator="\n")
         w.writerow(["Object Number", "Object Date", "Met begin", "Met end"] + list(date_cols))

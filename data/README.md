@@ -54,3 +54,14 @@ python scripts/trim_sample.py data/met_sample_1000.csv data/met_sample_1000_trim
 head -501 data/met_sample_1000_trimmed.csv > data/met_sample_500_trimmed.csv
 head -51 data/met_sample_200_trimmed.csv > data/met_sample_50_trimmed.csv
 ```
+
+## 100-row variants (`met_sample_100_*`)
+
+All are the first 100 rows of `met_sample_200_trimmed.csv`.
+
+- `met_sample_100_trimmed.csv`: all five columns.
+- `_nourl.csv`: without Link Resource. `_date_title_artist.csv`: only those three.
+  `_nodate.csv`: without Object Date. `_title_artist.csv`: only those two.
+- `_blanked35.csv` / `.tsv`: 35 dated rows (chosen with `random.Random(7)`)
+  have their Object Date emptied, so 39 of 100 are blank. The blanked row
+  numbers are in `_blanked35_rows.json`; the real dates are in `met_sample_200.csv`.
