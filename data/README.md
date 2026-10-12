@@ -38,3 +38,17 @@ To regenerate from the full sample:
 ```
 python scripts/trim_sample.py data/met_sample_200.csv data/met_sample_200_trimmed.csv
 ```
+
+## `met_sample_1000.csv`, `met_sample_1000_trimmed.csv`, `met_sample_500_trimmed.csv`, `met_sample_50_trimmed.csv`
+
+- **1000:** a separate draw, same method, seed `43` (all 54 columns), and its
+  five-column trim. SHA-256 `5aaa5979…7f43` (full) and `195c8e74…0ee9` (trimmed).
+- **500:** the first 500 rows of the 1,000-row trim.
+- **50:** the first 50 rows of `met_sample_200_trimmed.csv`.
+
+```
+python scripts/sample_met.py MetObjects.csv data/met_sample_1000.csv --n 1000 --seed 43
+python scripts/trim_sample.py data/met_sample_1000.csv data/met_sample_1000_trimmed.csv
+head -501 data/met_sample_1000_trimmed.csv > data/met_sample_500_trimmed.csv
+head -51 data/met_sample_200_trimmed.csv > data/met_sample_50_trimmed.csv
+```

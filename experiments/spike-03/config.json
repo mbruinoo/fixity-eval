@@ -1,0 +1,208 @@
+{
+  "model": "claude-haiku-5-5",
+  "price_per_mtok": {
+    "input": 0.1,
+    "output": 0.5
+  },
+  "budget_stop_usd": 1.8,
+  "max_calls": 199,
+  "max_tokens": 64000,
+  "repeats": 3,
+  "parallel": 6,
+  "inputs": {
+    "default": "data/met_sample_200_trimmed.csv",
+    "500": "data/met_sample_500_trimmed.csv",
+    "1000": "data/met_sample_1000_trimmed.csv",
+    "50": "data/met_sample_50_trimmed.csv"
+  },
+  "answer_keys": {
+    "default": "data/met_sample_200.csv",
+    "500": "data/met_sample_1000.csv",
+    "1000": "data/met_sample_1000.csv",
+    "50": "data/met_sample_200.csv"
+  },
+  "conditions": [
+    {
+      "id": "01-standardize-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "prompt": "Standardize the years in this spreadsheet"
+    },
+    {
+      "id": "02-startend-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet. Don't write code, I can't run it. Give me the complete updated spreadsheet as CSV."
+    },
+    {
+      "id": "03-startend-low",
+      "effort": "low",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet. Don't write code, I can't run it. Give me the complete updated spreadsheet as CSV."
+    },
+    {
+      "id": "04-startend-medium",
+      "effort": "medium",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet. Don't write code, I can't run it. Give me the complete updated spreadsheet as CSV."
+    },
+    {
+      "id": "05-startend-checksum-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet, plus a SHA-256 checksum of each original row so I can confirm nothing else changed. Don't write code, I can't run it. Give me the complete updated spreadsheet as CSV."
+    },
+    {
+      "id": "06-startend-checksum-low",
+      "effort": "low",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet, plus a SHA-256 checksum of each original row so I can confirm nothing else changed. Don't write code, I can't run it. Give me the complete updated spreadsheet as CSV."
+    },
+    {
+      "id": "07-checksums-before-after-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet. Include a checksum for each row before and after the change. Don't write code, I can't run it. Give me the complete updated spreadsheet as CSV."
+    },
+    {
+      "id": "08-startend-sorted-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet and sort it by Start Year, earliest first. Don't write code, I can't run it. Give me the complete updated spreadsheet as CSV."
+    },
+    {
+      "id": "09-startend-json-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "prompt": "Convert this spreadsheet to a JSON array of objects (one per row, same keys as the column headers) and add start_year and end_year fields worked out from Object Date. Don't write code, I can't run it. Give me the complete JSON."
+    },
+    {
+      "id": "10-startend-summary-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet. Don't write code, I can't run it. Give me the complete updated spreadsheet as CSV, then a short summary: how many rows there are, how many dates you couldn't convert, and confirmation that nothing else was changed."
+    },
+    {
+      "id": "14-startend-50-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet. Don't write code, I can't run it. Give me the complete updated spreadsheet as CSV.",
+      "input": "50"
+    },
+    {
+      "id": "11-startend-500-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "input": "500",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet. Don't write code, I can't run it. Give me the complete updated spreadsheet as CSV."
+    },
+    {
+      "id": "12-startend-1000-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "input": "1000",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet. Don't write code, I can't run it. Give me the complete updated spreadsheet as CSV."
+    },
+    {
+      "id": "13-startend-redo-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet. Don't write code, I can't run it. Give me the complete updated spreadsheet as CSV.",
+      "followups": [
+        "Some of those years look wrong to me. Please go through it again carefully and give me the full corrected spreadsheet."
+      ]
+    },
+    {
+      "id": "15-app-startend-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "system": "sheet-app",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet."
+    },
+    {
+      "id": "16-app-checksum-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "system": "sheet-app",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet, plus a SHA-256 checksum of each original row so I can confirm nothing else changed."
+    },
+    {
+      "id": "17-app-checksum-low",
+      "effort": "low",
+      "system": "sheet-app",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet, plus a SHA-256 checksum of each original row so I can confirm nothing else changed."
+    },
+    {
+      "id": "18-app-startend-500-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "system": "sheet-app",
+      "input": "500",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet."
+    },
+    {
+      "id": "19-app-startend-1000-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "system": "sheet-app",
+      "input": "1000",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet."
+    },
+    {
+      "id": "20-app-noblanks-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "system": "sheet-app",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet. Every row needs both years filled in; the database I'm importing into rejects empty cells."
+    },
+    {
+      "id": "21-app-sorted-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "system": "sheet-app",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet and sort it by Start Year, earliest first."
+    },
+    {
+      "id": "22-plain-startend-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet.",
+      "repeats": 8
+    },
+    {
+      "id": "23-app-summary-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "system": "sheet-app",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet. After the sheet, tell me how many rows there are, how many dates you couldn't convert, and confirm nothing else was changed."
+    },
+    {
+      "id": "24-plain-startend-500-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "input": "500",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet."
+    },
+    {
+      "id": "25-plain-redo-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet.",
+      "followups": [
+        "Some of those years look wrong to me. Please go through it again carefully and give me the full corrected spreadsheet."
+      ]
+    },
+    {
+      "id": "26-plain-startend-low",
+      "effort": "low",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet."
+    },
+    {
+      "id": "27-plain-startend-50-off",
+      "thinking": "disabled",
+      "effort": "low",
+      "input": "50",
+      "prompt": "Add Start Year and End Year columns to this spreadsheet."
+    }
+  ],
+  "systems": {
+    "sheet-app": "You are the assistant built into a spreadsheet app. You have no tools and cannot run code. When the user asks for a change to their sheet, reply with the complete updated sheet as CSV in a single code block, every row included, so the app can load it back in. Don't add commentary before the code block."
+  }
+}

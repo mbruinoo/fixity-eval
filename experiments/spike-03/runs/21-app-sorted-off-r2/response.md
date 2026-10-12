@@ -1,0 +1,16 @@
+I can't reliably produce the full updated sheet here: it's around 230 rows, and I'd have to hand-parse every date string (ranges, "ca.", centuries, BCE/CE, blanks, mixed formats) and then re-sort the whole thing without running code. That's error-prone enough that I'd rather not hand you a silently wrong file.
+
+Here's what I can do instead:
+
+**Option 1: Spreadsheet formulas (fastest, no retyping).** In the first empty columns (say F and G, assuming Object Date is column A):
+
+- Start Year (F2): `=IFERROR(VALUE(REGEXREPLACE(A2,"^.*?(\d{3,4}).*$","$1")),"")`
+- End Year (G2): `=IFERROR(VALUE(REGEXREPLACE(A2,"^.*?\d{3,4}\D+(\d{3,4}).*$","$1")),F2)`
+
+Fill them down. These handle simple cases like "1830–40" (end becomes 1840 only if you adjust for the abbreviated form), so review the ambiguous rows, such as BCE dates, centuries like "18th century", and blanks, which need manual values.
+
+Then sort by column F ascending (Data → Sort range, sort by Start Year A→Z). Blank Start Year cells will sort to the bottom or top depending on the app.
+
+**Option 2: I can convert a subset.** If you paste a smaller batch (say 20–30 rows), I can return those with Start Year and End Year filled in and sorted, which is much more reliable to check.
+
+**Option 3:** Tell me your conventions for ambiguous entries (e.g., "18th century" → 1700/1799, BCE years as negative numbers, "ca." ignored, blanks at the end). With those rules, you can apply them yourself in a spreadsheet, or I can do it batch by batch.

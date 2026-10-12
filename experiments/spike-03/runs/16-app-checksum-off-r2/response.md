@@ -1,0 +1,5 @@
+I can't compute SHA-256 hashes or parse every date reliably by hand across 200+ rows, so I can't produce accurate checksums here. Returning a sheet with made-up hash values would defeat your goal of confirming nothing changed, so I'm not going to fabricate them.
+
+What I can do is suggest how to get correct results quickly. In Excel or Google Sheets, a checksum column can be generated with a formula or a short script, and Start Year/End Year can be filled with a formula that extracts the first and last four-digit numbers from the Object Date column (with manual handling for entries like "ca. 1981–1550 B.C." that need BCE sign handling).
+
+If you'd like, I can write the formulas or a small Python or Apps Script snippet that adds those three columns to your file and prints a SHA-256 for each original row.

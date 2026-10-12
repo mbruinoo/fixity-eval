@@ -1,0 +1,11 @@
+I can't reliably produce this by hand: there are roughly 200 rows, and I'd have to parse each free-text "Object Date" (things like "ca. 600–550 BCE", "late 19th–early 20th century", "A.H. 139–48/ 757–66 CE", "ca. 1981–1550 B.C.", "1880–92", "n.d.", blank, or "unknown") into a start and end year. Transcribing that many rows with consistent results is error-prone, and a silent mistake in one row would be hard for you to spot.
+
+Here's a practical way to get a correct file without running code:
+
+1. **Use a spreadsheet formula instead of code.** In Excel or Google Sheets, with the Object Date in column A, you can use the built-in "Split text to columns" or "Find and Replace" tools for the simple ranges like "1880–92" or "1770." For the century descriptions ("18th century," "late 19th–early 20th century"), you'll still need a lookup table, which is more manual.
+
+2. **Ask me for a smaller batch.** If you paste 20 to 30 rows at a time, I can give you the Start Year and End Year for each, and you can paste the results into the sheet. That's much easier to verify.
+
+3. **Accept my conventions up front.** For example: "18th century" → 1700 / 1799; "late 19th–early 20th century" → 1875 / 1925; "ca. X" → X / X; single dates → same value in both columns; "n.d.," blank, or "unknown" → empty. Tell me if you want different rules and I'll apply them consistently.
+
+Would you like me to start with the first 25 rows so you can check the format before we do the rest?
