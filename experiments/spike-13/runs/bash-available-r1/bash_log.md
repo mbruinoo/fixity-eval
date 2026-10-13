@@ -240,3 +240,14 @@ Sample of standardized data:
 
 ```
 
+## call 6
+
+```
+md5sum /mnt/user-data/uploads/met_inventory.tsv
+```
+
+```
+6ec5bfc2d979ad12eb3343149beb8617  /mnt/user-data/uploads/met_inventory.tsv
+
+```
+
