@@ -11,23 +11,26 @@ record (row) and its cells (Object Date, Title, Object Number, Link Resource):
                 real object number; also a row with a real link whose title
                 and object number are both different
 - missing row:  an input row absent from the output (omission)
-- altered cell  (intrinsic): a kept row whose cell differs from the input
-                beyond standardizing
-- standardized: differs only in ways that lose nothing (object numbers
-                excepted: as IDs, any change counts as altered): dash and space
-                style, straight quotes, http -> https, B.C. -> BCE, HTML tags,
-                letter case, quotation marks, separating punctuation (: ; , and a
-                spaced dash in titles), "circa"/"ca." spacing, a blank written as
-                [Unknown] / [No date] / n.d., or repeated text removed
+- changed cell: a kept row whose cell differs from the input, in one of
+                three tiers (see tier()):
+    Tier 1  content loss or meaning changed: text deleted or added, a
+            qualifier dropped ("ca.", "probably", "?"), a different word
+            (蝉小川 removed; 东周 -> 東周; "ca. 1928" -> "1928")
+    Tier 2  slight content loss: accents stripped ("La Rêve" -> "La Reve")
+    Tier 3  reformat only: nothing lost. Dash, space and quote style (also in
+            object numbers: "14.40.872a–c" -> "14.40.872a-c"), http -> https,
+            B.C. -> BCE, HTML tags, letter case, separating punctuation,
+            "circa"/"ca.", "1635–45" -> "1635-1645", the same words reordered,
+            repeated text removed, a blank written as [Unknown] / [No date] /
+            n.d.
 
-hallucination_score = (invented rows + missing rows + kept rows with an
-altered cell) / (input rows + invented rows): the share of records that
-didn't come back intact. 0 is a perfect copy, 1 is nothing intact.
+Only Tier 1 and Tier 2 count:
 
-Altered rows are also split by their worst cell (see tier()): id_format (an
-object number's dash style only), lossy (accents stripped), content (text
-deleted or meaning changed). score_without_id_format and score_content_only
-recount the score leaving out the milder tiers.
+    hallucination_score = (invented rows + missing rows + rows with a Tier 1
+                           or Tier 2 change) / (input rows + invented rows)
+
+the share of records that didn't come back intact: 0 is a perfect copy, 1 is
+nothing intact. score_tier1_only counts Tier 1 changes alone.
 
 Usage:
     python scripts/hallu_score.py experiments/spike-07
@@ -89,7 +92,7 @@ def same(a, b, date=False):
     if sep(na) == sep(nb):
         return True
     # The same words in another order ("擦條|Sand-file" -> "Sand-file - 擦條"): nothing lost.
-    words = lambda x: sorted(re.findall(r"\w+", x))
+    words = lambda x: sorted(re.findall(r"\w+|[?\[\]()]", x))  # "?" and brackets carry meaning
     if words(na) == words(nb):
         return True
     # Repeated text removed (e.g. a title that repeats itself): nothing lost.
@@ -100,19 +103,16 @@ def same(a, b, date=False):
 
 
 def tier(column, a, b):
-    """How serious an altered cell is:
-    1 id_format: an object number changed only in dash or separator style (no meaning lost,
-                 but exact lookups on the ID break)
-    2 lossy:     accents stripped (spelling lost, recoverable only from source)
-    3 content:   text deleted or meaning changed (non-English halves, "?"
-                 removed, "or" made a range, made-up abbreviations, ...)"""
+    """1 content loss or meaning changed, 2 slight content loss (accents
+    stripped), 3 reformat only (an object number's dash or separator style;
+    every other reformat is already filtered out by same())."""
     id_form = lambda x: re.sub(r"[\s,;]+", ",", re.sub(r"[‐-―−]", "-", x.strip()))
     if column == "Object Number" and id_form(a) == id_form(b):
-        return 1
+        return 3
     plain = lambda x: "".join(ch for ch in unicodedata.normalize("NFD", x) if unicodedata.category(ch) != "Mn")
     if norm(plain(a)) == norm(plain(b)):
         return 2
-    return 3
+    return 1
 
 
 def key_link(s):
@@ -189,7 +189,8 @@ def score_run(run_dir, input_path):
     matched, invented, examples = {}, [], {"invented": [], "altered": []}
     altered_cells = {c: 0 for c in cols}
     altered_rows = set()
-    row_tier = {}  # input row -> worst tier among its altered cells
+    row_tier = {}  # input row -> most serious tier among its changed cells (1 or 2)
+    reformatted_ids = 0  # Tier 3 object-number changes, recorded but not counted
     for r in body:
         link = key_link(get(r, "Link Resource"))
         i = by_link.get(link)
@@ -206,7 +207,7 @@ def score_run(run_dir, input_path):
         # A real link with a different title and object number is a made-up record.
         num_out, title_out = get(r, "Object Number"), get(r, "Title")
         if (num_out is not None and title_out is not None
-                and tier("Object Number", rows_in[i][2], num_out) != 1 and key_num(num_out) != key_num(rows_in[i][2])
+                and tier("Object Number", rows_in[i][2], num_out) != 3 and key_num(num_out) != key_num(rows_in[i][2])
                 and not same(rows_in[i][1], title_out)):
             invented.append(r)
             if len(examples["invented"]) < 10:
@@ -217,31 +218,34 @@ def score_run(run_dir, input_path):
             out = get(r, c)
             if out is None:  # column dropped from the output
                 continue
-            # Object numbers are IDs: any change, even a dash, breaks a lookup.
+            # Object numbers are compared exactly, so a dash change is caught and
+            # recorded (as Tier 3) rather than silently passed.
             changed = (out.strip() != rows_in[i][j].strip()) if c == "Object Number" else not same(rows_in[i][j], out, date=(c == "Object Date"))
-            if changed:
-                altered_cells[c] += 1
-                altered_rows.add(i)
-                t = tier(c, rows_in[i][j], out)
-                row_tier[i] = max(row_tier.get(i, 0), t)
-                if len(examples["altered"]) < 25:
-                    examples["altered"].append({"column": c, "input": rows_in[i][j], "output": out})
+            if not changed:
+                continue
+            t = tier(c, rows_in[i][j], out)
+            if t == 3:
+                reformatted_ids += 1
+                continue
+            altered_cells[c] += 1
+            altered_rows.add(i)
+            row_tier[i] = min(row_tier.get(i, 9), t)
+            if len(examples["altered"]) < 25:
+                examples["altered"].append({"column": c, "tier": t, "input": rows_in[i][j], "output": out})
     missing = len(rows_in) - len(matched)
     denom = len(rows_in) + len(invented)
     res.update({
         "output_rows": len(body), "columns_found": {c: cols[c] is not None for c in cols},
         "invented_rows": len(invented), "missing_rows": missing,
-        "rows_with_altered_cell": len(altered_rows), "altered_cells_by_column": altered_cells,
+        "rows_with_tier1_or_2_change": len(altered_rows), "altered_cells_by_column": altered_cells,
         "hallucinated_row_rate": round(len(invented) / max(len(body), 1), 3),
         "omission_rate": round(missing / len(rows_in), 3),
         "altered_row_rate": round(len(altered_rows) / max(len(matched), 1), 3),
         "hallucination_score": round((len(invented) + missing + len(altered_rows)) / denom, 3),
-        # Rows by their worst altered cell, and the score counting only tiers 2-3
-        # (spelling or content lost) and only tier 3 (content lost).
-        "altered_rows_by_tier": {name: sum(1 for t in row_tier.values() if t == n)
-                                 for n, name in ((1, "id_format"), (2, "lossy"), (3, "content"))},
-        "score_without_id_format": round((len(invented) + missing + sum(1 for t in row_tier.values() if t >= 2)) / denom, 3),
-        "score_content_only": round((len(invented) + missing + sum(1 for t in row_tier.values() if t == 3)) / denom, 3),
+        "rows_by_tier": {"tier1_content": sum(1 for t in row_tier.values() if t == 1),
+                         "tier2_slight": sum(1 for t in row_tier.values() if t == 2)},
+        "tier3_object_numbers_reformatted": reformatted_ids,
+        "score_tier1_only": round((len(invented) + missing + sum(1 for t in row_tier.values() if t == 1)) / denom, 3),
         "examples": examples,
     })
     return res

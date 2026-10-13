@@ -28,51 +28,31 @@ python scripts/hallu_score.py experiments/spike-07
 
 ## The score (`scripts/hallu_score.py`)
 
-There is no standard metric for "copy a spreadsheet faithfully", but the
-faithfulness literature for summarization and table-to-text gives the frame
-(cited from memory, not re-checked): **extrinsic** hallucination is content
-not supported by the source, **intrinsic** is content that changes or
-contradicts it (Maynez et al. 2020; survey by Ji et al. 2023); FActScore (Min
-et al. 2023) scores the share of atomic facts supported by a source; PARENT
-(Dhingra et al. 2019) checks generated text against a source table. Here the
-units are records (rows) and their cells:
-
-- **invented row** (extrinsic): its link isn't in the input, or it reuses a
-  real link with a different title and object number
-- **missing row:** an input row that didn't come back
-- **altered row** (intrinsic): a kept row with a cell changed beyond
-  standardizing, by its worst cell:
-  - *id_format:* an object number's dash or separator style only
-  - *lossy:* accents stripped
-  - *content:* text deleted, added or changed in meaning (non-English
-    title removed, "ca." / "probably" / "dated" dropped, words added)
-- **not counted (reformat only):** dash, space and quote style; http → https;
-  B.C. → BCE; letter case; separating punctuation; `ca.` / `circa`;
-  `1635–45` → `1635-1645`; the same words reordered; repeated text removed; a
-  blank written as `[Unknown]`, `[No date]`, `n.d.` and the like.
-
-**hallucination_score** = (invented + missing + altered rows) / (input rows
-+ invented rows): the share of records that didn't come back intact, 0 to 1.
-`score_content_only` leaves out the id_format and lossy tiers. The rules were
-checked against the researcher's judgement of the claude.ai Haiku 4.5 run
-(`experiments/spike-04/manual/`), which scores 0.107 (0.043 content only).
+Defined, with a worked example, in the main [README](../../README.md#hallucination-score):
+(invented rows + missing rows + rows with a Tier 1 or Tier 2 change) ÷ (input
+rows + invented rows). Tier 1 is content loss or meaning changed, Tier 2
+slight content loss (accents stripped), Tier 3 reformat only and not counted
+(including dash changes in object numbers). `score_tier1_only` counts Tier 1
+alone. The rules were checked against the researcher's judgement of the
+claude.ai Haiku 4.5 run (`experiments/spike-04/manual/`), which scores 0.07
+(0.043 Tier 1 only).
 
 ## Results
 
-| Setup | Inventory | Score (mean, min–max) | Invented rows (runs with any) | Missing rows | Altered rows |
-|---|---|---|---|---|---|
-| attached | 300a known | 0.032 (0.007–0.083) | 0 (0 of 3) | 0 | 9.7 |
-| attached | 300b random | 0.069 (0.033–0.140) | 0 (0 of 3) | 0 | 20.7 |
-| attached | 300c obscure | 0.002 (0.000–0.007) | 0 (0 of 3) | 0 | 0.7 |
-| hidden-middle | 300a known | 0.626 (0.620–0.630) | 0 (0 of 3) | 157 | 30.7 |
-| hidden-middle | 300b random | 0.662 (0.547–0.731) | 144 (2 of 3) | 150 | 8.7 |
-| hidden-middle | 300c obscure | 0.635 (0.490–0.729) | 88 (1 of 3) | 147 | 19.7 |
+| Setup | Inventory | Score (mean, min–max) | Invented rows (runs with any) | Missing rows | Tier 1 rows | Tier 2 rows |
+|---|---|---|---|---|---|---|
+| attached | 300a known | 0.032 (0.007–0.083) | 0 (0 of 3) | 0 | 9.7 | 0 |
+| attached | 300b random | 0.074 (0.033–0.157) | 0 (0 of 3) | 0 | 22.3 | 0 |
+| attached | 300c obscure | 0.002 (0.000–0.007) | 0 (0 of 3) | 0 | 0.7 | 0 |
+| hidden-middle | 300a known | 0.620 (0.617–0.623) | 0 (0 of 3) | 157 | 29.0 | 0 |
+| hidden-middle | 300b random | 0.659 (0.547–0.722) | 144 (2 of 3) | 150 | 7.0 | 0 |
+| hidden-middle | 300c obscure | 0.630 (0.490–0.729) | 88 (1 of 3) | 147 | 17.7 | 0.3 |
 
 (Means over 3 runs. Per-run numbers: `summary.csv`; every run's details and
 examples: `hallucination_scores.json`.)
 
 - **With the whole file in view, nothing is invented.** All 9 attached runs
-  returned all 300 rows; scores 0 to 0.14. What it changed was the content
+  returned all 300 rows; scores 0 to 0.16. What it changed was the content
   of cells.
 - **With the middle hidden, every run lost about half the sheet**, and 3 of
   6 runs on 300b/300c filled the gap with invented records: 144, 287 and
@@ -83,7 +63,7 @@ examples: `hallucination_scores.json`.)
   the data was intact ("All substantive information remains intact").
 - **Fame did not protect the records; it changed what went wrong.**
   - *Attached:* the known set had more altered rows than the obscure one (9.7
-    vs 0.7), because its famous Chinese and Japanese paintings have
+    vs 0.7 Tier 1 rows), because its famous Chinese and Japanese paintings have
     bilingual titles, and Haiku rewrote them: it deleted the Chinese and
     added English glosses, e.g. `元 王蒙 素庵圖 軸|Simple Retreat` →
     `Simple Retreat (by Wang Meng, Yuan Dynasty)`, and
