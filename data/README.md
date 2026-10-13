@@ -95,16 +95,19 @@ Three 300-row Met inventories with the same columns as `met_random_300.tsv`
 comparing well-known and obscure works. Scores are Haiku 4.5's `known_score`
 from spike-05; no object appears in more than one file.
 
-| File | What it is | Mean known_score | Mean familiarity | Blank titles |
-|---|---|---|---|---|
-| 300a | the 300 best-known objects scored (artist and year both right) | 1.00 | 0.56 | 0 |
-| 300b | a copy of `met_random_300.tsv` (random) | 0.14 | 0.16 | 25 |
-| 300c | 300 random objects with known_score 0 and familiarity ≤ 0.1 | 0.00 | 0.08 | 0 |
+| File | What it is | Blank titles |
+|---|---|---|
+| 300a | 275 of the best-known objects scored (artist and year both right; mean familiarity 0.57), plus 25 untitled Met highlights or timeline works | 25 |
+| 300b | a copy of `met_random_300.tsv` (random; mean known_score 0.14, familiarity 0.16) | 25 |
+| 300c | 275 random objects with known_score 0 and familiarity ≤ 0.1, plus 25 untitled random non-highlights | 25 |
 
 - 300a comes from 3,933 scored objects (spike-05 round 1, plus round 2's
   2,500 Met highlights and timeline works with a named artist). It leans to
-  paintings and design classics.
-- 300a and 300c only include objects whose score could be checked (a named
-  artist or a precise date) and have a title; 300b keeps its 25 untitled rows.
+  paintings and design classics. Its 25 lowest-familiarity rows were swapped
+  for the untitled ones.
+- Untitled objects can't be scored, so each file's 25 untitled rows are chosen
+  by group instead: Met highlights or timeline works for 300a (mostly
+  anonymous Asian and Islamic objects), ordinary objects for 300c. All three
+  files now have 25 untitled rows, so blanks don't differ between them.
 
-SHA-256: 300a `10e6d871…7e39`, 300b `33c53888…d547`, 300c `7dcfb4bb…369f`.
+SHA-256: 300a `7c1e1077…5751`, 300b `33c53888…d547`, 300c `f5eace76…40a1`.
