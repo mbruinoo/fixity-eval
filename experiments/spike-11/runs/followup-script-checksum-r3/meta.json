@@ -1,0 +1,149 @@
+{
+  "run": "followup-script-checksum-r3",
+  "condition": {
+    "id": "followup-script-checksum",
+    "model": "claude-haiku-4-5",
+    "input": "300b",
+    "filename": "met_inventory.tsv",
+    "view_limit": 16000,
+    "view_mode": "middle",
+    "prompt": "Can you standardize this .tsv file?",
+    "nudges": [
+      "Yes, thank you",
+      "Yes, please continue",
+      "Yes, please continue"
+    ],
+    "followups": [
+      "Can you try again, but this time: Please perform any data transformations as a procedural script, with a checksum of the input and output files in the header as a fixity check. I'd like to have all the files (input, transformation script, and output) to download and archive."
+    ]
+  },
+  "calls": [
+    {
+      "call": 1,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 802,
+      "output_tokens": 82,
+      "cost_usd": 0.001212
+    },
+    {
+      "call": 2,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 7233,
+      "output_tokens": 6077,
+      "cost_usd": 0.037618
+    },
+    {
+      "call": 3,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "end_turn",
+      "input_tokens": 13346,
+      "output_tokens": 225,
+      "cost_usd": 0.014471
+    },
+    {
+      "call": 4,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 13636,
+      "output_tokens": 1727,
+      "cost_usd": 0.022271
+    },
+    {
+      "call": 5,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 15398,
+      "output_tokens": 115,
+      "cost_usd": 0.015973
+    },
+    {
+      "call": 6,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 17611,
+      "output_tokens": 6033,
+      "cost_usd": 0.047776
+    },
+    {
+      "call": 7,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 23680,
+      "output_tokens": 1871,
+      "cost_usd": 0.033035
+    },
+    {
+      "call": 8,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 25584,
+      "output_tokens": 1997,
+      "cost_usd": 0.035569
+    },
+    {
+      "call": 9,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 27611,
+      "output_tokens": 1992,
+      "cost_usd": 0.037571
+    }
+  ],
+  "tool_calls": [
+    {
+      "call": 1,
+      "tool": "view",
+      "path": "/mnt/user-data/uploads/met_inventory.tsv",
+      "view_range": null
+    },
+    {
+      "call": 2,
+      "tool": "create_file",
+      "path": "/mnt/user-data/outputs/met_inventory_standardized.tsv",
+      "view_range": null
+    },
+    {
+      "call": 4,
+      "tool": "create_file",
+      "path": "/mnt/user-data/outputs/standardize_met_inventory.py",
+      "view_range": null
+    },
+    {
+      "call": 5,
+      "tool": "view",
+      "path": "/mnt/user-data/uploads/met_inventory.tsv",
+      "view_range": [
+        1,
+        50
+      ]
+    },
+    {
+      "call": 6,
+      "tool": "create_file",
+      "path": "/mnt/user-data/outputs/met_inventory_ORIGINAL.tsv",
+      "view_range": null
+    },
+    {
+      "call": 7,
+      "tool": "create_file",
+      "path": "/mnt/user-data/outputs/run_standardization.sh",
+      "view_range": null
+    },
+    {
+      "call": 8,
+      "tool": "create_file",
+      "path": "/mnt/user-data/outputs/README.md",
+      "view_range": null
+    },
+    {
+      "call": 9,
+      "tool": "create_file",
+      "path": "/mnt/user-data/outputs/generate_output.py",
+      "view_range": null
+    }
+  ],
+  "cost_usd": 0.245496,
+  "stopped": "budget guard refused call 10 (request_10.json, never sent), after the follow-up; meta.json rebuilt from the saved responses"
+}

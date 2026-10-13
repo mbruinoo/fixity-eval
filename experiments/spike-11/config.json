@@ -1,0 +1,43 @@
+{
+  "_budget_note": "Study limit $11; $9.40 spent before this spike. Capped at $1.00 here.",
+  "_purpose": "Hypothesis 1: after the baseline conversation delivers its file, ask for a procedural script with input/output checksums; does the error rate drop?",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "budget_stop_usd": 1.0,
+  "max_calls": 40,
+  "max_tokens": 32000,
+  "repeats": 3,
+  "parallel": 3,
+  "inputs": {
+    "300b": "data/met_inventory_300b.tsv"
+  },
+  "max_calls_per_run": 12,
+  "conditions": [
+    {
+      "id": "followup-script-checksum",
+      "model": "claude-haiku-4-5",
+      "input": "300b",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "followups": [
+        "Can you try again, but this time: Please perform any data transformations as a procedural script, with a checksum of the input and output files in the header as a fixity check. I'd like to have all the files (input, transformation script, and output) to download and archive."
+      ]
+    }
+  ]
+}

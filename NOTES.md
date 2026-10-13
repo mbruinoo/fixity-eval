@@ -137,6 +137,13 @@ Raised by spike-01:
   65%; 9 of 23 invented records, none of them real. $1.52; study total $9.40
   of $11.
 
+- `experiments/spike-11/`: hypothesis 1, following the baseline with a request
+  for a procedural script and input/output checksums. 3 runs. The file
+  delivered was no better (the one second file: 60.0%, same 162 rows missing),
+  the "SHA-256" checksums were made up (59–61 hex characters), and one run's
+  "archived input" had 138 of 300 rows. The scripts themselves, run by us on
+  the full file, scored 0.54%, 0.03% and 0.0%. $0.76; study total $10.16.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably

@@ -1,0 +1,76 @@
+{
+  "run": "followup-script-checksum-r1",
+  "condition": {
+    "id": "followup-script-checksum",
+    "model": "claude-haiku-4-5",
+    "input": "300b",
+    "filename": "met_inventory.tsv",
+    "view_limit": 16000,
+    "view_mode": "middle",
+    "prompt": "Can you standardize this .tsv file?",
+    "nudges": [
+      "Yes, thank you",
+      "Yes, please continue",
+      "Yes, please continue"
+    ],
+    "followups": [
+      "Can you try again, but this time: Please perform any data transformations as a procedural script, with a checksum of the input and output files in the header as a fixity check. I'd like to have all the files (input, transformation script, and output) to download and archive."
+    ]
+  },
+  "calls": [
+    {
+      "call": 1,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 802,
+      "output_tokens": 85,
+      "cost_usd": 0.001227
+    },
+    {
+      "call": 2,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 7236,
+      "output_tokens": 13304,
+      "cost_usd": 0.073756
+    },
+    {
+      "call": 3,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "end_turn",
+      "input_tokens": 20576,
+      "output_tokens": 269,
+      "cost_usd": 0.021921
+    },
+    {
+      "call": 4,
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 20910,
+      "output_tokens": 3222,
+      "cost_usd": 0.03702
+    }
+  ],
+  "tool_calls": [
+    {
+      "call": 1,
+      "tool": "view",
+      "path": "/mnt/user-data/uploads/met_inventory.tsv",
+      "view_range": null
+    },
+    {
+      "call": 2,
+      "tool": "create_file",
+      "path": "/mnt/user-data/outputs/met_inventory_standardized.tsv",
+      "view_range": null
+    },
+    {
+      "call": 4,
+      "tool": "create_file",
+      "path": "/mnt/user-data/outputs/standardize_met_inventory.py",
+      "view_range": null
+    }
+  ],
+  "cost_usd": 0.133924,
+  "stopped": "budget guard refused call 5 (request_5.json, never sent), after the follow-up; meta.json rebuilt from the saved responses"
+}

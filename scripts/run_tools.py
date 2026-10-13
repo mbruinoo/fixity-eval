@@ -11,6 +11,10 @@ see the rest; with "middle" the start and end are shown and the middle is
 replaced by a bare "..." line (view_range still shows any lines asked for).
 Without a limit, view shows everything.
 
+A condition's "followups" are sent, in order, once the model has delivered a
+file or table and stopped (after any "nudges"); the earlier files move to
+output_files_before_followup<N>/ so output_files/ holds the final answer.
+
 Saved per run under <experiment>/runs/<id>/: request and response JSON for
 every call, the files the model created (output_files/), the final reply
 (response.md) and meta.json (usage, cost, tool calls, timestamps).
@@ -106,6 +110,7 @@ def run_one(client, cfg, root, ledger, cond, rep):
     meta = {"run": run_id, "condition": cond, "started": now(), "calls": [], "tool_calls": []}
     text = []
     nudges = list(cond.get("nudges", []))
+    followups, stage = list(cond.get("followups", [])), 0
     for i in range(1, cfg.get("max_calls_per_run", 8) + 1):
         params = {"model": cond["model"], "max_tokens": cond.get("max_tokens", cfg["max_tokens"]),
                   "system": SYSTEM, "tools": TOOLS, "messages": messages}
@@ -133,9 +138,23 @@ def run_one(client, cfg, root, ledger, cond, rep):
         if msg.stop_reason != "tool_use" or not uses:
             # The reply asked a question instead of giving the file: answer as a
             # user would ("Yes, thank you", then "Yes, please continue").
-            made_file = any(t["tool"] == "create_file" for t in meta["tool_calls"])
+            last = max([n for n, t in enumerate(meta["tool_calls"]) if t["tool"] == "-- followup --"], default=-1)
+            made_file = any(t["tool"] == "create_file" for t in meta["tool_calls"][last + 1:])
             if not made_file and not has_table(text[-1]) and nudges and msg.stop_reason == "end_turn":
                 messages.append({"role": "user", "content": nudges.pop(0)})
+                continue
+            # The file (or table) arrived: send the next follow-up, if any. What
+            # came before is kept in output_files_turn<N>/ so only the answer to
+            # the last follow-up is scored.
+            if followups and msg.stop_reason == "end_turn" and (made_file or has_table(text[-1])):
+                stage += 1
+                if (d / "output_files").exists():
+                    (d / "output_files").rename(d / f"output_files_before_followup{stage}")
+                (d / f"response_before_followup{stage}.md").write_text("\n\n".join(t for t in text if t), encoding="utf-8")
+                meta.setdefault("followups_sent", []).append({"before_call": i + 1, "text": followups[0]})
+                meta["tool_calls"].append({"call": i, "tool": "-- followup --"})
+                messages.append({"role": "user", "content": followups.pop(0)})
+                nudges = list(cond.get("nudges", []))
                 continue
             break
         results = []
