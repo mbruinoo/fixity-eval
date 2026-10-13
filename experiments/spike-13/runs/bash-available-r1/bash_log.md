@@ -340,3 +340,22 @@ STANDARDIZATION COMPLETE
 
 ```
 
+## call 12
+
+```
+cd /mnt/user-data/outputs && md5sum -c CHECKSUMS.txt && echo -e "\n✓ All checksums verified successfully!" && ls -lh met_inventory* standardize* CHECKSUMS.txt MANIFEST.md
+```
+
+```
+met_inventory.tsv: OK
+met_inventory_standardized.tsv: OK
+
+✓ All checksums verified successfully!
+-rw-r--r-- 1 root root  947 Oct 13 21:14 CHECKSUMS.txt
+-rw-r--r-- 1 root root 4.6K Oct 13 21:14 MANIFEST.md
+-rw-r--r-- 1 root root  35K Oct 13 21:13 met_inventory.tsv
+-rw-r--r-- 1 root root  37K Oct 13 21:13 met_inventory_standardized.tsv
+-rw-r--r-- 1 root root 7.9K Oct 13 21:13 standardize_met_inventory.py
+
+```
+
