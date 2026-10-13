@@ -21,6 +21,11 @@ hallucination_score = (invented rows + missing rows + kept rows with an
 altered cell) / (input rows + invented rows): the share of records that
 didn't come back intact. 0 is a perfect copy, 1 is nothing intact.
 
+Altered rows are also split by their worst cell (see tier()): id_format (an
+object number's dash style only), lossy (accents stripped), content (text
+deleted or meaning changed). score_without_id_format and score_content_only
+recount the score leaving out the milder tiers.
+
 Usage:
     python scripts/hallu_score.py experiments/spike-07
 """
@@ -64,6 +69,21 @@ def same(a, b, date=False):
         removed = na.replace(nb, " ")
         return set(re.findall(r"\w+", removed)) <= set(re.findall(r"\w+", nb))
     return False
+
+
+def tier(column, a, b):
+    """How serious an altered cell is:
+    1 id_format: an object number changed only in dash style (no meaning lost,
+                 but exact lookups on the ID break)
+    2 lossy:     accents stripped (spelling lost, recoverable only from source)
+    3 content:   text deleted or meaning changed (non-English halves, "?"
+                 removed, "or" made a range, made-up abbreviations, ...)"""
+    if column == "Object Number" and re.sub(r"[‐-―−]", "-", a.strip()) == re.sub(r"[‐-―−]", "-", b.strip()):
+        return 1
+    plain = lambda x: "".join(ch for ch in unicodedata.normalize("NFD", x) if unicodedata.category(ch) != "Mn")
+    if norm(plain(a)) == norm(plain(b)):
+        return 2
+    return 3
 
 
 def key_link(s):
@@ -140,6 +160,7 @@ def score_run(run_dir, input_path):
     matched, invented, examples = {}, [], {"invented": [], "altered": []}
     altered_cells = {c: 0 for c in cols}
     altered_rows = set()
+    row_tier = {}  # input row -> worst tier among its altered cells
     for r in body:
         i = by_link.get(key_link(get(r, "Link Resource")))
         if i is None:
@@ -162,6 +183,8 @@ def score_run(run_dir, input_path):
             if changed:
                 altered_cells[c] += 1
                 altered_rows.add(i)
+                t = tier(c, rows_in[i][j], out)
+                row_tier[i] = max(row_tier.get(i, 0), t)
                 if len(examples["altered"]) < 25:
                     examples["altered"].append({"column": c, "input": rows_in[i][j], "output": out})
     missing = len(rows_in) - len(matched)
@@ -174,6 +197,12 @@ def score_run(run_dir, input_path):
         "omission_rate": round(missing / len(rows_in), 3),
         "altered_row_rate": round(len(altered_rows) / max(len(matched), 1), 3),
         "hallucination_score": round((len(invented) + missing + len(altered_rows)) / denom, 3),
+        # Rows by their worst altered cell, and the score counting only tiers 2-3
+        # (spelling or content lost) and only tier 3 (content lost).
+        "altered_rows_by_tier": {name: sum(1 for t in row_tier.values() if t == n)
+                                 for n, name in ((1, "id_format"), (2, "lossy"), (3, "content"))},
+        "score_without_id_format": round((len(invented) + missing + sum(1 for t in row_tier.values() if t >= 2)) / denom, 3),
+        "score_content_only": round((len(invented) + missing + sum(1 for t in row_tier.values() if t == 3)) / denom, 3),
         "examples": examples,
     })
     return res
