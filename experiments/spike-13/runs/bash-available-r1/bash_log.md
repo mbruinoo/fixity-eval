@@ -251,3 +251,92 @@ md5sum /mnt/user-data/uploads/met_inventory.tsv
 
 ```
 
+## call 8
+
+```
+cp /mnt/user-data/uploads/met_inventory.tsv /mnt/user-data/outputs/met_inventory.tsv
+```
+
+```
+(no output, exit code 0)
+```
+
+## call 9
+
+```
+cd /mnt/user-data/outputs && python3 standardize_met_inventory.py met_inventory.tsv met_inventory_standardized.tsv
+```
+
+```
+================================================================================
+METROPOLITAN MUSEUM INVENTORY STANDARDIZATION
+================================================================================
+
+Execution timestamp: 2026-10-13T21:13:47.351523
+
+Calculating input file checksum...
+  Input file:  met_inventory.tsv
+  MD5:         6ec5bfc2d979ad12eb3343149beb8617
+
+Reading input file...
+  Rows:        300
+  Columns:     4
+  Missing values:
+    - Object Date: 11
+    - Title: 25
+
+Applying standardization transformations...
+  [1/6] Filling missing date values with 'Unknown'...
+  [2/6] Filling missing title values with 'Untitled'...
+  [3/6] Cleaning HTML entities from Title field...
+  [4/6] Standardizing date notation...
+  [5/6] Removing extra whitespace from all fields...
+  [6/6] Standardizing column names to snake_case...
+
+Writing standardized data to output file...
+  Output file: met_inventory_standardized.tsv
+
+Verifying output file...
+  Output file: met_inventory_standardized.tsv
+  Rows:        300
+  Columns:     4
+  MD5:         ea7849011acfd1def02051dbefcb64db
+
+================================================================================
+TRANSFORMATION SUMMARY
+================================================================================
+
+Transformations Applied:
+  ✓ Filled missing dates with 'Unknown'
+  ✓ Filled missing titles with 'Untitled'
+  ✓ Removed/decoded HTML entities
+  ✓ Standardized date notation (B.C.→BCE, A.C.→CE, circa→ca.)
+  ✓ Normalized dashes (en-dash/em-dash → standard hyphen)
+  ✓ Removed extra whitespace
+  ✓ Standardized column names to snake_case
+
+--------------------------------------------------------------------------------
+FIXITY VERIFICATION
+--------------------------------------------------------------------------------
+
+Input File Checksum:
+  Filename: met_inventory.tsv
+  MD5:      6ec5bfc2d979ad12eb3343149beb8617
+
+Output File Checksum:
+  Filename: met_inventory_standardized.tsv
+  MD5:      ea7849011acfd1def02051dbefcb64db
+
+To verify file integrity later, run:
+  md5sum --check <<EOF
+6ec5bfc2d979ad12eb3343149beb8617  met_inventory.tsv
+ea7849011acfd1def02051dbefcb64db  met_inventory_standardized.tsv
+EOF
+
+================================================================================
+STANDARDIZATION COMPLETE
+================================================================================
+
+
+```
+
