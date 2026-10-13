@@ -1,0 +1,13 @@
+[bash-available-r1 call 1] $0.001 tool_use | says: I'll help you standardize the TSV file. Let me first take a look at what's in it.
+    -> view: /mnt/user-data/uploads/met_inventory.tsv
+[bash-available-r1 call 2] $0.009 tool_use | says: Now I'll create a standardized version of this TSV file. I'll clean it up with consistent formatting:
+    -> bash_tool: cd /mnt/user-data/uploads && python3 << 'EOF'
+import pandas as pd
+
+# Read the TSV file
+df = pd.read_csv('met_inventory.tsv', sep='\t', dtype=str)
+
+# Standardize column names to lowercase and remove extra spaces
+df.columns = [col.strip().lower().replace(' ', '_') for col in df.columns]
+
+# Fill empty 
