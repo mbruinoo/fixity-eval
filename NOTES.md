@@ -96,6 +96,13 @@ ranges), not copying. Silent errors from copying or made-up checksums didn't
 appear in Haiku 5.5; it declines instead, often with a wrong row count
 ("roughly 250 rows" for 200).
 
+- `experiments/spike-04/`: reproduces made-up titles. Haiku 4.5 with
+  chat-app-style `view` / `create_file` tools and a 300-row synthetic records
+  TSV. When `view` showed the start and end of the file but cut the middle,
+  one run invented 132 of 280 titles (47%) and another silently kept only
+  the first 80 rows; neither said so. When it read the whole file, it copied
+  all 300 rows faithfully.
+
 ## Open questions
 
 - How to make retyping happen when checksums are asked for. Forbidding code

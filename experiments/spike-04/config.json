@@ -1,0 +1,74 @@
+{
+  "_budget_note": "Study budget raised by the user to $3 (2026-10-13), with 250 calls. Spike-03 spent $1.1632 over 165 calls; this ledger stops at the rest of a $2.80 guard and 85 calls.",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    },
+    "claude-haiku-5-5": {
+      "input": 0.1,
+      "output": 0.5
+    }
+  },
+  "budget_stop_usd": 1.63,
+  "max_calls": 85,
+  "max_tokens": 32000,
+  "repeats": 3,
+  "parallel": 2,
+  "max_calls_per_run": 8,
+  "inputs": {
+    "met_t206": "data/met_t206_300.tsv",
+    "met_random": "data/met_random_300.tsv"
+  },
+  "conditions": [
+    {
+      "id": "04-h45-met-t206-middle-cut",
+      "model": "claude-haiku-4-5",
+      "input": "met_t206",
+      "filename": "met_objects.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "repeats": 3
+    },
+    {
+      "id": "05-h45-met-random-middle-cut",
+      "model": "claude-haiku-4-5",
+      "input": "met_random",
+      "filename": "met_objects.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "repeats": 3
+    },
+    {
+      "id": "06-h55-met-t206-middle-cut",
+      "model": "claude-haiku-5-5",
+      "thinking": "disabled",
+      "effort": "low",
+      "input": "met_t206",
+      "filename": "met_objects.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "repeats": 3
+    },
+    {
+      "id": "07-h55-met-random-middle-cut",
+      "model": "claude-haiku-5-5",
+      "thinking": "disabled",
+      "effort": "low",
+      "input": "met_random",
+      "filename": "met_objects.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "repeats": 3
+    }
+  ]
+}

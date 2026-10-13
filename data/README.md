@@ -65,3 +65,4 @@ All are the first 100 rows of `met_sample_200_trimmed.csv`.
 - `_blanked35.csv` / `.tsv`: 35 dated rows (chosen with `random.Random(7)`)
   have their Object Date emptied, so 39 of 100 are blank. The blanked row
   numbers are in `_blanked35_rows.json`; the real dates are in `met_sample_200.csv`.
+
