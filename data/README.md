@@ -80,3 +80,10 @@ sorted by title. T206: 300 of the 538 rows whose title contains `(T206)`,
 Resource), sorted by title. One row whose title contains a line break is left
 out, so it has 999 data rows. 118,372 bytes. Made for trying the spike-04
 setup in a chat app, where a longer file is more likely to be read only in part.
+
+## `fame_sample.csv`
+
+1,433 Met objects for the spike-05 recall probe (`scripts/fame_probe.py sample`),
+with the Met's own artist, dates, medium and highlight flags: the 277 titled
+objects of `met_random_300.tsv`, 8 famous anchors, 348 Met highlights, 400
+random non-highlights with a named artist, and 400 random non-highlights.
