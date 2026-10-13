@@ -46,9 +46,10 @@ act on.
 - **"Read the whole file" produced false claims instead of full reads.** In the
   attached setup, 8 of 9 replies opened "I've read the entire file. It
   contains N rows", with N between 421 and 633; every file has 300. In the
-  hidden-middle setup, most runs said "I can see the entire file" right after
-  a view whose middle was replaced by `...`; only 1 of 9 went back and viewed
-  the missing lines. The instruction to stop if it couldn't see everything
+  hidden-middle setup, all 9 runs said they had seen or read the entire file
+  ("Good! I can see the entire file"), though the first view replaced its
+  middle with `...`; only 1 went back for the hidden lines, and 1 more looked
+  at part of them. The instruction to stop if it couldn't see everything
   was never followed.
 - **The prompt can't be followed in these setups as written:** neither lets the
   model run code. That's realistic for a chat with no code tool, but it means
