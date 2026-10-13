@@ -106,14 +106,21 @@ def view_middle_cut(text, limit):
     return "\n".join(head + ["..."] + tail)
 
 
-def collect_outputs(box, d):
+def collect_outputs(box, d, stage=0, seen={}):
     """Copy what is in the sandbox's outputs/ folder (written by create_file
-    or by bash) into the run's output_files/."""
-    for f in (box / "outputs").rglob("*"):
-        if f.is_file():
-            out = d / "output_files" / f.relative_to(box / "outputs")
-            out.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy(f, out)
+    or by bash) into the run's output_files/. Return the files that are new or
+    changed since the last follow-up was sent (stage), so a file from before a
+    follow-up doesn't count as the answer to it."""
+    key = (str(d), stage)
+    files = {str(f.relative_to(box / "outputs")): f.stat().st_mtime_ns
+             for f in (box / "outputs").rglob("*") if f.is_file()}
+    if key not in seen:
+        seen[key] = files if stage else {}
+    for rel in [r for r, t in files.items() if seen[key].get(r) != t]:
+        out = d / "output_files" / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(box / "outputs" / rel, out)
+    return [rel for rel, t in files.items() if seen[key].get(rel) != t]
 
 
 def view(files, path, view_range, limit, mode="note"):
@@ -198,17 +205,18 @@ def run_one(client, cfg, root, ledger, cond, rep):
             # user would ("Yes, thank you", then "Yes, please continue").
             last = max([n for n, t in enumerate(meta["tool_calls"]) if t["tool"] == "-- followup --"], default=-1)
             made_file = any(t["tool"] == "create_file" for t in meta["tool_calls"][last + 1:])
+            if box:  # files written with bash count too
+                made_file = made_file or bool(collect_outputs(box, d, stage))
             if not made_file and not has_table(text[-1]) and nudges and msg.stop_reason == "end_turn":
                 messages.append({"role": "user", "content": nudges.pop(0)})
                 continue
             # The file (or table) arrived: send the next follow-up, if any. What
             # came before is kept in output_files_turn<N>/ so only the answer to
             # the last follow-up is scored.
-            if box:
-                collect_outputs(box, d)
-                made_file = made_file or any((d / "output_files").glob("*")) if (d / "output_files").exists() else made_file
             if followups and msg.stop_reason == "end_turn" and (made_file or has_table(text[-1])):
                 stage += 1
+                if box:  # snapshot: only files changed after this follow-up count as its answer
+                    collect_outputs(box, d, stage)
                 if (d / "output_files").exists():
                     (d / "output_files").rename(d / f"output_files_before_followup{stage}")
                 (d / f"response_before_followup{stage}.md").write_text("\n\n".join(t for t in text if t), encoding="utf-8")
@@ -256,7 +264,7 @@ def run_one(client, cfg, root, ledger, cond, rep):
             results.append({"type": "tool_result", "tool_use_id": u.id, "content": out})
         messages.append({"role": "user", "content": results})
     if box:
-        collect_outputs(box, d)
+        collect_outputs(box, d, stage)
         shutil.rmtree(box, ignore_errors=True)
     (d / "response.md").write_text("\n\n".join(t for t in text if t), encoding="utf-8")
     meta["finished"] = now()
