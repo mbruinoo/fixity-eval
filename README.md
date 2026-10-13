@@ -54,8 +54,9 @@ change) ÷ (input rows + invented rows)` is the share *not* intact.
 
 ### Worked example
 
-An illustrative 7-row input (249 characters), built from changes Haiku 4.5
-actually made in these experiments:
+An illustrative 7-row input, built from changes Haiku 4.5 actually made in
+these experiments. Graded characters are those of Object Date, Title and
+Object Number: 249 in this input. Links are matched and saved but not graded.
 
 | # | Input (changed field) | Output | What changed | Tier | Lost | Fabricated |
 |---|---|---|---|---|---|---|
@@ -65,25 +66,29 @@ actually made in these experiments:
 | 4 | Object Number `14.40.872a–c` | `14.40.872a-c` | en dash → hyphen | 3 | 1 | 0 |
 | 5 | Title `"Altitude"` | `Altitude` | quotation marks removed | 3 | 2 | 0 |
 | 6 | `Folding table fork` | unchanged | – | – | 0 | 0 |
-| 7 | `ca. 1750` · `Snuff spoon` · `36.156.5` | *(not in output)* | missing row | 1 | 27 | 0 |
-| 8 | *(not in input)* | `1950s` · `Lady in a Kimono` · `1979.33` | invented row | 1 | 0 | 28 |
+| 7 | `ca. 1750` · `Snuff spoon` · `36.156.5` (+ link) | *(not in output)* | missing row | 1 | 27 | 0 |
+| 8 | *(not in input)* | `1950s` · `Lady in a Kimono` · `1979.33` (+ link) | invented row | 1 | 0 | 28 |
+
+The links of rows 7 and 8 (about 55 characters each) are saved in
+`changes.csv` but count neither way.
 
 ```
 Tier 1: 8 + 4 + 27 + 28 = 67     Tier 2: 1 × 0.25 = 0.25     Tier 3: 3 × 0 = 0
-fixity error rate = 67.25 ÷ (249 + 28) = 24.3%
-records not intact = (1 invented + 1 missing + 3 rows with Tier 1 or 2) ÷ (7 + 1) = 62.5%
+
+fixity error rate  = (67 + 0.25 + 0) ÷ (249 input + 28 fabricated) = 67.25 ÷ 277 = 24.3%
+records not intact = (1 invented + 1 missing + 3 rows with Tier 1 or 2) ÷ (7 input + 1 invented) = 5 ÷ 8 = 62.5%
 ```
 
 The record count treats the stripped accent (row 3) like the invented row
 (row 8); the character rate weighs them 0.25 against 28.
 
-Real runs on 300-row files:
+Real runs on 300-row files (graded input: 17,555 characters):
 
-| Run | Fixity error rate | Records not intact |
-|---|---|---|
-| claude.ai, Haiku 4.5, `met_random_300` (accents and non-English titles) | 0.67% | 7.0% |
-| claude.ai, Haiku 5.5, same file | 0.02% | 0.7% |
-| Haiku 4.5 with the middle of the file hidden (74 invented rows, 162 missing) | 66% | 66% |
+| Run | Tier 1 lost | Tier 1 fabricated | Tier 2 | Fixity error rate | Records not intact |
+|---|---|---|---|---|---|
+| claude.ai, Haiku 4.5, `met_random_300` (accents and non-English titles) | 115 | 0 | 9 | (115 + 9 × 0.25) ÷ 17,555 = **0.67%** | 21 ÷ 300 = 7.0% |
+| claude.ai, Haiku 5.5, same file | 2 | 1 | 0 | 3 ÷ 17,556 = **0.02%** | 2 ÷ 300 = 0.7% |
+| Haiku 4.5 with the middle of the file hidden (74 invented rows, 162 missing) | 10,522 | 3,270 | 0 | 13,792 ÷ 20,825 = **66.2%** | 245 ÷ 374 = 65.5% |
 
 ### Saved data
 
