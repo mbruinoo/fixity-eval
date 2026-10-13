@@ -116,7 +116,11 @@ def tier(column, a, b):
     return 1
 
 
-CHAR_COLUMNS = ("Object Date", "Title", "Object Number")  # links are generated from the ID; not counted
+ALL_COLUMNS = ("Object Date", "Title", "Object Number", "Link Resource")
+# Graded columns. Links are left out of grading (they're generated from the ID)
+# but every link difference is still saved in changes.csv, so they can be
+# weighted in later (fixity_rate.py --include-links).
+CHAR_COLUMNS = ("Object Date", "Title", "Object Number")
 
 
 def char_ops(a, b):
@@ -135,7 +139,7 @@ def char_ops(a, b):
     return lost, fab
 
 
-def fixity_error_rate(changes, input_chars, w2=0.25, w3=0.0):
+def fixity_error_rate(changes, input_chars, w2=0.25, w3=0.0, columns=CHAR_COLUMNS):
     """Character-level error rate from a run's change records, 0 to 1.
 
     Tier 1 (content loss, fabrication) always weighs 1; w2 and w3 say how bad a
@@ -146,8 +150,10 @@ def fixity_error_rate(changes, input_chars, w2=0.25, w3=0.0):
 
     Lost characters can't exceed the input, so the rate stays within 0-1:
     1.0 means nothing of the input survived and everything returned is made up
-    (whether the output has the same number of rows or more)."""
+    (whether the output has the same number of rows or more). input_chars must
+    cover the same columns."""
     w = {1: 1.0, 2: w2, 3: w3}
+    changes = [c for c in changes if c["column"] in columns]
     num = sum(w[c["tier"]] * (c["lost_chars"] + c["fabricated_chars"]) for c in changes)
     den = input_chars + sum(w[c["tier"]] * c["fabricated_chars"] for c in changes)
     return round(num / den, 4) if den else 0.0
@@ -234,15 +240,19 @@ def score_run(run_dir, input_path):
 
     def record_invented(r):
         t = row_text(r)
-        changes.append({"input_row": "", "object_number": t["Object Number"], "column": "(row)", "tier": 1,
-                        "kind": "invented_row", "lost_chars": 0,
-                        "fabricated_chars": sum(len(t[c]) for c in CHAR_COLUMNS),
-                        "input": "", "output": json.dumps(t, ensure_ascii=False)})
+        for c in ALL_COLUMNS:  # one entry per cell, so each column can be weighed on its own
+            changes.append({"input_row": "", "object_number": t["Object Number"], "column": c, "tier": 1,
+                            "kind": "invented_row", "lost_chars": 0, "fabricated_chars": len(t[c]),
+                            "input": "", "output": t[c]})
     for r in body:
         link = key_link(get(r, "Link Resource"))
         i = by_link.get(link)
-        if i is None and link is None:  # no link in this row: fall back to the object number
-            i = by_num.get(key_num(get(r, "Object Number") or ""))
+        if i is None:
+            # No link, or one not in the input: fall back to the object number,
+            # but only accept a changed link if the title agrees too.
+            j = by_num.get(key_num(get(r, "Object Number") or ""))
+            if j is not None and (link is None or same(rows_in[j][1], get(r, "Title") or "")):
+                i = j
         if i is None and cols["Link Resource"] is None and cols["Object Number"] is None:
             cands = [c for c in by_title.get(norm(get(r, "Title") or ""), []) if c not in matched]
             i = cands[0] if cands else None
@@ -276,10 +286,10 @@ def score_run(run_dir, input_path):
             t = tier(c, src, out) if changed else 3
             # Tier 1-2 characters are counted after reformatting is set aside;
             # Tier 3 characters on the raw text, so they can be weighed later.
-            lost, fab = (char_ops(norm(src), norm(out)) if t < 3 else char_ops(src, out)) if c in CHAR_COLUMNS else (0, 0)
+            lost, fab = char_ops(norm(src), norm(out)) if t < 3 else char_ops(src, out)
             changes.append({"input_row": i + 1, "object_number": rows_in[i][2], "column": c, "tier": t,
                             "kind": "cell", "lost_chars": lost, "fabricated_chars": fab, "input": src, "output": out})
-            if not changed:
+            if not changed or c not in CHAR_COLUMNS:  # links: saved above, not graded
                 continue
             if t == 3:
                 reformatted_ids += 1
@@ -292,11 +302,12 @@ def score_run(run_dir, input_path):
     missing = len(rows_in) - len(matched)
     for i, r in enumerate(rows_in):
         if i not in matched:
-            changes.append({"input_row": i + 1, "object_number": r[2], "column": "(row)", "tier": 1,
-                            "kind": "missing_row", "lost_chars": sum(len(r[k]) for k in range(3)),
-                            "fabricated_chars": 0, "input": json.dumps(dict(zip(h_in, r)), ensure_ascii=False),
-                            "output": ""})
-    input_chars = sum(len(r[k]) for r in rows_in for k in range(3))
+            for k, c in enumerate(ALL_COLUMNS):
+                changes.append({"input_row": i + 1, "object_number": r[2], "column": c, "tier": 1,
+                                "kind": "missing_row", "lost_chars": len(r[k]), "fabricated_chars": 0,
+                                "input": r[k], "output": ""})
+    input_chars_by_column = {c: sum(len(r[k]) for r in rows_in) for k, c in enumerate(ALL_COLUMNS)}
+    input_chars = sum(input_chars_by_column[c] for c in CHAR_COLUMNS)
     denom = len(rows_in) + len(invented)
     res.update({
         "output_rows": len(body), "columns_found": {c: cols[c] is not None for c in cols},
@@ -311,9 +322,10 @@ def score_run(run_dir, input_path):
         "tier3_object_numbers_reformatted": reformatted_ids,
         "score_tier1_only": round((len(invented) + missing + sum(1 for t in row_tier.values() if t == 1)) / denom, 3),
         "input_chars": input_chars,
+        "input_chars_by_column": input_chars_by_column,
         "fixity_error_rate": fixity_error_rate(changes, input_chars),
-        "chars_by_tier": {f"tier{t}": {"lost": sum(c["lost_chars"] for c in changes if c["tier"] == t),
-                                       "fabricated": sum(c["fabricated_chars"] for c in changes if c["tier"] == t)}
+        "chars_by_tier": {f"tier{t}": {"lost": sum(c["lost_chars"] for c in changes if c["tier"] == t and c["column"] in CHAR_COLUMNS),
+                                       "fabricated": sum(c["fabricated_chars"] for c in changes if c["tier"] == t and c["column"] in CHAR_COLUMNS)}
                           for t in (1, 2, 3)},
         "changes": changes,
         "examples": examples,
@@ -347,9 +359,10 @@ def main():
 
 
 def write_changes(path, report):
-    """Every difference found, one row each, uncompressed: invented and missing
-    rows and every changed cell with its tier, the characters lost and
-    fabricated, and the input and output text. Any weighting can be recomputed
+    """Every difference found, one row per cell, uncompressed: changed cells,
+    and each cell of invented and missing rows (kind), with its tier, the
+    characters lost and fabricated, and the input and output text. Links are
+    included though not graded. Any weighting can be recomputed
     from this file (scripts/fixity_rate.py) without re-running the model."""
     fields = ["run", "input_chars", "input_row", "object_number", "column", "tier", "kind",
               "lost_chars", "fabricated_chars", "input", "output"]

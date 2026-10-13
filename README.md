@@ -25,8 +25,9 @@ saved, uncompressed, before any score is computed (see "Saved data" below).
 
 ### Fixity error rate (headline)
 
-Counted in characters of Object Date, Title and Object Number (Chinese and
-Japanese have no spaces between words, so characters rather than words). For
+Counted in characters of Object Date, Title and Object Number (links aren't
+graded; see "Saved data"). Chinese and
+Japanese have no spaces between words, so characters rather than words. For
 each change, characters are **lost** (deleted or replaced) or **fabricated**
 (added, or a whole invented row). A one-character accent fix is 1 character;
 a fabricated record is all of its characters.
@@ -87,15 +88,22 @@ Real runs on 300-row files:
 ### Saved data
 
 `scripts/hallu_score.py` writes `changes.csv` next to the runs: one row per
-difference (invented row, missing row, or changed cell, including Tier 3),
-with its tier, characters lost and fabricated, and the input and output text.
-The weights are applied afterwards, so they can be changed without re-running
-anything:
+cell that differs (a changed cell, or each cell of an invented or missing
+row, including Tier 3), with its tier, characters lost and fabricated, and the
+input and output text. The weights are applied afterwards, so they can be
+changed without re-running anything:
 
 ```
 python scripts/hallu_score.py experiments/spike-07            # find and save every change
 python scripts/fixity_rate.py experiments/spike-07 --w2 0.25 --w3 0   # weigh them
 ```
+
+**Links** (Link Resource) are used to match rows but are not graded: they
+count neither for nor against a run, in the fixity error rate or in records
+intact. Every link difference is still saved in `changes.csv` with its tier and
+character counts, so links can be weighted in later
+(`fixity_rate.py --include-links`). A row whose link changed but whose object
+number and title match is treated as the same record.
 
 The framing borrows the faithfulness literature's split between extrinsic
 hallucination (content not in the source: fabricated) and intrinsic (content

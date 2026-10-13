@@ -36,8 +36,10 @@ Defined, with a worked example, in the main [README](../../README.md#measuring-w
 - **Records not intact:** (invented rows + missing rows + rows with a Tier 1
   or Tier 2 change) ÷ (input rows + invented rows).
 
-Every difference is saved in `changes.csv` (tier, characters lost and
-fabricated, input and output text), so other weights can be tried with
+Links match rows but aren't graded in either score; their differences are
+saved anyway. Every difference is saved in `changes.csv`, one row per cell
+(tier, characters lost and fabricated, input and output text), so other
+weights, or grading links too (`--include-links`), can be tried with
 `python scripts/fixity_rate.py experiments/spike-07 --w2 … --w3 …` without
 re-running. The rules were checked against the researcher's judgement of the
 claude.ai Haiku 4.5 run (`experiments/spike-04/manual/`): 0.67% fixity error
