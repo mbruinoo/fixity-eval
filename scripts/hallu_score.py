@@ -14,7 +14,7 @@ record (row) and its cells (Object Date, Title, Object Number, Link Resource):
 - standardized: differs only in ways that lose nothing (object numbers
                 excepted: as IDs, any change counts as altered): dash and space
                 style, straight quotes, http -> https, B.C. -> BCE, HTML tags,
-                letter case, quotation marks, a blank written as
+                letter case, quotation marks, separating punctuation (: ; ,), a blank written as
                 [Unknown] / [Untitled], or repeated text removed
 
 hallucination_score = (invented rows + missing rows + kept rows with an
@@ -63,6 +63,11 @@ def same(a, b, date=False):
     if date:  # "1801 to 1863" and "1801-1863" say the same
         na, nb = (re.sub(r"\s+to\s+", "-", x) for x in (na, nb))
     if na == nb:
+        return True
+    # Separating punctuation added or dropped (a colon between title parts)
+    # changes nothing; "?", brackets and parentheses still count.
+    sep = lambda x: re.sub(r"\s+", " ", re.sub(r"[:;,]", " ", x)).strip()
+    if sep(na) == sep(nb):
         return True
     # Repeated text removed (e.g. a title that repeats itself): nothing lost.
     if nb and nb in na:
