@@ -144,6 +144,13 @@ Raised by spike-01:
   "archived input" had 138 of 300 rows. The scripts themselves, run by us on
   the full file, scored 0.54%, 0.03% and 0.0%. $0.76; study total $10.16.
 
+- `experiments/spike-12/`: spike-11's follow-up with a code tool (file uploaded
+  to the code-execution sandbox), 1 run. Both answers 0.0% (300 rows, nothing
+  invented); the checksums were real and the archived input byte-identical.
+  But the follow-up turn ran 39 code steps in one request: 2.3M input tokens,
+  $2.55, 10 minutes. The cost guard can't see inside a request, so the $1.00
+  cap was overrun ($2.65). Study total $12.81 of $13.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably
