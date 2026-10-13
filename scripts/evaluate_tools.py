@@ -1,6 +1,8 @@
 """Score files written by run_tools.py runs against the input TSV.
 
-For each output file: rows in/out, titles that aren't in the input (made up),
+For each output file: rows in/out; with an ID column (Object Number or url),
+rows whose ID isn't in the input (invented records), input rows missing, and
+blank titles filled in; titles that aren't in the input (made up or edited),
 input titles missing from the output, duplicated titles, rows whose other
 cells changed (by column), and how the years column changed. Rows are
 matched on the title; a made-up title can't be matched, so its row counts
@@ -75,6 +77,21 @@ def main():
                                  for t in made_up[:12]],
             "same_row_order": [r[ti] for r in rows_out if len(r) > ti] == [r[1] for r in rows_in],
         })
+        # Rows by their ID column (Object Number, else url): an ID that isn't in
+        # the input means the whole row was made up.
+        id_in = next((j for j, h in enumerate(h_in) if key(h) in ("object number", "url")), None)
+        if id_in is not None and h_in[id_in] in h_out:
+            id_out = h_out.index(h_in[id_in])
+            ids_in = {r[id_in]: r for r in rows_in}
+            out_ids = [r[id_out] if len(r) > id_out else "" for r in rows_out]
+            invented = [r for r, i in zip(rows_out, out_ids) if i not in ids_in]
+            res["id_column"] = h_in[id_in]
+            res["rows_invented"] = len(invented)
+            res["rows_dropped"] = sum(1 for i in ids_in if i not in set(out_ids))
+            res["invented_examples"] = [r[:4] for r in invented[:10]]
+            res["blank_titles_filled"] = sum(
+                1 for r, i in zip(rows_out, out_ids)
+                if i in ids_in and not ids_in[i][1] and len(r) > ti and r[ti])
         by_title = {}
         for r in rows_in:
             by_title.setdefault(r[1], []).append(r)
@@ -99,7 +116,8 @@ def main():
         res["years_not_as_expected"] = len(years_wrong)
         res["years_examples"] = years_wrong[:10]
         report.append(res)
-        print(json.dumps({k: v for k, v in res.items() if k not in ("made_up_examples", "years_examples", "header_out")}))
+        print(json.dumps({k: v for k, v in res.items()
+                          if k not in ("made_up_examples", "years_examples", "header_out", "invented_examples")}))
     (root / "evaluation_results.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
 
 
