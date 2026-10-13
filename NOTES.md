@@ -1,5 +1,17 @@
 # Research notes
 
+## How the stages fit together
+
+1. **Baseline:** find a model and situation that reliably produce errors
+   (spike-03 to spike-07; the error-prone setup is Haiku 4.5 with a vague
+   "standardize this" request, and, for invented rows, a partial read).
+2. **Refinement:** add fixity measures and clearer instructions to the prompt
+   (the TL;DR prompt) and measure how much they lower the error rate against
+   that baseline (spike-08 onwards).
+
+Declining a vague request is acceptable; such sessions are footnoted, and
+scores are reported among sessions that returned a result.
+
 ## Limitation to state up front
 
 Every result here starts from a base case where the model reliably gets

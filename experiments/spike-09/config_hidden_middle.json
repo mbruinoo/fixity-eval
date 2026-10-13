@@ -1,0 +1,69 @@
+{
+  "_budget_note": "Part of the $8 study budget ($6.14 spent before this spike); capped at $1.80 here. Same as spike-07 (the baseline) except for draft 2 of the TL;DR prompt.",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "budget_stop_usd": 1.8,
+  "max_calls": 120,
+  "max_tokens": 32000,
+  "repeats": 3,
+  "parallel": 1,
+  "inputs": {
+    "300a": "data/met_inventory_300a.tsv",
+    "300b": "data/met_inventory_300b.tsv",
+    "300c": "data/met_inventory_300c.tsv"
+  },
+  "max_calls_per_run": 10,
+  "conditions": [
+    {
+      "id": "tldr2-hidden-middle-300a",
+      "model": "claude-haiku-4-5",
+      "input": "300a",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?\n\nUse your best judgment, and keep everything else in this file fixed:\n- Leave every cell you aren't standardizing exactly as it is, including\n  accents, non-English text, punctuation, ID numbers, and qualifiers like\n  \"ca.\", \"probably\" and \"?\".\n- Don't add, remove, merge or reorder rows, and don't fill in blank cells.\n- Before you start, tell me how many data rows the file has and how many you\n  read. If they differ, read the rest first.\n- Make the changes with code, not by retyping the file.\n- When you're done, compare the result with the original file (not from\n  memory) and tell me: rows in, rows out, and every cell you changed\n  (row, column, before, after).",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ]
+    },
+    {
+      "id": "tldr2-hidden-middle-300b",
+      "model": "claude-haiku-4-5",
+      "input": "300b",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?\n\nUse your best judgment, and keep everything else in this file fixed:\n- Leave every cell you aren't standardizing exactly as it is, including\n  accents, non-English text, punctuation, ID numbers, and qualifiers like\n  \"ca.\", \"probably\" and \"?\".\n- Don't add, remove, merge or reorder rows, and don't fill in blank cells.\n- Before you start, tell me how many data rows the file has and how many you\n  read. If they differ, read the rest first.\n- Make the changes with code, not by retyping the file.\n- When you're done, compare the result with the original file (not from\n  memory) and tell me: rows in, rows out, and every cell you changed\n  (row, column, before, after).",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ]
+    },
+    {
+      "id": "tldr2-hidden-middle-300c",
+      "model": "claude-haiku-4-5",
+      "input": "300c",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?\n\nUse your best judgment, and keep everything else in this file fixed:\n- Leave every cell you aren't standardizing exactly as it is, including\n  accents, non-English text, punctuation, ID numbers, and qualifiers like\n  \"ca.\", \"probably\" and \"?\".\n- Don't add, remove, merge or reorder rows, and don't fill in blank cells.\n- Before you start, tell me how many data rows the file has and how many you\n  read. If they differ, read the rest first.\n- Make the changes with code, not by retyping the file.\n- When you're done, compare the result with the original file (not from\n  memory) and tell me: rows in, rows out, and every cell you changed\n  (row, column, before, after).",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ]
+    }
+  ]
+}

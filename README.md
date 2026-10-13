@@ -126,39 +126,32 @@ changed: lost or altered).
 
 ## TL;DR prompt
 
-Add this to any request that changes a spreadsheet:
+Add this to any request that changes a spreadsheet (draft 2):
 
 ```
-Keep this file fixed except for what I ask you to change:
-- Change only what I asked for. Leave every other cell exactly as it is,
-  including accents, non-English text, punctuation, ID numbers, and
-  qualifiers like "ca.", "probably" and "?".
+Use your best judgment, and keep everything else in this file fixed:
+- Leave every cell you aren't standardizing exactly as it is, including
+  accents, non-English text, punctuation, ID numbers, and qualifiers like
+  "ca.", "probably" and "?".
 - Don't add, remove, merge or reorder rows, and don't fill in blank cells.
-- Read the whole file before you start. If you can't see all of it, tell me
-  and stop.
+- Before you start, tell me how many data rows the file has and how many you
+  read. If they differ, read the rest first.
 - Make the changes with code, not by retyping the file.
 - When you're done, compare the result with the original file (not from
   memory) and tell me: rows in, rows out, and every cell you changed
   (row, column, before, after).
 ```
 
-**Status: draft 1, tested and needs revision.** Each line answers a failure
-seen in these experiments: silent edits to accents and non-English titles,
-dropped qualifiers, invented and missing rows after a partial read, retyped
-copies, and summaries claiming nothing was lost.
+Each line answers a failure seen in these experiments: silent edits to
+accents and non-English titles, dropped qualifiers, invented and missing rows
+after a partial read, retyped copies, and summaries claiming nothing was lost.
 
-Tested against the baseline in [spike-08](experiments/spike-08/README.md)
-(Haiku 4.5, 18 runs, a vague "standardize this" request):
-
-- 16 of 18 sessions returned no sheet: "Change only what I asked for" made the
-  vague request one it wouldn't act on, and it kept asking what to change.
-  (Declining an ambiguous request is acceptable here and is footnoted, not
-  scored.)
-- Among the 2 sessions that returned a sheet, the prompt didn't help: both
-  retyped the file and invented records (349 and 99 rows), with error rates
-  of 73% and 50% against the baseline's 61%.
-- "Read the whole file" produced false claims ("I've read the entire file. It
-  contains 460 rows", for 300) rather than full reads.
-
-Next: a revised prompt that still acts on vague requests and replaces "read
-the whole file" with a checkable row count.
+**Draft 1** ([spike-08](experiments/spike-08/README.md)) began "Change only
+what I asked for" and asked the model to "read the whole file before you
+start; if you can't see all of it, tell me and stop". With a vague
+"standardize this" request, 16 of 18 Haiku 4.5 sessions returned no sheet
+(they kept asking what to change), and "read the whole file" brought false
+claims of having read it ("It contains 460 rows", for 300) rather than full
+reads. Draft 2 replaces the first with "Use your best judgment" and the second
+with a row count the model has to state. Draft 2 is tested in
+[spike-09](experiments/spike-09/README.md).
