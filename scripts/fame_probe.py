@@ -2,8 +2,16 @@
 
 The model sees only an object's title (and that it is at the Met) and is asked
 for the artist or maker, the year it was made, the medium, and how familiar it
-is with that specific object (0-1). Its answers are scored against the Met's
-own record, and a 0-1 "known" score is built from the parts it got right.
+is with that specific object (0-1). Its answers are scored against the Met's own record.
+
+known_score (0-1) is verified recall where it can be checked:
+    artist (0.6): the Met artist's surname appears in the answer; skipped when
+                  the object has no named artist or the title already names them
+    year   (0.4): within 2 years of the Met's dates (0.5 within 10); only when
+                  the Met dates the object within 10 years
+With no artist part, a year alone can earn at most 0.5 (a lucky guess can't
+make an object "known"). Where neither part applies, known_score is the
+model's own familiarity rating, marked "self-report only".
 
     sample   build the object list (data/fame_sample.csv) from MetObjects.csv
     run      ask the model, in batches, with the cost guard from run_api.py
@@ -135,13 +143,20 @@ def artist_hit(met, guess):
 
 
 def year_score(met_begin, met_end, guess):
+    """Only scored when the Met dates the object to within 10 years; a wide
+    range ("19th century") can be matched by a generic guess."""
+    try:
+        b, e = int(met_begin), int(met_end or met_begin)
+    except (TypeError, ValueError):
+        return None
+    if e - b > 10:
+        return None
     try:
         y = int(round(float(guess)))
-        b, e = int(met_begin), int(met_end or met_begin)
     except (TypeError, ValueError):
         return 0.0
     off = 0 if b <= y <= e else min(abs(y - b), abs(y - e))
-    return 1.0 if off <= 5 else 0.5 if off <= 25 else 0.0
+    return 1.0 if off <= 2 else 0.5 if off <= 10 else 0.0
 
 
 def medium_score(met, guess):
@@ -171,14 +186,18 @@ def score(cfg_path):
         if a is None:
             continue
         has_artist = r["Artist Display Name"].strip() != ""
-        art = artist_hit(r["Artist Display Name"], a.get("artist", "")) if has_artist else None
+        # A title that already names the artist gives the answer away.
+        giveaway = has_artist and artist_hit(r["Artist Display Name"], r["Title"]) == 1.0
+        art = artist_hit(r["Artist Display Name"], a.get("artist", "")) if has_artist and not giveaway else None
         yr = year_score(r["Object Begin Date"], r["Object End Date"], a.get("year"))
         med = medium_score(r["Medium"], a.get("medium", ""))
-        # Weighted recall of the parts the model could only know from this object;
-        # artist counts most, since a title rarely gives it away.
-        parts = [(0.5, art), (0.3, yr), (0.2, med)]
-        parts = [(w, v) for w, v in parts if v is not None]
-        recall = sum(w * v for w, v in parts) / sum(w for w, _ in parts)
+        # Verified recall: only the parts a title alone rarely gives away. The
+        # medium is recorded but not scored (a title like "Terracotta kylix"
+        # gives it away). None when neither part applies.
+        parts = [(w, v) for w, v in ((0.6, art), (0.4, yr)) if v is not None]
+        recall = sum(w * v for w, v in parts) / sum(w for w, _ in parts) if parts else None
+        if art is None and yr is not None:
+            recall = 0.5 * yr
         try:
             fam = max(0.0, min(1.0, float(a.get("familiarity", 0))))
         except (TypeError, ValueError):
@@ -189,9 +208,15 @@ def score(cfg_path):
             "met_artist": r["Artist Display Name"], "met_begin": r["Object Begin Date"], "met_medium": r["Medium"],
             "is_highlight": r["Is Highlight"], "is_timeline_work": r["Is Timeline Work"],
             "model_artist": a.get("artist", ""), "model_year": a.get("year", ""), "model_medium": a.get("medium", ""),
-            "artist_correct": "" if art is None else art, "year_score": yr, "medium_score": round(med, 3),
-            "familiarity": fam, "known_score": round(recall, 3),
-            "overclaim": round(fam - recall, 3),
+            "artist_correct": "" if art is None else art, "year_score": "" if yr is None else yr,
+            "medium_score": round(med, 3),
+            "familiarity": fam,
+            "verified_recall": "" if recall is None else round(recall, 3),
+            # The 0-1 score: verified recall where it can be checked, otherwise
+            # the model's own familiarity rating (marked in score_basis).
+            "known_score": round(recall if recall is not None else fam, 3),
+            "score_basis": "verified" if recall is not None else "self-report only",
+            "overclaim": "" if recall is None else round(fam - recall, 3),
             "pass2_artist": a2.get("artist", "") if a2 else "", "pass2_year": a2.get("year", "") if a2 else "",
             "pass2_familiarity": a2.get("familiarity", "") if a2 else "",
         })

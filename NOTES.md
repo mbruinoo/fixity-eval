@@ -80,6 +80,13 @@ Raised by spike-01:
   declines to retype when asked for anything extra (checksums, sorting, JSON,
   a summary, 500+ rows), and never made up a checksum or a year for an undated row.
 
+- `experiments/spike-05/`: how well Haiku 4.5 knows each Met object, from a
+  title-only recall probe (0–1 `known_score`, 1,433 objects, $0.45). It knows
+  very few: 7 of 8 famous anchors, but only 5–12% of other objects score
+  ≥ 0.5, mostly famous print series. 16 confident mistakes (e.g. Van Gogh's
+  *Self-Portrait with a Straw Hat* → Whistler). Scores for the demo file are in
+  `experiments/spike-05/demo_file_scores.tsv`.
+
 ## Baseline for later experiments
 
 **Haiku 5.5, thinking off (effort `low`), bare Messages API, no system prompt,
