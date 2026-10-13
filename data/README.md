@@ -73,3 +73,10 @@ sorted by title. T206: 300 of the 538 rows whose title contains `(T206)`,
 `DataFrame.sample(300, random_state=42)` from `MetObjects.csv` (SHA-256
 `a3df42a2…d181`). Random: the first 300 rows of `met_sample_1000_trimmed.csv`
 (SHA-256 `33c53888…d547`).
+
+## `met_random_1000.tsv`
+
+`met_sample_1000_trimmed.csv` as TSV (Object Date, Title, Object Number, Link
+Resource), sorted by title. One row whose title contains a line break is left
+out, so it has 999 data rows. 118,372 bytes. Made for trying the spike-04
+setup in a chat app, where a longer file is more likely to be read only in part.

@@ -113,6 +113,17 @@ appear in Haiku 5.5; it declines instead, often with a wrong row count
   The output is a believable file with missing and invented rows, and a
   summary saying nothing was lost.
 
+## Try it yourself (chat app)
+
+1. In claude.ai, choose Haiku 4.5 and upload `data/met_random_300.tsv`
+   (or `data/met_random_1000.tsv`, which is more likely to be read only in part).
+2. Send: `Can you standardize this .tsv file?`
+3. Download the file it makes, then compare by object number:
+   `python scripts/compare_tsv.py data/met_random_300.tsv <downloaded file>`
+
+Look for rows whose object number isn't in the input (invented), input rows
+that are missing, and a summary that says nothing was lost.
+
 ## Open questions
 
 - How to make retyping happen when checksums are asked for. Forbidding code
