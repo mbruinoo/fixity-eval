@@ -123,3 +123,27 @@ changed: lost or altered).
   obscure inventories with this score.
 - `data/`: the Met samples and inventories ([data/README.md](data/README.md)).
 - `scripts/`: runners, evaluators and the scorer.
+
+## TL;DR prompt
+
+Add this to any request that changes a spreadsheet:
+
+```
+Keep this file fixed except for what I ask you to change:
+- Change only what I asked for. Leave every other cell exactly as it is,
+  including accents, non-English text, punctuation, ID numbers, and
+  qualifiers like "ca.", "probably" and "?".
+- Don't add, remove, merge or reorder rows, and don't fill in blank cells.
+- Read the whole file before you start. If you can't see all of it, tell me
+  and stop.
+- Make the changes with code, not by retyping the file.
+- When you're done, compare the result with the original file (not from
+  memory) and tell me: rows in, rows out, and every cell you changed
+  (row, column, before, after).
+```
+
+**Status: a draft, not yet tested.** Each line answers a failure seen in
+these experiments: silent edits to accents and non-English titles, dropped
+qualifiers, invented and missing rows after a partial read, retyped copies,
+and summaries claiming nothing was lost. Whether it actually lowers the fixity
+error rate against the baseline is the next experiment.
