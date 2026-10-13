@@ -151,6 +151,14 @@ Raised by spike-01:
   $2.55, 10 minutes. The cost guard can't see inside a request, so the $1.00
   cap was overrun ($2.65). Study total $12.81 of $13.
 
+- `experiments/spike-13/`: the baseline plus a bash tool (pilot, 1 run + 1
+  aborted). Haiku 4.5 used bash on the full file at step 2 both times: 0.0%,
+  and after the follow-up a real script, real MD5 checksums (verified with
+  `md5sum -c`) and a byte-identical input copy. So a code tool alone doesn't
+  recreate "tool available but not used". Next idea: put the file's text in
+  the first message, as chat apps can, with view/create_file/bash available.
+  $0.28; study total $13.09 of $14.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably
