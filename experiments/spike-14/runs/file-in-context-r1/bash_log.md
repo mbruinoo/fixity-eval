@@ -85,3 +85,79 @@ cd /mnt/user-data/outputs && md5sum /mnt/user-data/uploads/met_inventory.tsv > c
 
 ```
 
+## call 9
+
+```
+cd /mnt/user-data/outputs && python3 standardize_met_inventory.py
+```
+
+```
+
+================================================================================
+MET MUSEUM INVENTORY TSV STANDARDIZATION
+================================================================================
+
+Standardization Process Log - 2026-10-13T21:17:51.005143
+================================================================================
+
+[STEP 1] Verifying input file...
+ERROR: Input file not found: met_inventory.tsv
+
+✗ FAILURE: Standardization failed. Check standardization_log.txt for details.
+
+```
+
+## call 10
+
+```
+cp /mnt/user-data/uploads/met_inventory.tsv /mnt/user-data/outputs/met_inventory.tsv && cd /mnt/user-data/outputs && python3 standardize_met_inventory.py
+```
+
+```
+
+================================================================================
+MET MUSEUM INVENTORY TSV STANDARDIZATION
+================================================================================
+
+Standardization Process Log - 2026-10-13T21:17:52.530153
+================================================================================
+
+[STEP 1] Verifying input file...
+  Input file: met_inventory.tsv
+  Input MD5:  6ec5bfc2d979ad12eb3343149beb8617
+
+[STEP 2] Reading input file...
+  Total lines read: 301
+
+[STEP 3] Processing data...
+  Row 1: Header row (passed through)
+
+[STEP 4] Writing output file...
+  Output file: met_inventory_standardized.tsv
+  Total lines written: 301
+
+[STEP 5] Verifying output file...
+  Output MD5: c18503f8f274ac7e9500ebf3635017f1
+
+[STEP 6] Processing Statistics...
+  Rows processed:              300
+  Rows with warnings:          0
+  HTML entities decoded:       4
+  Total warnings:              0
+
+================================================================================
+FIXITY VERIFICATION SUMMARY
+================================================================================
+Input MD5:  6ec5bfc2d979ad12eb3343149beb8617
+Output MD5: c18503f8f274ac7e9500ebf3635017f1
+Status:     PROCESSING COMPLETE
+================================================================================
+
+Log file written to: standardization_log.txt
+
+✓ SUCCESS: Standardization complete!
+  Output file: met_inventory_standardized.tsv
+  Log file:    standardization_log.txt
+
+```
+
