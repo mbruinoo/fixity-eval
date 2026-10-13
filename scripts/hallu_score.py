@@ -6,16 +6,19 @@ supported by the source is an *extrinsic* hallucination, content that
 contradicts or changes the source is *intrinsic*. Here the unit is the
 record (row) and its cells (Object Date, Title, Object Number, Link Resource):
 
-- invented row  (extrinsic): an output row whose link / object number isn't in
-                the input
+- invented row  (extrinsic): an output row whose link isn't in the input (or,
+                with no link, whose object number isn't), even if it reuses a
+                real object number; also a row with a real link whose title
+                and object number are both different
 - missing row:  an input row absent from the output (omission)
 - altered cell  (intrinsic): a kept row whose cell differs from the input
                 beyond standardizing
 - standardized: differs only in ways that lose nothing (object numbers
                 excepted: as IDs, any change counts as altered): dash and space
                 style, straight quotes, http -> https, B.C. -> BCE, HTML tags,
-                letter case, quotation marks, separating punctuation (: ; ,), a blank written as
-                [Unknown] / [Untitled], or repeated text removed
+                letter case, quotation marks, separating punctuation (: ; , and a
+                spaced dash in titles), "circa"/"ca." spacing, a blank written as
+                [Unknown] / [No date] / n.d., or repeated text removed
 
 hallucination_score = (invented rows + missing rows + kept rows with an
 altered cell) / (input rows + invented rows): the share of records that
@@ -53,21 +56,41 @@ def norm(s):
     s = re.sub(r"\bB\.?\s?C\.?(?=\W|$)", "BCE", s)
     s = re.sub(r"\bA\.?\s?D\.?(?=\W|$)", "CE", s)
     s = re.sub(r'\s*"\s*', " ", s).strip()  # quotation marks lose nothing
-    s = s.lower()
-    return "" if s in BLANKS else s
+    s = re.sub(r"\s*\|\s*", "|", s)
+    s = re.sub(r"\.\s\.\s\.", "...", s)
+    s = re.sub(r"\bcirca\b\.?|\bc\.(?=\s*\d)", "ca.", s, flags=re.I)
+    s = re.sub(r"\bca\.\s*", "ca. ", s, flags=re.I)
+    s = re.sub(r"(^|\s)'|'(?=[\s,.;:)]|$)", r"\1", s)  # single quotes used as quotation marks
+    s = s.lower().strip()
+    # A blank written as a placeholder: [Unknown], [No date], [Unknown Title], n.d., ...
+    if s in BLANKS or re.fullmatch(r"[\[(]?\s*(unknown|no|untitled|n\.?d\.?|not dated|undated|date unknown|unknown title|no date|no title)[^\])]*[\])]?", s):
+        return ""
+    return s
 
 
 def same(a, b, date=False):
     """True if b keeps everything in a (exactly or by standardizing)."""
     na, nb = norm(a), norm(b)
-    if date:  # "1801 to 1863" and "1801-1863" say the same
-        na, nb = (re.sub(r"\s+to\s+", "-", x) for x in (na, nb))
+    if date:  # "1801 to 1863" = "1801-1863"; "1635-45" = "1635-1645"; "first half of the" = "first half"
+        def d(x):
+            x = re.sub(r"\s+to\s+", "-", x)
+            x = re.sub(r"\b(of|the)\s+", "", x)
+            return re.sub(r"\b(\d{2,4})-(\d{1,3})\b",
+                          lambda m: m.group(1) + "-" + (m.group(1)[:len(m.group(1)) - len(m.group(2))] + m.group(2)
+                                                        if len(m.group(2)) < len(m.group(1)) else m.group(2)), x)
+        na, nb = d(na), d(nb)
+        if na == nb:
+            return True
     if na == nb:
         return True
     # Separating punctuation added or dropped (a colon between title parts)
     # changes nothing; "?", brackets and parentheses still count.
-    sep = lambda x: re.sub(r"\s+", " ", re.sub(r"[:;,]", " ", x)).strip()
+    sep = lambda x: re.sub(r"\s+", " ", re.sub(r"[:;,]" if date else r"[:;,]|(?<=\s)-|-(?=\s)", " ", x)).strip()
     if sep(na) == sep(nb):
+        return True
+    # The same words in another order ("擦條|Sand-file" -> "Sand-file - 擦條"): nothing lost.
+    words = lambda x: sorted(re.findall(r"\w+", x))
+    if words(na) == words(nb):
         return True
     # Repeated text removed (e.g. a title that repeats itself): nothing lost.
     if nb and nb in na:
@@ -78,12 +101,13 @@ def same(a, b, date=False):
 
 def tier(column, a, b):
     """How serious an altered cell is:
-    1 id_format: an object number changed only in dash style (no meaning lost,
+    1 id_format: an object number changed only in dash or separator style (no meaning lost,
                  but exact lookups on the ID break)
     2 lossy:     accents stripped (spelling lost, recoverable only from source)
     3 content:   text deleted or meaning changed (non-English halves, "?"
                  removed, "or" made a range, made-up abbreviations, ...)"""
-    if column == "Object Number" and re.sub(r"[‐-―−]", "-", a.strip()) == re.sub(r"[‐-―−]", "-", b.strip()):
+    id_form = lambda x: re.sub(r"[\s,;]+", ",", re.sub(r"[‐-―−]", "-", x.strip()))
+    if column == "Object Number" and id_form(a) == id_form(b):
         return 1
     plain = lambda x: "".join(ch for ch in unicodedata.normalize("NFD", x) if unicodedata.category(ch) != "Mn")
     if norm(plain(a)) == norm(plain(b)):
@@ -167,13 +191,23 @@ def score_run(run_dir, input_path):
     altered_rows = set()
     row_tier = {}  # input row -> worst tier among its altered cells
     for r in body:
-        i = by_link.get(key_link(get(r, "Link Resource")))
-        if i is None:
+        link = key_link(get(r, "Link Resource"))
+        i = by_link.get(link)
+        if i is None and link is None:  # no link in this row: fall back to the object number
             i = by_num.get(key_num(get(r, "Object Number") or ""))
         if i is None and cols["Link Resource"] is None and cols["Object Number"] is None:
             cands = [c for c in by_title.get(norm(get(r, "Title") or ""), []) if c not in matched]
             i = cands[0] if cands else None
         if i is None or i in matched:
+            invented.append(r)
+            if len(examples["invented"]) < 10:
+                examples["invented"].append([get(r, c) for c in cols])
+            continue
+        # A real link with a different title and object number is a made-up record.
+        num_out, title_out = get(r, "Object Number"), get(r, "Title")
+        if (num_out is not None and title_out is not None
+                and tier("Object Number", rows_in[i][2], num_out) != 1 and key_num(num_out) != key_num(rows_in[i][2])
+                and not same(rows_in[i][1], title_out)):
             invented.append(r)
             if len(examples["invented"]) < 10:
                 examples["invented"].append([get(r, c) for c in cols])

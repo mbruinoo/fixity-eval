@@ -94,6 +94,15 @@ Raised by spike-01:
   Renaud, Turner for a Callow watercolour). The plain "fill in" prompt mostly
   made it decline.
 
+- `experiments/spike-07/`: a hallucination score (share of records not
+  returned intact: invented + missing + altered rows, with altered split
+  into ID format / lossy / content). Haiku 4.5 on the 300a/b/c inventories,
+  3 passes each: with the whole file attached it invented nothing (scores
+  0–0.14, all from changed cells); with the middle of the file hidden it lost
+  about half of every sheet (scores 0.49–0.73) and invented 144–287 records in 3
+  of 6 random/obscure runs, none of them real Met records. Fame didn't protect
+  the records: the well-known set's bilingual titles were rewritten most.
+
 ## Baseline for later experiments
 
 **Haiku 5.5, thinking off (effort `low`), bare Messages API, no system prompt,
