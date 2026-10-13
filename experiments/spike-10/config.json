@@ -1,0 +1,40 @@
+{
+  "_budget_note": "User raised the study limit to $11 (2026-10-13); $7.88 spent before this spike. Capped at $2.80 here so the study stays under $10.68.",
+  "_purpose": "Stage-1 baseline: the spike-07 hidden-middle-300b condition, unchanged, repeated 20 times to fix its error-rate range.",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "budget_stop_usd": 2.8,
+  "max_calls": 220,
+  "max_tokens": 32000,
+  "repeats": 20,
+  "parallel": 3,
+  "inputs": {
+    "300b": "data/met_inventory_300b.tsv"
+  },
+  "max_calls_per_run": 10,
+  "conditions": [
+    {
+      "id": "baseline-300b",
+      "model": "claude-haiku-4-5",
+      "input": "300b",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ]
+    }
+  ]
+}
