@@ -20,7 +20,7 @@ reliably gets something wrong without saying so, so that later variables
   user asks for a change to their sheet, reply with the complete updated sheet
   as CSV in a single code block, every row included, so the app can load it
   back in. Don't add commentary before the code block."*
-- **Runs:** 39 conditions, 3–8 repeats each, 155 API calls, **$0.72 total**. The budget guard refuses any call whose worst case would
+- **Runs:** 41 conditions, 3–8 repeats each, 165 API calls, **$1.16 total**. The budget guard refuses any call whose worst case would
   push spending past $1.80.
 
 ```
@@ -182,6 +182,32 @@ rows of the 200-row sheet (`data/met_sample_100_*`).
 - None of this reaches the 40% rate seen earlier with a different setup;
   see NOTES.md.
 
+## Follow-up: matching the claude.ai setup (Haiku 4.5, uploaded TSV)
+
+The earlier test that showed many made-up values used claude.ai with Haiku 4.5,
+an uploaded `.tsv` file and the prompt *"Can you standardize this .tsv file?"*.
+The two closest API setups, on the 100-row Met sheet as TSV, 5 runs each:
+
+| Condition | What came back | Cells changed per sheet | Words added that weren't in the source |
+|---|---|---|---|
+| 40 Haiku 4.5, file attached as a document, no tools | full sheet in the reply, 5/5 | 60–65 | none |
+| 41 Haiku 4.5, file uploaded to the code-execution sandbox | a new `.tsv` written by pandas, 5/5 | 0, 0, 22, 38, 56 | none |
+
+- **No fabrication.** No run added a single word that wasn't in the source,
+  and no blank date got a year.
+- **But many silent-ish edits.** With the file attached (40), every run
+  replaced the 34 blank cells with `[Unknown]`, changed `|` to `;` in artist
+  lists, deleted the Chinese and Japanese halves of bilingual titles
+  (`清 碧璽花卉紋佩件|Pendant with floral designs` → `Pendant with floral
+  designs`), and cut artist names (`Anonymous, Japanese, 19th Century` →
+  `Anonymous`). Each reply listed these in general terms ("simplified
+  multilingual titles"), never row by row.
+- **With the sandbox (41)** it wrote pandas code. Content changes were the
+  same kinds (placeholders, `;`), applied by code. 2 of 5 runs re-sorted
+  the rows, and 2 left the data untouched.
+- Haiku 4.5 costs 10× Haiku 5.5: about $0.03 per attached run and $0.06 per
+  sandbox run.
+
 ## Caveats
 
 - 3 repeats per condition except the baseline (8). Refusal rates of 0/3 vs
@@ -200,7 +226,7 @@ rows of the 200-row sheet (`data/met_sample_100_*`).
 ## Files
 
 - `config.json`: model, prices, budget, inputs, the system prompt and every condition.
-- `cost_ledger.json`: cost of every call (adds up to $0.7238 over 155 calls).
+- `cost_ledger.json`: cost of every call (adds up to $1.1632 over 165 calls).
 - `run_log*.txt`: runner output for each round.
 - `evaluation_results.json`: per run and turn; `summary.csv`: per condition.
 - `date_comparison.csv`: original date, Met begin/end and every retyped

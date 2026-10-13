@@ -57,7 +57,7 @@ Raised by spike-01:
   dates.
 
 - `experiments/spike-03/`: Messages API directly (no Claude Code), Haiku 5.5,
-  39 conditions, 155 calls, $0.72. Found the baseline (below). Haiku 5.5 mostly
+  41 conditions, 165 calls, $1.16. Found the baseline (below). Haiku 5.5 mostly
   declines to retype when asked for anything extra (checksums, sorting, JSON,
   a summary, 500+ rows), and never made up a checksum or a year for an undated row.
 
@@ -84,9 +84,12 @@ the 200-row CSV** (spike-03 condition `22-plain-startend-off`).
   cells, both marked `?`). The original prompt, "Can you standardize the dates
   in this spreadsheet?", gave the most obvious wrong dates once in 5 runs on
   200 rows (15 rows, e.g. `19th century` → `1600–1699`), but usually declined.
-- An earlier, separate test (100 rows, other data, lesser-known titles) saw
-  about 40% made-up values. Spike-03 didn't reproduce that; the model,
-  interface or data may differ.
+- An earlier, separate test (claude.ai, Haiku 4.5, an uploaded records
+  TSV, "Can you standardize this .tsv file?") saw about 40% made-up values.
+  The nearest API setups on Met data (spike-03 conditions 40, 41) added no
+  invented content, though the attached-file version silently dropped
+  non-English title text and filled blanks with `[Unknown]`. Still to try:
+  the real file, whose dates include open ranges like `1853-present`.
 
 The weak point is the transformation itself (centuries, BCE, multi-century
 ranges), not copying. Silent errors from copying or made-up checksums didn't

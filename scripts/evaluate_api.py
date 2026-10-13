@@ -346,6 +346,12 @@ def main():
             resp = json.loads((run_dir / f"response_turn{t['turn']}.json").read_text())
             reply = "".join(b.get("text", "") for b in resp["content"] if b["type"] == "text")
             kind, header, rows = find_table(reply)
+            outs = sorted((run_dir / "output_files").glob("*.[tc]sv")) if (run_dir / "output_files").exists() else []
+            if outs and t["turn"] == meta["turns"][-1]["turn"]:
+                # A file the model wrote in its sandbox is what the user would download.
+                with open(outs[0], encoding="utf-8", newline="") as f:
+                    got = list(csv.reader(f, delimiter="\t" if outs[0].suffix == ".tsv" else ","))
+                kind, header, rows = f"output file {outs[0].name}", got[0], got[1:]
             prose = re.sub(r"```.*?(```|\Z)", "", reply, flags=re.S)
             if kind and kind.endswith("unfenced"):
                 prose = "\n".join(l for l in reply.splitlines() if l.count(",") < 3 and "\t" not in l)
@@ -362,7 +368,8 @@ def main():
                 res["outcome"] = f"table ({kind})" + (" with dates rewritten in place" if in_place else "")
                 sc, per_row = score_table(header, rows, orig, orig_lines, keys, in_place, in_cols)
                 res.update(sc)
-                if inp in ("default", "50", "tsv", "100", "100_nourl", "100_date_title_artist", "100_blanked35", "100_blanked35_tsv"):
+                if inp in ("default", "50", "tsv", "100", "100_nourl", "100_date_title_artist",
+                           "100_blanked35", "100_blanked35_tsv", "100_tsv"):
                     date_cols[f"{run_dir.name}/t{t['turn']}"] = per_row
                 if t["turn"] > 1 and prev is not None:
                     res["rows_with_years_changed_vs_previous_turn"] = sum(

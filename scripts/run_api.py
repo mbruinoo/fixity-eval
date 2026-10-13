@@ -44,15 +44,22 @@ class Ledger:
         self.max_calls = cfg["max_calls"]
         self.price_in = cfg["price_per_mtok"]["input"] / 1e6
         self.price_out = cfg["price_per_mtok"]["output"] / 1e6
+        self.model_prices = cfg.get("model_prices", {})
         self.data = json.loads(path.read_text()) if path.exists() else {"spent_usd": 0.0, "calls": 0, "entries": []}
         self.reserved = 0.0
         self.reserved_calls = 0
 
-    def cost(self, usage):
-        return usage.input_tokens * self.price_in + usage.output_tokens * self.price_out
+    def prices(self, model):
+        p = self.model_prices.get(model)
+        return (p["input"] / 1e6, p["output"] / 1e6) if p else (self.price_in, self.price_out)
 
-    def reserve(self, est_in, max_out):
-        worst = est_in * self.price_in + max_out * self.price_out
+    def cost(self, usage, model=None):
+        pin, pout = self.prices(model)
+        return usage.input_tokens * pin + usage.output_tokens * pout
+
+    def reserve(self, est_in, max_out, model=None):
+        pin, pout = self.prices(model)
+        worst = est_in * pin + max_out * pout
         with LOCK:
             if self.data["spent_usd"] + self.reserved + worst > self.budget:
                 raise RuntimeError(f"budget guard: spent {self.data['spent_usd']:.4f} + reserved "
@@ -63,8 +70,8 @@ class Ledger:
             self.reserved_calls += 1
         return worst
 
-    def settle(self, worst, run_id, turn, usage):
-        c = self.cost(usage) if usage else 0.0
+    def settle(self, worst, run_id, turn, usage, model=None):
+        c = self.cost(usage, model) if usage else 0.0
         with LOCK:
             self.reserved -= worst
             self.reserved_calls -= 1
@@ -76,14 +83,56 @@ class Ledger:
 
 
 def build_params(cfg, cond, messages):
-    p = {"model": cfg["model"], "max_tokens": cond.get("max_tokens", cfg["max_tokens"]), "messages": messages}
+    p = {"model": cond.get("model", cfg["model"]), "max_tokens": cond.get("max_tokens", cfg["max_tokens"]), "messages": messages}
     if cond.get("system"):
         p["system"] = cfg["systems"][cond["system"]]
     if cond.get("effort"):
         p["output_config"] = {"effort": cond["effort"]}
     if cond.get("thinking") == "disabled":
         p["thinking"] = {"type": "disabled"}
+    if cond.get("tools") == "code_execution":
+        p["tools"] = [{"type": "code_execution_20250825", "name": "code_execution"}]
     return p
+
+
+def first_message(client, cfg, cond, run_dir):
+    """The opening user message. "attach" decides how the sheet arrives:
+    pasted after the prompt (default), as a text document block (like a
+    file attached in a chat app), or uploaded into the code-execution
+    sandbox (like a file the model reads with tools)."""
+    path = pathlib.Path(cfg["inputs"][cond.get("input", "default")])
+    data = path.read_text(encoding="utf-8")
+    how = cond.get("attach", "paste")
+    if how == "paste":
+        return cond["prompt"] + "\n\n" + data, len(data)
+    if how == "document":
+        return [{"type": "document", "title": cond.get("filename", path.name),
+                 "source": {"type": "text", "media_type": "text/plain", "data": data}},
+                {"type": "text", "text": cond["prompt"]}], len(data)
+    if how == "upload":
+        up = client.beta.files.upload(file=(cond.get("filename", path.name), path.read_bytes(), "text/plain"))
+        (run_dir / "uploaded_file.json").write_text(json.dumps({"file_id": up.id, "filename": up.filename}))
+        return [{"type": "text", "text": cond["prompt"]},
+                {"type": "container_upload", "file_id": up.id}], 200
+    raise ValueError(how)
+
+
+def save_output_files(client, msg, run_dir):
+    """Download files the model created in the sandbox."""
+    saved = []
+    for b in msg.content:
+        content = getattr(b, "content", None)
+        for ref in getattr(content, "content", None) or []:
+            fid = getattr(ref, "file_id", None)
+            if not fid:
+                continue
+            meta = client.beta.files.retrieve_metadata(fid)
+            name = os.path.basename(meta.filename) or fid
+            out = run_dir / "output_files" / name
+            out.parent.mkdir(exist_ok=True)
+            client.beta.files.download(fid).write_to_file(out)
+            saved.append(name)
+    return saved
 
 
 def run_one(client, cfg, root, ledger, cond, rep):
@@ -92,33 +141,44 @@ def run_one(client, cfg, root, ledger, cond, rep):
     if (d / "meta.json").exists():
         return run_id, "skipped (exists)"
     d.mkdir(parents=True, exist_ok=True)
-    data = pathlib.Path(cfg["inputs"][cond.get("input", "default")]).read_text(encoding="utf-8")
-    turns = [cond["prompt"] + "\n\n" + data] + cond.get("followups", [])
+    first, data_chars = first_message(client, cfg, cond, d)
+    turns = [first] + cond.get("followups", [])
     messages, meta = [], {"run": run_id, "condition": cond, "started": now(), "turns": []}
-    for i, text in enumerate(turns, 1):
-        messages.append({"role": "user", "content": text})
+    container, all_text = None, []
+    i = 0
+    pending = list(turns)
+    while (pending or meta["turns"][-1]["stop_reason"] == "pause_turn") and i < 10:
+        i += 1
+        if not (meta["turns"] and meta["turns"][-1]["stop_reason"] == "pause_turn"):
+            messages.append({"role": "user", "content": pending.pop(0)})
         params = build_params(cfg, cond, messages)
+        if container:
+            params["container"] = container
         (d / f"request_turn{i}.json").write_text(json.dumps(params, indent=1, ensure_ascii=False))
-        est_in = len(params.get("system", "")) // 3 + sum(len(m["content"]) if isinstance(m["content"], str) else 0 for m in messages) // 3
-        worst = ledger.reserve(est_in, params["max_tokens"])
+        est_in = (len(params.get("system", "")) + data_chars + len(json.dumps(messages[1:]))) // 3 + 3000
+        worst = ledger.reserve(est_in, params["max_tokens"], params["model"])
         t0, usage = now(), None
         try:
             with client.messages.stream(**params) as s:
                 msg = s.get_final_message()
             usage = msg.usage
         finally:
-            cost = ledger.settle(worst, run_id, i, usage)
+            cost = ledger.settle(worst, run_id, i, usage, params["model"])
+        if getattr(msg, "container", None):
+            container = msg.container.id
+        files = save_output_files(client, msg, d) if cond.get("tools") else []
         (d / f"response_turn{i}.json").write_text(msg.model_dump_json(indent=1))
         text_out = "".join(b.text for b in msg.content if b.type == "text")
         meta["turns"].append({
             "turn": i, "started": t0, "finished": now(), "model": msg.model,
             "stop_reason": msg.stop_reason, "input_tokens": usage.input_tokens,
             "output_tokens": usage.output_tokens, "cost_usd": round(cost, 6),
-            "content_types": [b.type for b in msg.content],
+            "content_types": [b.type for b in msg.content], "output_files": files,
         })
+        all_text.append(text_out)
         # Thinking blocks are passed back unchanged, as the API expects.
         messages.append({"role": "assistant", "content": [b.model_dump(exclude_none=True) for b in msg.content]})
-    (d / "response.md").write_text(text_out, encoding="utf-8")
+    (d / "response.md").write_text("\n\n".join(t for t in all_text if t), encoding="utf-8")
     meta["finished"] = now()
     meta["cost_usd"] = round(sum(t["cost_usd"] for t in meta["turns"]), 6)
     (d / "meta.json").write_text(json.dumps(meta, indent=2))
@@ -137,7 +197,7 @@ def main():
     root = cfg_path.parent
     ledger = Ledger(root / "cost_ledger.json", cfg)
     conds = [c for c in cfg["conditions"] if not a.only or c["id"] in a.only]
-    jobs = [(c, r) for c in conds for r in range(1, c.get("repeats", a.repeats or cfg["repeats"]) + 1)]
+    jobs = [(c, r) for c in conds for r in range(1, (a.repeats or c.get("repeats", cfg["repeats"])) + 1)]
     if a.dry_run:
         for c, r in jobs:
             print(c["id"], r)

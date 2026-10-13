@@ -8,7 +8,7 @@
   "max_calls": 199,
   "max_tokens": 64000,
   "repeats": 3,
-  "parallel": 6,
+  "parallel": 2,
   "inputs": {
     "default": "data/met_sample_200_trimmed.csv",
     "500": "data/met_sample_500_trimmed.csv",
@@ -21,7 +21,8 @@
     "100_title_artist": "data/met_sample_100_title_artist.csv",
     "100": "data/met_sample_100_trimmed.csv",
     "100_blanked35": "data/met_sample_100_blanked35.csv",
-    "100_blanked35_tsv": "data/met_sample_100_blanked35.tsv"
+    "100_blanked35_tsv": "data/met_sample_100_blanked35.tsv",
+    "100_tsv": "data/met_sample_100_trimmed.tsv"
   },
   "answer_keys": {
     "default": "data/met_sample_200.csv",
@@ -35,7 +36,8 @@
     "100_title_artist": "data/met_sample_200.csv",
     "100": "data/met_sample_200.csv",
     "100_blanked35": "data/met_sample_200.csv",
-    "100_blanked35_tsv": "data/met_sample_200.csv"
+    "100_blanked35_tsv": "data/met_sample_200.csv",
+    "100_tsv": "data/met_sample_200.csv"
   },
   "conditions": [
     {
@@ -311,9 +313,40 @@
       "repeats": 5,
       "input": "100_blanked35",
       "prompt": "Add Start Year and End Year columns to this spreadsheet."
+    },
+    {
+      "id": "40-h45-attached-tsv",
+      "model": "claude-haiku-4-5",
+      "max_tokens": 32000,
+      "input": "100_tsv",
+      "filename": "met_objects_list.tsv",
+      "repeats": 5,
+      "prompt": "Can you standardize this .tsv file?",
+      "attach": "document"
+    },
+    {
+      "id": "41-h45-sandbox-tsv",
+      "model": "claude-haiku-4-5",
+      "max_tokens": 32000,
+      "input": "100_tsv",
+      "filename": "met_objects_list.tsv",
+      "repeats": 5,
+      "prompt": "Can you standardize this .tsv file?",
+      "attach": "upload",
+      "tools": "code_execution"
     }
   ],
   "systems": {
     "sheet-app": "You are the assistant built into a spreadsheet app. You have no tools and cannot run code. When the user asks for a change to their sheet, reply with the complete updated sheet as CSV in a single code block, every row included, so the app can load it back in. Don't add commentary before the code block."
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    },
+    "claude-haiku-5-5": {
+      "input": 0.1,
+      "output": 0.5
+    }
   }
 }
