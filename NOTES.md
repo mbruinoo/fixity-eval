@@ -1,5 +1,24 @@
 # Research notes
 
+## Limitation to state up front
+
+Every result here starts from a base case where the model reliably gets
+things wrong. That base case had to be engineered, because current models
+mostly don't fail on demand: Haiku 5.5 usually declined or flagged problems,
+and even Haiku 4.5 only invented rows once its file viewer was set to hide
+part of the file (spike-04). So the setup is controlled and somewhat
+artificial:
+
+- The failure depends on choices made to produce it: the model, a file
+  viewer that hides the middle of a long file, a vague prompt, and data
+  sorted so invented rows look plausible.
+- How often this happens in real use isn't measured here. The one real
+  example (a claude.ai chat with Haiku 4.5) is what the setup was built to
+  imitate, not evidence of how common it is.
+- Results about fixity (for example, whether asking for checksums prevents
+  the errors) apply to this base case. They show whether an intervention
+  can move a known failure, not how much it helps in everyday use.
+
 ## Variables to test
 
 Things that might change how well a model keeps data intact while it
