@@ -67,7 +67,7 @@ def norm(s):
     s = re.sub(r"(^|\s)'|'(?=[\s,.;:)]|$)", r"\1", s)  # single quotes used as quotation marks
     s = s.lower().strip()
     # A blank written as a placeholder: [Unknown], [No date], [Unknown Title], n.d., ...
-    if s in BLANKS or re.fullmatch(r"[\[(]?\s*(unknown|no|untitled|n\.?d\.?|not dated|undated|date unknown|unknown title|no date|no title)[^\])]*[\])]?", s):
+    if s in BLANKS or re.fullmatch(r"[\[(]?\s*(unknown|no|untitled|n\.?d\.?|not dated|undated|date unknown|unknown title|no date|no title|(?:title|date) not (?:provided|available|given|listed|specified|known))[^\])]*[\])]?", s):
         return ""
     return s
 

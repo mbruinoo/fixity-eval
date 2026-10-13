@@ -3,8 +3,8 @@
 ## How the stages fit together
 
 1. **Baseline:** find a model and situation that reliably produce errors
-   (spike-03 to spike-07; defined in "Stage 1 baseline" below: Haiku 4.5,
-   a vague "standardize this" request, a partial read, 55–65%).
+   (spike-03 to spike-07, fixed in spike-10; see "Stage 1 baseline" below:
+   Haiku 4.5, a vague "standardize this" request, a partial read, 59–84%).
 2. **Refinement:** add fixity measures and clearer instructions to the prompt
    (the TL;DR prompt) and measure how much they lower the error rate against
    that baseline (spike-08 onwards).
@@ -132,29 +132,36 @@ Raised by spike-01:
   (189 and 345 invented records), one of them claiming "Rows out: 301 ✓".
   The 300c passes were stopped by the budget. $1.74; study total $7.88 of $8.
 
+- `experiments/spike-10/`: the stage-1 baseline, 20 more runs of spike-07's
+  hidden-middle 300b condition (23 with spike-07's). Every run 59–84%, mean
+  65%; 9 of 23 invented records, none of them real. $1.52; study total $9.40
+  of $11.
+
 ## Stage 1 baseline (fixity error rate)
 
-The end point of stage 1: a prompt, dataset and model that reliably score in
-a known range, for the refined prompts of stage 2 to be measured against.
+The end point of stage 1: one model, one prompt and one file that reliably
+score in a known range, for the refined prompts of stage 2 to be measured
+against. Details: [spike-10](experiments/spike-10/README.md).
 
-- **Model:** Haiku 4.5, thinking off.
+- **Model:** Haiku 4.5, no extended thinking.
 - **Prompt:** `Can you standardize this .tsv file?` and nothing else.
-- **Data:** `data/met_inventory_300a.tsv`.
+- **Data:** `data/met_inventory_300b.tsv`.
 - **Setup:** `scripts/run_tools.py`, chat-app-style `view`/`create_file`
-  tools, with the viewer hiding the middle of the file (`view_mode: middle`);
-  config `experiments/spike-07/config_hidden_middle.json`.
-- **Expected:** fixity error rate **55–65%** (spike-07: 57.7%, 59.7%, 59.2%).
-  On 300b/300c the range widens to 52–71%, and 1 run in 3 invents rows.
+  tools, with the viewer hiding the middle of the file (`view_limit` 16,000,
+  `view_mode: middle`); config `experiments/spike-10/config.json`.
+- **Result (23 runs):** fixity error rate **59–84%** in every run, mean 65%
+  (±3 points), median 60%. 14 of 23 only dropped the 162 rows they couldn't
+  see (59–60%); 9 of 23 also invented 127–617 records (67–84%). No run said
+  anything was missing.
 
-Caveats: most of the error is rows the model never saw and silently left out
-(about 157 of 300), plus about 30 rows a run with Tier 1 edits; on 300a no
-rows were invented in 3 of 3 runs. The hidden middle is our harness, so this
-can't be reproduced by hand in a chat app (the user's claude.ai run of Haiku
-4.5 on 300b scored 0.67%). Three runs is thin; five more on 300a would firm
-up the range.
+Caveats: the error is mechanical, set by the harness (the same 162 rows are
+hidden every time), plus 9–11 Tier 1 edits a run (mostly the non-English half
+of bilingual titles deleted). It is safe and well understood, which is why
+it's the baseline, but it can't be reproduced by hand in a chat app.
 
-Stated counts and claims ("It contains 477 rows" for 300, "Rows out: 301 ✓")
-are recorded qualitatively in each spike's README, not scored.
+Stated counts and claims ("It contains 477 rows" for 300, "all 301 records
+properly formatted") are recorded qualitatively in each spike's README, not
+scored.
 
 ## Earlier baseline (spike-03, wrong years)
 

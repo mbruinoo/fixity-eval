@@ -118,12 +118,23 @@ changed: lost or altered).
 
 - [NOTES.md](NOTES.md): research notes, findings so far, how to try the
   invented-rows case yourself.
-- `experiments/spike-01` … `spike-09`: each run, with its own README
+- `experiments/spike-01` … `spike-10`: each run, with its own README
   (setup, results, caveats). Spike-07 scores Haiku 4.5 on known, random and
   obscure inventories with this score; spike-08 and spike-09 test the TL;DR prompt.
-  The stage-1 baseline is defined in NOTES.md.
+  Spike-10 fixes the stage-1 baseline (below).
 - `data/`: the Met samples and inventories ([data/README.md](data/README.md)).
 - `scripts/`: runners, evaluators and the scorer.
+
+## Baseline
+
+Refined prompts are measured against one fixed, reliably failing setup
+([spike-10](experiments/spike-10/README.md)): Haiku 4.5, the prompt
+`Can you standardize this .tsv file?`, `data/met_inventory_300b.tsv`, and a
+file viewer that hides the middle of the file. In 23 of 23 runs the fixity
+error rate was 59–84% (mean 65%, median 60%): the model wrote back only the
+rows it had seen, and in 9 of 23 runs filled the gap with invented records,
+without saying so. The failure is engineered (see NOTES.md), which is what
+makes it repeatable.
 
 ## TL;DR prompt
 

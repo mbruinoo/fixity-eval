@@ -1,0 +1,66 @@
+{
+ "model": "claude-haiku-4-5",
+ "max_tokens": 32000,
+ "system": "You are Claude, a helpful assistant. Files the user uploads are in /mnt/user-data/uploads/. To give the user a file, create it in /mnt/user-data/outputs/; they can download it from there.",
+ "tools": [
+  {
+   "name": "view",
+   "description": "View a text file. Shows the contents with line numbers.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "path": {
+      "type": "string",
+      "description": "Absolute path to the file."
+     },
+     "view_range": {
+      "type": "array",
+      "items": {
+       "type": "integer"
+      },
+      "description": "Optional [start_line, end_line], 1-based and inclusive."
+     }
+    },
+    "required": [
+     "path"
+    ]
+   }
+  },
+  {
+   "name": "create_file",
+   "description": "Create a new file with the given content.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "path": {
+      "type": "string",
+      "description": "Absolute path of the file to create."
+     },
+     "file_text": {
+      "type": "string",
+      "description": "Full content of the file."
+     }
+    },
+    "required": [
+     "path",
+     "file_text"
+    ]
+   }
+  }
+ ],
+ "messages": [
+  {
+   "role": "user",
+   "content": [
+    {
+     "type": "text",
+     "text": "<uploaded_files>\n/mnt/user-data/uploads/met_inventory.tsv\n</uploaded_files>"
+    },
+    {
+     "type": "text",
+     "text": "Can you standardize this .tsv file?"
+    }
+   ]
+  }
+ ]
+}
