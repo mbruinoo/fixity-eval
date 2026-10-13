@@ -118,9 +118,10 @@ changed: lost or altered).
 
 - [NOTES.md](NOTES.md): research notes, findings so far, how to try the
   invented-rows case yourself.
-- `experiments/spike-01` … `spike-08`: each run, with its own README
+- `experiments/spike-01` … `spike-09`: each run, with its own README
   (setup, results, caveats). Spike-07 scores Haiku 4.5 on known, random and
-  obscure inventories with this score; spike-08 tests the TL;DR prompt.
+  obscure inventories with this score; spike-08 and spike-09 test the TL;DR prompt.
+  The stage-1 baseline is defined in NOTES.md.
 - `data/`: the Met samples and inventories ([data/README.md](data/README.md)).
 - `scripts/`: runners, evaluators and the scorer.
 
@@ -153,5 +154,10 @@ start; if you can't see all of it, tell me and stop". With a vague
 (they kept asking what to change), and "read the whole file" brought false
 claims of having read it ("It contains 460 rows", for 300) rather than full
 reads. Draft 2 replaces the first with "Use your best judgment" and the second
-with a row count the model has to state. Draft 2 is tested in
-[spike-09](experiments/spike-09/README.md).
+with a row count the model has to state. **Draft 2** ([spike-09](experiments/spike-09/README.md)) ended the refusals,
+but without a code tool, "with code" led to scripts in place of a sheet and
+invented script output (0 of 9 attached sessions returned a sheet). With the
+middle hidden, 1 of 3 returned sheets read every row first and scored 0.05%;
+the other 2 didn't and scored 62–72% (baseline 52–71%). Next draft: ask for
+the code line only where the model can run code, and ask for the last row
+number actually seen rather than the row count.

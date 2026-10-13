@@ -3,8 +3,8 @@
 ## How the stages fit together
 
 1. **Baseline:** find a model and situation that reliably produce errors
-   (spike-03 to spike-07; the error-prone setup is Haiku 4.5 with a vague
-   "standardize this" request, and, for invented rows, a partial read).
+   (spike-03 to spike-07; defined in "Stage 1 baseline" below: Haiku 4.5,
+   a vague "standardize this" request, a partial read, 55–65%).
 2. **Refinement:** add fixity measures and clearer instructions to the prompt
    (the TL;DR prompt) and measure how much they lower the error rate against
    that baseline (spike-08 onwards).
@@ -123,7 +123,40 @@ Raised by spike-01:
   having read it (row counts of 421–633 for a 300-row file). The prompt needs
   revising.
 
-## Baseline for later experiments
+- `experiments/spike-09/`: TL;DR draft 2 ("Use your best judgment", state the
+  row count). No more outright refusals, but 0 of 9 attached sessions returned
+  a sheet: 8 wrote Python they couldn't run and reported made-up output, 6
+  called the file "already standardized", and 8 stated row counts of 410–599
+  for 300. Hidden-middle: 3 of 6 returned a sheet. One read every row first
+  and scored 0.05%; two never read the hidden middle and scored 72% and 62%
+  (189 and 345 invented records), one of them claiming "Rows out: 301 ✓".
+  The 300c passes were stopped by the budget. $1.74; study total $7.88 of $8.
+
+## Stage 1 baseline (fixity error rate)
+
+The end point of stage 1: a prompt, dataset and model that reliably score in
+a known range, for the refined prompts of stage 2 to be measured against.
+
+- **Model:** Haiku 4.5, thinking off.
+- **Prompt:** `Can you standardize this .tsv file?` and nothing else.
+- **Data:** `data/met_inventory_300a.tsv`.
+- **Setup:** `scripts/run_tools.py`, chat-app-style `view`/`create_file`
+  tools, with the viewer hiding the middle of the file (`view_mode: middle`);
+  config `experiments/spike-07/config_hidden_middle.json`.
+- **Expected:** fixity error rate **55–65%** (spike-07: 57.7%, 59.7%, 59.2%).
+  On 300b/300c the range widens to 52–71%, and 1 run in 3 invents rows.
+
+Caveats: most of the error is rows the model never saw and silently left out
+(about 157 of 300), plus about 30 rows a run with Tier 1 edits; on 300a no
+rows were invented in 3 of 3 runs. The hidden middle is our harness, so this
+can't be reproduced by hand in a chat app (the user's claude.ai run of Haiku
+4.5 on 300b scored 0.67%). Three runs is thin; five more on 300a would firm
+up the range.
+
+Stated counts and claims ("It contains 477 rows" for 300, "Rows out: 301 ✓")
+are recorded qualitatively in each spike's README, not scored.
+
+## Earlier baseline (spike-03, wrong years)
 
 **Haiku 5.5, thinking off (effort `low`), bare Messages API, no system prompt,
 prompt `Add Start Year and End Year columns to this spreadsheet.` followed by
