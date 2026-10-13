@@ -1,0 +1,107 @@
+{
+  "run": "tldr2-hidden-middle-300a-r2",
+  "condition": {
+    "id": "tldr2-hidden-middle-300a",
+    "model": "claude-haiku-4-5",
+    "input": "300a",
+    "filename": "met_inventory.tsv",
+    "view_limit": 16000,
+    "view_mode": "middle",
+    "prompt": "Can you standardize this .tsv file?\n\nUse your best judgment, and keep everything else in this file fixed:\n- Leave every cell you aren't standardizing exactly as it is, including\n  accents, non-English text, punctuation, ID numbers, and qualifiers like\n  \"ca.\", \"probably\" and \"?\".\n- Don't add, remove, merge or reorder rows, and don't fill in blank cells.\n- Before you start, tell me how many data rows the file has and how many you\n  read. If they differ, read the rest first.\n- Make the changes with code, not by retyping the file.\n- When you're done, compare the result with the original file (not from\n  memory) and tell me: rows in, rows out, and every cell you changed\n  (row, column, before, after).",
+    "nudges": [
+      "Yes, thank you",
+      "Yes, please continue",
+      "Yes, please continue"
+    ]
+  },
+  "started": "2026-10-13T16:25:01.126977+00:00",
+  "calls": [
+    {
+      "call": 1,
+      "started": "2026-10-13T16:25:01.127183+00:00",
+      "finished": "2026-10-13T16:25:02.072568+00:00",
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 982,
+      "output_tokens": 75,
+      "cost_usd": 0.001357
+    },
+    {
+      "call": 2,
+      "started": "2026-10-13T16:25:02.072757+00:00",
+      "finished": "2026-10-13T16:25:02.994479+00:00",
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 1083,
+      "output_tokens": 75,
+      "cost_usd": 0.001458
+    },
+    {
+      "call": 3,
+      "started": "2026-10-13T16:25:02.995495+00:00",
+      "finished": "2026-10-13T16:25:09.569943+00:00",
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 7801,
+      "output_tokens": 699,
+      "cost_usd": 0.011296
+    },
+    {
+      "call": 4,
+      "started": "2026-10-13T16:25:09.570754+00:00",
+      "finished": "2026-10-13T16:25:10.885418+00:00",
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 8531,
+      "output_tokens": 103,
+      "cost_usd": 0.009046
+    },
+    {
+      "call": 5,
+      "started": "2026-10-13T16:25:10.886025+00:00",
+      "finished": "2026-10-13T16:29:30.665748+00:00",
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "max_tokens",
+      "input_tokens": 8667,
+      "output_tokens": 32000,
+      "cost_usd": 0.168667
+    }
+  ],
+  "tool_calls": [
+    {
+      "call": 1,
+      "tool": "view",
+      "path": "/mnt/user-data/uploads",
+      "view_range": null,
+      "chars_returned": 45,
+      "truncated": false
+    },
+    {
+      "call": 2,
+      "tool": "view",
+      "path": "/mnt/user-data/uploads/met_inventory.tsv",
+      "view_range": null,
+      "chars_returned": 15995,
+      "truncated": true
+    },
+    {
+      "call": 3,
+      "tool": "create_file",
+      "path": "/mnt/user-data/outputs/standardize.py",
+      "chars": 1354
+    },
+    {
+      "call": 4,
+      "tool": "view",
+      "path": "/mnt/user-data/outputs/met_inventory.tsv",
+      "view_range": [
+        1,
+        50
+      ],
+      "chars_returned": 63,
+      "truncated": false
+    }
+  ],
+  "finished": "2026-10-13T16:29:30.665919+00:00",
+  "cost_usd": 0.191824
+}

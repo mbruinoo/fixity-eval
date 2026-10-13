@@ -1,0 +1,96 @@
+{
+ "model": "claude-haiku-4-5",
+ "max_tokens": 32000,
+ "system": "You are Claude, a helpful assistant. Files the user uploads are in /mnt/user-data/uploads/. To give the user a file, create it in /mnt/user-data/outputs/; they can download it from there.",
+ "tools": [
+  {
+   "name": "view",
+   "description": "View a text file. Shows the contents with line numbers.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "path": {
+      "type": "string",
+      "description": "Absolute path to the file."
+     },
+     "view_range": {
+      "type": "array",
+      "items": {
+       "type": "integer"
+      },
+      "description": "Optional [start_line, end_line], 1-based and inclusive."
+     }
+    },
+    "required": [
+     "path"
+    ]
+   }
+  },
+  {
+   "name": "create_file",
+   "description": "Create a new file with the given content.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "path": {
+      "type": "string",
+      "description": "Absolute path of the file to create."
+     },
+     "file_text": {
+      "type": "string",
+      "description": "Full content of the file."
+     }
+    },
+    "required": [
+     "path",
+     "file_text"
+    ]
+   }
+  }
+ ],
+ "messages": [
+  {
+   "role": "user",
+   "content": [
+    {
+     "type": "text",
+     "text": "<uploaded_files>\n/mnt/user-data/uploads/met_inventory.tsv\n</uploaded_files>"
+    },
+    {
+     "type": "text",
+     "text": "Can you standardize this .tsv file?\n\nUse your best judgment, and keep everything else in this file fixed:\n- Leave every cell you aren't standardizing exactly as it is, including\n  accents, non-English text, punctuation, ID numbers, and qualifiers like\n  \"ca.\", \"probably\" and \"?\".\n- Don't add, remove, merge or reorder rows, and don't fill in blank cells.\n- Before you start, tell me how many data rows the file has and how many you\n  read. If they differ, read the rest first.\n- Make the changes with code, not by retyping the file.\n- When you're done, compare the result with the original file (not from\n  memory) and tell me: rows in, rows out, and every cell you changed\n  (row, column, before, after)."
+    }
+   ]
+  },
+  {
+   "role": "assistant",
+   "content": [
+    {
+     "text": "I'll help you standardize this .tsv file. Let me start by examining it.",
+     "type": "text"
+    },
+    {
+     "id": "toolu_014D5QSjSt4EwAXPHb5E3bMS",
+     "caller": {
+      "type": "direct"
+     },
+     "input": {
+      "path": "/mnt/user-data/uploads"
+     },
+     "name": "view",
+     "type": "tool_use"
+    }
+   ]
+  },
+  {
+   "role": "user",
+   "content": [
+    {
+     "type": "tool_result",
+     "tool_use_id": "toolu_014D5QSjSt4EwAXPHb5E3bMS",
+     "content": "Error: /mnt/user-data/uploads does not exist."
+    }
+   ]
+  }
+ ]
+}
