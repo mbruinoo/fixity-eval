@@ -97,7 +97,7 @@ from spike-05; no object appears in more than one file.
 
 | File | What it is | Blank titles |
 |---|---|---|
-| 300a | 275 of the best-known objects scored (artist and year both right; mean familiarity 0.57), plus 25 untitled Met highlights or timeline works | 25 |
+| 300a | 275 of the best-known objects scored (artist and year both right; mean familiarity 0.58), plus 25 untitled Met highlights or timeline works | 25 |
 | 300b | a copy of `met_random_300.tsv` (random; mean known_score 0.14, familiarity 0.16) | 25 |
 | 300c | 275 random objects with known_score 0 and familiarity ≤ 0.1, plus 25 untitled random non-highlights | 25 |
 
