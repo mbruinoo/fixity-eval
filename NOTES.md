@@ -87,6 +87,13 @@ Raised by spike-01:
   *Self-Portrait with a Straw Hat* → Whistler). Scores for the demo file are in
   `experiments/spike-05/demo_file_scores.tsv`.
 
+- `experiments/spike-06/`: asked to fill in blank Artist/Year cells "only
+  where you're sure", Haiku 4.5 got 89% of artists right for objects it knows
+  (spike-05 score ≥ 0.7) but 94% of the artists it filled in for objects it
+  doesn't know were wrong: plausible famous names (Houdon for a medallion by
+  Renaud, Turner for a Callow watercolour). The plain "fill in" prompt mostly
+  made it decline.
+
 ## Baseline for later experiments
 
 **Haiku 5.5, thinking off (effort `low`), bare Messages API, no system prompt,
