@@ -104,6 +104,13 @@ Raised by spike-01:
   of 6 random/obscure runs, none of them real Met records. Fame didn't protect
   the records: the well-known set's bilingual titles were rewritten most.
 
+- `experiments/spike-08/`: the draft TL;DR prompt against spike-07. With a
+  vague "standardize" request, 16 of 18 Haiku 4.5 sessions returned nothing
+  and kept asking what to change; the 2 that returned a sheet retyped it and
+  invented 349 and 99 records. "Read the whole file" brought false claims of
+  having read it (row counts of 421–633 for a 300-row file). The prompt needs
+  revising.
+
 ## Baseline for later experiments
 
 **Haiku 5.5, thinking off (effort `low`), bare Messages API, no system prompt,

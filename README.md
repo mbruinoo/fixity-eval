@@ -118,9 +118,9 @@ changed: lost or altered).
 
 - [NOTES.md](NOTES.md): research notes, findings so far, how to try the
   invented-rows case yourself.
-- `experiments/spike-01` … `spike-07`: each run, with its own README
+- `experiments/spike-01` … `spike-08`: each run, with its own README
   (setup, results, caveats). Spike-07 scores Haiku 4.5 on known, random and
-  obscure inventories with this score.
+  obscure inventories with this score; spike-08 tests the TL;DR prompt.
 - `data/`: the Met samples and inventories ([data/README.md](data/README.md)).
 - `scripts/`: runners, evaluators and the scorer.
 
@@ -142,8 +142,23 @@ Keep this file fixed except for what I ask you to change:
   (row, column, before, after).
 ```
 
-**Status: a draft, not yet tested.** Each line answers a failure seen in
-these experiments: silent edits to accents and non-English titles, dropped
-qualifiers, invented and missing rows after a partial read, retyped copies,
-and summaries claiming nothing was lost. Whether it actually lowers the fixity
-error rate against the baseline is the next experiment.
+**Status: draft 1, tested and needs revision.** Each line answers a failure
+seen in these experiments: silent edits to accents and non-English titles,
+dropped qualifiers, invented and missing rows after a partial read, retyped
+copies, and summaries claiming nothing was lost.
+
+Tested against the baseline in [spike-08](experiments/spike-08/README.md)
+(Haiku 4.5, 18 runs, a vague "standardize this" request):
+
+- 16 of 18 sessions returned no sheet: "Change only what I asked for" made the
+  vague request one it wouldn't act on, and it kept asking what to change.
+  (Declining an ambiguous request is acceptable here and is footnoted, not
+  scored.)
+- Among the 2 sessions that returned a sheet, the prompt didn't help: both
+  retyped the file and invented records (349 and 99 rows), with error rates
+  of 73% and 50% against the baseline's 61%.
+- "Read the whole file" produced false claims ("I've read the entire file. It
+  contains 460 rows", for 300) rather than full reads.
+
+Next: a revised prompt that still acts on vague requests and replaces "read
+the whole file" with a checkable row count.
