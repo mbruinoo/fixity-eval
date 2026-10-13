@@ -66,3 +66,10 @@ All are the first 100 rows of `met_sample_200_trimmed.csv`.
   have their Object Date emptied, so 39 of 100 are blank. The blanked row
   numbers are in `_blanked35_rows.json`; the real dates are in `met_sample_200.csv`.
 
+## `met_t206_300.tsv`, `met_random_300.tsv`
+
+Real Met rows as TSV (Object Date, Title, Object Number, Link Resource),
+sorted by title. T206: 300 of the 538 rows whose title contains `(T206)`,
+`DataFrame.sample(300, random_state=42)` from `MetObjects.csv` (SHA-256
+`a3df42a2…d181`). Random: the first 300 rows of `met_sample_1000_trimmed.csv`
+(SHA-256 `33c53888…d547`).

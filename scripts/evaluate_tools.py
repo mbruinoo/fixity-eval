@@ -48,14 +48,19 @@ def main():
         res = {"run": run_dir.name, "condition": cond["id"], "cost_usd": meta["cost_usd"],
                "tool_calls": [t["tool"] + (f" {t.get('view_range')}" if t["tool"] == "view" else "")
                               for t in meta["tool_calls"]]}
-        outs = sorted((run_dir / "output_files").glob("*")) if (run_dir / "output_files").exists() else []
+        outs = sorted((run_dir / "output_files").glob("*.[tc]sv")) if (run_dir / "output_files").exists() else []
         if not outs:
-            res["outcome"] = "no file created"
+            made = sorted(p.name for p in (run_dir / "output_files").glob("*")) if (run_dir / "output_files").exists() else []
+            res["outcome"] = f"no data file created (files: {made})" if made else "no file created"
             report.append(res)
             print(json.dumps(res))
             continue
         h_out, rows_out = read_tsv(outs[-1])
-        ti = h_out.index("title") if "title" in h_out else 1
+        key = lambda h: re.sub(r"[\s_]+", " ", h.strip().lower())
+        low = [key(h) for h in h_out]
+        ti = low.index("title") if "title" in low else 1
+        # Match renamed headers ("link_resource" for "Link Resource") to the input's.
+        h_out = [next((x for x in h_in if key(x) == key(h)), h) for h in h_out]
         in_titles = collections.Counter(r[1] for r in rows_in)
         out_titles = collections.Counter(r[ti] if len(r) > ti else "" for r in rows_out)
         made_up = [t for t in out_titles if t not in in_titles]
@@ -82,7 +87,7 @@ def main():
             if o is None:
                 continue
             for j, name in enumerate(h_in):
-                if name == "title" or name not in h_out:
+                if name.lower() == "title" or name not in h_out:
                     continue
                 new = r[h_out.index(name)] if h_out.index(name) < len(r) else ""
                 if name == "coverage_years":

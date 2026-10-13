@@ -108,6 +108,10 @@ def run_one(client, cfg, root, ledger, cond, rep):
     for i in range(1, cfg.get("max_calls_per_run", 8) + 1):
         params = {"model": cond["model"], "max_tokens": cond.get("max_tokens", cfg["max_tokens"]),
                   "system": SYSTEM, "tools": TOOLS, "messages": messages}
+        if cond.get("effort"):
+            params["output_config"] = {"effort": cond["effort"]}
+        if cond.get("thinking") == "disabled":
+            params["thinking"] = {"type": "disabled"}
         (d / f"request_{i}.json").write_text(json.dumps(params, indent=1, ensure_ascii=False))
         est_in = len(json.dumps(messages, ensure_ascii=False)) // 3 + 1500
         worst = ledger.reserve(est_in, params["max_tokens"], cond["model"])

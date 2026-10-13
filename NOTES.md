@@ -103,6 +103,10 @@ appear in Haiku 5.5; it declines instead, often with a wrong row count
   the first 80 rows; neither said so. When it read the whole file, it copied
   all 300 rows faithfully.
 
+- On real Met data (300 T206 baseball cards), Haiku 5.5 noticed the cut and
+  paged through it; it made up no titles, but one run silently lost the 53
+  rows it never viewed. Haiku 4.5 on real data is still untested (call cap).
+
 ## Open questions
 
 - How to make retyping happen when checksums are asked for. Forbidding code
