@@ -21,6 +21,9 @@ commands run on this machine in a throwaway folder standing in for
 network (unshare -n), a 60-second limit and output cut at 30,000 characters.
 Commands and outputs are logged to bash_log.md.
 
+With "inline": "full" (or "middle") the file's text also goes into the first
+message, in a <document> block, as a chat app can attach an uploaded file.
+
 Saved per run under <experiment>/runs/<id>/: request and response JSON for
 every call, the files the model created (output_files/), the final reply
 (response.md) and meta.json (usage, cost, tool calls, timestamps).
@@ -161,8 +164,20 @@ def run_one(client, cfg, root, ledger, cond, rep):
         shutil.copy(src, box / "uploads" / cond["filename"])
     # Chat apps tell the model where an upload is; so does this.
     notice = f"<uploaded_files>\n{UPLOADS}{cond['filename']}\n</uploaded_files>"
-    messages = [{"role": "user", "content": [{"type": "text", "text": notice},
-                                             {"type": "text", "text": cond["prompt"]}]}]
+    content = [{"type": "text", "text": notice}]
+    if cond.get("inline"):
+        # The file's text in the first message, the way a chat app can attach
+        # an uploaded text file ("full", or "middle": start and end with the
+        # middle replaced by "...", as view_middle_cut does).
+        body = files[UPLOADS + cond["filename"]]
+        if cond["inline"] == "middle":
+            body = "\n".join(x.split("\t", 1)[1] if x != "..." else x
+                             for x in view_middle_cut(body, cond.get("view_limit", 16000)).split("\n"))
+        content.insert(0, {"type": "text", "text": (
+            f"<documents>\n<document index=\"1\">\n<source>{cond['filename']}</source>\n"
+            f"<document_content>{body}</document_content>\n</document>\n</documents>")})
+    content.append({"type": "text", "text": cond["prompt"]})
+    messages = [{"role": "user", "content": content}]
     meta = {"run": run_id, "condition": cond, "started": now(), "calls": [], "tool_calls": []}
     text = []
     nudges = list(cond.get("nudges", []))

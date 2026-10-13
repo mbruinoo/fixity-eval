@@ -1,0 +1,46 @@
+{
+  "_budget_note": "Study limit $14; $13.09 spent before this spike. Capped at $0.85 here.",
+  "_purpose": "Pilot: spike-13 (baseline + bash) with the file's text in the first message, as claude.ai attaches an uploaded text file. Does the model retype instead of using bash? Then spike-11's follow-up.",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "budget_stop_usd": 0.85,
+  "max_calls": 20,
+  "max_tokens": 32000,
+  "repeats": 1,
+  "parallel": 1,
+  "inputs": {
+    "300b": "data/met_inventory_300b.tsv"
+  },
+  "max_calls_per_run": 15,
+  "conditions": [
+    {
+      "id": "file-in-context",
+      "model": "claude-haiku-4-5",
+      "input": "300b",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "followups": [
+        "Can you try again, but this time: Please perform any data transformations as a procedural script, with a checksum of the input and output files in the header as a fixity check. I'd like to have all the files (input, transformation script, and output) to download and archive."
+      ],
+      "bash": true,
+      "inline": "full"
+    }
+  ],
+  "live": true
+}
