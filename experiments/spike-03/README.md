@@ -191,7 +191,7 @@ The two closest API setups, on the 100-row Met sheet as TSV, 5 runs each:
 | Condition | What came back | Cells changed per sheet | Words added that weren't in the source |
 |---|---|---|---|
 | 40 Haiku 4.5, file attached as a document, no tools | full sheet in the reply, 5/5 | 60–65 | none |
-| 41 Haiku 4.5, file uploaded to the code-execution sandbox | a new `.tsv` written by pandas, 5/5 | 0, 0, 22, 38, 56 | none |
+| 41 Haiku 4.5, file uploaded to the code-execution sandbox | a new `.tsv` written by pandas, 5/5 | 0, 0, 34, 22, 56 | none |
 
 - **No fabrication.** No run added a single word that wasn't in the source,
   and no blank date got a year.
@@ -203,8 +203,8 @@ The two closest API setups, on the 100-row Met sheet as TSV, 5 runs each:
   `Anonymous`). Each reply listed these in general terms ("simplified
   multilingual titles"), never row by row.
 - **With the sandbox (41)** it wrote pandas code. Content changes were the
-  same kinds (placeholders, `;`), applied by code. 2 of 5 runs re-sorted
-  the rows, and 2 left the data untouched.
+  same kinds (placeholders, `;`, `B.C.` → `BCE`), applied by code. 2 runs
+  changed no cell, and 2 runs re-sorted the rows (one of each overlaps).
 - Haiku 4.5 costs 10× Haiku 5.5: about $0.03 per attached run and $0.06 per
   sandbox run.
 
