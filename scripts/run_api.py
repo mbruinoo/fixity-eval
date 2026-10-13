@@ -117,6 +117,11 @@ def first_message(client, cfg, cond, run_dir):
     raise ValueError(how)
 
 
+def has_table(text, min_rows=50):
+    """True if a reply contains a table of at least min_rows lines (TSV or markdown)."""
+    return sum(1 for ln in text.splitlines() if "\t" in ln or ln.lstrip().startswith("|")) >= min_rows
+
+
 def save_output_files(client, msg, run_dir):
     """Download files the model created in the sandbox."""
     saved = []
@@ -147,6 +152,7 @@ def run_one(client, cfg, root, ledger, cond, rep):
     container, all_text = None, []
     i = 0
     pending = list(turns)
+    nudges_left = list(cond.get("nudges", []))
     while (pending or meta["turns"][-1]["stop_reason"] == "pause_turn") and i < 10:
         i += 1
         if not (meta["turns"] and meta["turns"][-1]["stop_reason"] == "pause_turn"):
@@ -178,6 +184,11 @@ def run_one(client, cfg, root, ledger, cond, rep):
         all_text.append(text_out)
         # Thinking blocks are passed back unchanged, as the API expects.
         messages.append({"role": "assistant", "content": [b.model_dump(exclude_none=True) for b in msg.content]})
+        # "nudges": what a user says when the reply asks a question instead of
+        # giving the sheet ("Yes, thank you", then "Yes, please continue").
+        if (not pending and msg.stop_reason == "end_turn" and nudges_left
+                and not has_table(text_out) and not files):
+            pending.append(nudges_left.pop(0))
     (d / "response.md").write_text("\n\n".join(t for t in all_text if t), encoding="utf-8")
     meta["finished"] = now()
     meta["cost_usd"] = round(sum(t["cost_usd"] for t in meta["turns"]), 6)

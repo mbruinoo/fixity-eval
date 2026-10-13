@@ -28,7 +28,7 @@ import sys
 import anthropic
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from run_api import Ledger, now  # noqa: E402
+from run_api import Ledger, has_table, now  # noqa: E402
 
 UPLOADS, OUTPUTS = "/mnt/user-data/uploads/", "/mnt/user-data/outputs/"
 TOOLS = [
@@ -105,6 +105,7 @@ def run_one(client, cfg, root, ledger, cond, rep):
                                              {"type": "text", "text": cond["prompt"]}]}]
     meta = {"run": run_id, "condition": cond, "started": now(), "calls": [], "tool_calls": []}
     text = []
+    nudges = list(cond.get("nudges", []))
     for i in range(1, cfg.get("max_calls_per_run", 8) + 1):
         params = {"model": cond["model"], "max_tokens": cond.get("max_tokens", cfg["max_tokens"]),
                   "system": SYSTEM, "tools": TOOLS, "messages": messages}
@@ -130,6 +131,12 @@ def run_one(client, cfg, root, ledger, cond, rep):
         messages.append({"role": "assistant", "content": [b.model_dump(exclude_none=True) for b in msg.content]})
         uses = [b for b in msg.content if b.type == "tool_use"]
         if msg.stop_reason != "tool_use" or not uses:
+            # The reply asked a question instead of giving the file: answer as a
+            # user would ("Yes, thank you", then "Yes, please continue").
+            made_file = any(t["tool"] == "create_file" for t in meta["tool_calls"])
+            if not made_file and not has_table(text[-1]) and nudges and msg.stop_reason == "end_turn":
+                messages.append({"role": "user", "content": nudges.pop(0)})
+                continue
             break
         results = []
         for u in uses:
