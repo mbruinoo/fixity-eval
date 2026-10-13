@@ -159,6 +159,11 @@ Raised by spike-01:
   the first message, as chat apps can, with view/create_file/bash available.
   $0.28; study total $13.09 of $14.
 
+- `experiments/spike-14/`: spike-13 with the file's text also in the first
+  message, as claude.ai attaches an upload (pilot, 1 run). Bash again by step
+  2; 0.0% before and after the follow-up; real, verified checksums. Tool
+  skipped in 0 of 3 runs across spikes 13–14. $0.37; study total $13.46 of $14.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably

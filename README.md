@@ -118,7 +118,7 @@ changed: lost or altered).
 
 - [NOTES.md](NOTES.md): research notes, findings so far, how to try the
   invented-rows case yourself.
-- `experiments/spike-01` … `spike-13`: each run, with its own README
+- `experiments/spike-01` … `spike-14`: each run, with its own README
   (setup, results, caveats). Spike-07 scores Haiku 4.5 on known, random and
   obscure inventories with this score; spike-08 and spike-09 test the TL;DR prompt.
   Spike-10 fixes the stage-1 baseline (below).
