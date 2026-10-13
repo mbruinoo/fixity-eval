@@ -153,7 +153,8 @@ def run_one(client, cfg, root, ledger, cond, rep):
     i = 0
     pending = list(turns)
     nudges_left = list(cond.get("nudges", []))
-    while (pending or meta["turns"][-1]["stop_reason"] == "pause_turn") and i < 10:
+    after_delivery, stage, delivered = list(cond.get("followups_after_delivery", [])), 0, False
+    while (pending or meta["turns"][-1]["stop_reason"] == "pause_turn") and i < cfg.get("max_calls_per_run", 10):
         i += 1
         if not (meta["turns"] and meta["turns"][-1]["stop_reason"] == "pause_turn"):
             messages.append({"role": "user", "content": pending.pop(0)})
@@ -186,9 +187,21 @@ def run_one(client, cfg, root, ledger, cond, rep):
         messages.append({"role": "assistant", "content": [b.model_dump(exclude_none=True) for b in msg.content]})
         # "nudges": what a user says when the reply asks a question instead of
         # giving the sheet ("Yes, thank you", then "Yes, please continue").
+        delivered = delivered or bool(files) or has_table(text_out)
         if (not pending and msg.stop_reason == "end_turn" and nudges_left
-                and not has_table(text_out) and not files):
+                and not delivered):
             pending.append(nudges_left.pop(0))
+        # "followups_after_delivery": sent once the sheet has arrived (a file or a
+        # table) and the model has stopped. Files from before move to
+        # output_files_before_followup<N>/, so output_files/ holds the final answer.
+        elif not pending and msg.stop_reason == "end_turn" and after_delivery and delivered:
+            stage += 1
+            if (d / "output_files").exists():
+                (d / "output_files").rename(d / f"output_files_before_followup{stage}")
+            (d / f"response_before_followup{stage}.md").write_text("\n\n".join(t for t in all_text if t), encoding="utf-8")
+            meta.setdefault("followups_sent", []).append({"before_turn": i + 1, "text": after_delivery[0]})
+            pending.append(after_delivery.pop(0))
+            delivered, nudges_left = False, list(cond.get("nudges", []))
     (d / "response.md").write_text("\n\n".join(t for t in all_text if t), encoding="utf-8")
     meta["finished"] = now()
     meta["cost_usd"] = round(sum(t["cost_usd"] for t in meta["turns"]), 6)

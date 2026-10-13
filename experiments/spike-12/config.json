@@ -1,0 +1,43 @@
+{
+  "_budget_note": "User raised the study limit to $13 (2026-10-13); $10.16 spent before this spike. Capped at $1.00 here.",
+  "_purpose": "Spike-11's follow-up, with a code tool: the file uploaded to the code-execution sandbox (no hidden middle; the model reads it with code).",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "budget_stop_usd": 1.0,
+  "max_calls": 30,
+  "max_tokens": 32000,
+  "repeats": 1,
+  "parallel": 1,
+  "max_calls_per_run": 20,
+  "inputs": {
+    "300b": "data/met_inventory_300b.tsv"
+  },
+  "conditions": [
+    {
+      "id": "sandbox-followup",
+      "model": "claude-haiku-4-5",
+      "input": "300b",
+      "filename": "met_inventory.tsv",
+      "attach": "upload",
+      "tools": "code_execution",
+      "prompt": "Can you standardize this .tsv file?",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "followups_after_delivery": [
+        "Can you try again, but this time: Please perform any data transformations as a procedural script, with a checksum of the input and output files in the header as a fixity check. I'd like to have all the files (input, transformation script, and output) to download and archive."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+================================================================================
+DOWNLOAD & SETUP GUIDE
+================================================================================
+
+DOWNLOAD OPTIONS:
+
+Option 1: Complete Archives (Recommended)
+  • met_inventory_standardization.tar.gz (34 KB)
+  • met_inventory_standardization.zip (37 KB)
+  Contains: All files in organized directory structure
+  Extract and use everything
+
+Option 2: Individual Files
+  • Use any/all of the 9 individual files
+  • Archives not needed
+
+Option 3: Both
+  Download both archives and individual files
+
+AFTER DOWNLOADING:
+
+1. Extract archive or verify all files received
+2. Read: 00_START_HERE.txt
+3. Read: README.md
+4. Verify: VERIFICATION.md (run checksum commands)
+5. Use: met_inventory_standardized.tsv
+
+VERIFY CHECKSUMS:
+
+Linux/macOS:
+  sha256sum met_inventory_ORIGINAL.tsv
+  sha256sum met_inventory_standardized.tsv
+
+Windows PowerShell:
+  Get-FileHash met_inventory_ORIGINAL.tsv -Algorithm SHA256
+  Get-FileHash met_inventory_standardized.tsv -Algorithm SHA256
+
+Expected values in VERIFICATION.md
+
+USE THE DATA:
+
+Excel/Sheets:
+  Open met_inventory_standardized.tsv
+  Select Tab as delimiter
+  4 columns: object_number, title, object_date, link_resource
+
+Python:
+  import pandas as pd
+  df = pd.read_csv('met_inventory_standardized.tsv', sep='\t')
+
+R:
+  data <- read.delim('met_inventory_standardized.tsv')
+
+Command line:
+  head met_inventory_standardized.tsv
+
+For complete documentation, see README.md
