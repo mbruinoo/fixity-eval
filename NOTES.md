@@ -94,12 +94,13 @@ Raised by spike-01:
   Renaud, Turner for a Callow watercolour). The plain "fill in" prompt mostly
   made it decline.
 
-- `experiments/spike-07/`: a hallucination score (share of records not
-  returned intact: invented + missing + rows with a Tier 1 or Tier 2 change;
-  defined in README.md). Haiku 4.5 on the 300a/b/c inventories,
-  3 passes each: with the whole file attached it invented nothing (scores
-  0–0.16, all from changed cells); with the middle of the file hidden it lost
-  about half of every sheet (scores 0.49–0.73) and invented 144–287 records in 3
+- `experiments/spike-07/`: a character-level fixity error rate (Tier 1
+  content loss and fabrication weigh 1, Tier 2 accents 0.25, Tier 3 reformat
+  0; bounded 0–100%; defined in README.md), with every change saved so the
+  weights can be revisited. Haiku 4.5 on the 300a/b/c inventories, 3 passes
+  each: with the whole file attached it invented nothing (rates 0–8.4%, all
+  from changed cells); with the middle of the file hidden it lost about half
+  of every sheet (rates 52–71%) and invented 144–287 records in 3
   of 6 random/obscure runs, none of them real Met records. Fame didn't protect
   the records: the well-known set's bilingual titles were rewritten most.
 
