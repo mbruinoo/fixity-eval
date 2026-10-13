@@ -13,7 +13,8 @@ With no artist part, a year alone can earn at most 0.5 (a lucky guess can't
 make an object "known"). Where neither part applies, known_score is the
 model's own familiarity rating, marked "self-report only".
 
-    sample   build the object list (data/fame_sample.csv) from MetObjects.csv
+    sample         build the object list (data/fame_sample.csv) from MetObjects.csv
+    sample_famous  round 2: likely-famous candidates (data/fame_sample_round2.csv)
     run      ask the model, in batches, with the cost guard from run_api.py
     score    score every answer and write experiments/spike-05/scores.csv
 
@@ -70,6 +71,26 @@ def sample(src):
     print(out["group"].value_counts().to_string(), len(out))
 
 
+def sample_famous(src):
+    """Round 2: likely-famous candidates (Met highlights and timeline works with
+    a named artist, paintings first) not already in data/fame_sample.csv."""
+    import pandas as pd
+    df = pd.read_csv(src, dtype=str, keep_default_na=False, encoding="utf-8-sig", usecols=FIELDS + ["Classification"])
+    done = set(pd.read_csv("data/fame_sample.csv", dtype=str, keep_default_na=False)["Object Number"])
+    c = df[((df["Is Highlight"] == "True") | (df["Is Timeline Work"] == "True")) & (df["Artist Display Name"] != "")
+           & (df["Title"].str.strip() != "") & ~df["Object Number"].isin(done)]
+    first = c[(c["Classification"] == "Paintings") | c["Department"].isin(
+        ["European Paintings", "Modern and Contemporary Art", "Robert Lehman Collection"])]
+    rest = c.drop(first.index)
+    rest = rest[rest["Department"].isin(["Photographs", "Drawings and Prints", "The American Wing",
+                                         "European Sculpture and Decorative Arts"])]
+    out = pd.concat([first, rest.sample(min(len(rest), 2500 - len(first)), random_state=7)])
+    out = out.drop(columns="Classification").drop_duplicates("Object Number").assign(group="famous_candidate")
+    out.insert(0, "id", range(10001, 10001 + len(out)))
+    out.to_csv("data/fame_sample_round2.csv", index=False)
+    print(len(out))
+
+
 def run(cfg_path, repeat_ids=None):
     import concurrent.futures as cf
 
@@ -85,7 +106,7 @@ def run(cfg_path, repeat_ids=None):
     # A second pass over the first few batches measures how stable the answers are.
     jobs += [(f"pass2-b{n:03}", b) for n, b in enumerate(batches[:cfg["repeat_batches"]], 1)]
     client = anthropic.Anthropic(api_key=os.environ["FIXITY_ANTHROPIC_API_KEY"], max_retries=3)
-    out_dir = root / "runs"
+    out_dir = root / cfg.get("runs_dir", "runs")
     out_dir.mkdir(exist_ok=True)
 
     def one(name, batch):
@@ -170,7 +191,7 @@ def score(cfg_path):
     root = cfg_path.parent
     rows = {r["id"]: r for r in csv.DictReader(open(cfg["sample"], encoding="utf-8"))}
     answers = {}  # (pass, id) -> answer
-    for f in sorted((root / "runs").glob("*.json")):
+    for f in sorted((root / cfg.get("runs_dir", "runs")).glob("*.json")):
         d = json.loads(f.read_text())
         text = "".join(b.get("text", "") for b in d["response"]["content"] if b["type"] == "text")
         m = re.search(r"\[.*\]", text, re.S)
@@ -204,7 +225,7 @@ def score(cfg_path):
             fam = 0.0
         a2 = answers.get(("pass2", rid))
         out.append({
-            "id": rid, "group": r["group"], "object_number": r["Object Number"], "title": r["Title"],
+            "id": rid, "group": r.get("group", ""), "object_number": r["Object Number"], "title": r["Title"],
             "met_artist": r["Artist Display Name"], "met_begin": r["Object Begin Date"], "met_medium": r["Medium"],
             "is_highlight": r["Is Highlight"], "is_timeline_work": r["Is Timeline Work"],
             "model_artist": a.get("artist", ""), "model_year": a.get("year", ""), "model_medium": a.get("medium", ""),
@@ -220,7 +241,7 @@ def score(cfg_path):
             "pass2_artist": a2.get("artist", "") if a2 else "", "pass2_year": a2.get("year", "") if a2 else "",
             "pass2_familiarity": a2.get("familiarity", "") if a2 else "",
         })
-    with open(root / "scores.csv", "w", newline="", encoding="utf-8") as f:
+    with open(root / cfg.get("scores_out", "scores.csv"), "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(out[0]))
         w.writeheader()
         w.writerows(out)
@@ -228,4 +249,4 @@ def score(cfg_path):
 
 
 if __name__ == "__main__":
-    {"sample": sample, "run": run, "score": score}[sys.argv[1]](sys.argv[2])
+    {"sample": sample, "sample_famous": sample_famous, "run": run, "score": score}[sys.argv[1]](sys.argv[2])

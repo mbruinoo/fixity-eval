@@ -97,6 +97,25 @@ narrow Met date, dropping medium, ignoring artists the title already names and
 capping year-only credit at 0.5 removed most of that. All versions use the
 same answers; only `score` changed.
 
+## Round 2: finding well-known objects
+
+Round 1 found only ~65 well-known objects, too few for a 300-row
+"well-known" file. Round 2 probed 2,500 more likely-famous candidates (Met
+highlights and timeline works with a named artist: paintings and the
+European Paintings, Modern, and Lehman departments first, then a sample of
+photographs, prints, American Wing and European sculpture). Same prompt and
+scoring; 100 calls, $0.70.
+
+- 299 of the 2,500 scored 0.9 or more (vs 46 of 1,433 in round 1).
+- Together the rounds give 345 verified objects at ≥ 0.9, enough for
+  `data/met_inventory_300a.tsv` (see `data/README.md`).
+
+```
+python scripts/fame_probe.py sample_famous MetObjects.csv
+python scripts/fame_probe.py run experiments/spike-05/config_round2.json
+python scripts/fame_probe.py score experiments/spike-05/config_round2.json
+```
+
 ## Caveats
 
 - A title in Chinese or Japanese can contain the artist's name
@@ -117,4 +136,5 @@ same answers; only `score` changed.
   the second-pass answers where asked.
 - `demo_file_scores.tsv`: the 277 titled objects of `met_random_300.tsv`,
   sorted from most to least known.
-- `runs/`: request and response for each batch; `cost_ledger.json`; `run_log.txt`.
+- `scores_round2.csv`, `runs_round2/`, `config_round2.json`, `run_log_round2.txt`: round 2.
+- `runs/`: request and response for each batch; `cost_ledger.json` (both rounds); `run_log.txt`.

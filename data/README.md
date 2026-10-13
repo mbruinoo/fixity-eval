@@ -87,3 +87,24 @@ setup in a chat app, where a longer file is more likely to be read only in part.
 with the Met's own artist, dates, medium and highlight flags: the 277 titled
 objects of `met_random_300.tsv`, 8 famous anchors, 348 Met highlights, 400
 random non-highlights with a named artist, and 400 random non-highlights.
+
+## `met_inventory_300a.tsv`, `met_inventory_300b.tsv`, `met_inventory_300c.tsv`
+
+Three 300-row Met inventories with the same columns as `met_random_300.tsv`
+(Object Date, Title, Object Number, Link Resource), sorted by title, for
+comparing well-known and obscure works. Scores are Haiku 4.5's `known_score`
+from spike-05; no object appears in more than one file.
+
+| File | What it is | Mean known_score | Mean familiarity | Blank titles |
+|---|---|---|---|---|
+| 300a | the 300 best-known objects scored (artist and year both right) | 1.00 | 0.56 | 0 |
+| 300b | a copy of `met_random_300.tsv` (random) | 0.14 | 0.16 | 25 |
+| 300c | 300 random objects with known_score 0 and familiarity ≤ 0.1 | 0.00 | 0.08 | 0 |
+
+- 300a comes from 3,933 scored objects (spike-05 round 1, plus round 2's
+  2,500 Met highlights and timeline works with a named artist). It leans to
+  paintings and design classics.
+- 300a and 300c only include objects whose score could be checked (a named
+  artist or a precise date) and have a title; 300b keeps its 25 untitled rows.
+
+SHA-256: 300a `10e6d871…7e39`, 300b `33c53888…d547`, 300c `7dcfb4bb…369f`.
