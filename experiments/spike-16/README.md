@@ -6,14 +6,15 @@ prompt lists them by name only, and the model has to call `tool_search` to
 load one before using it (`"defer_tools"` in `scripts/run_tools.py`). The
 user's claude.ai transcript shows a connector being loaded on demand ("Loaded
 Claude Docs"), so this tests whether a code tool that isn't up front is one
-Haiku 4.5 overlooks. 1 session.
+Haiku 4.5 overlooks. 4 sessions: a smoke test (r1, with the follow-up), then
+r2–r4 first answer only (`config_r2-r4_first_answer.json`).
 
 ```
 python scripts/run_tools.py experiments/spike-16/config.json
 python scripts/score_stages.py experiments/spike-16
 ```
 
-$0.11 over 5 calls; study total $13.99 of $15.
+$0.43 over 20 calls in all; study total $14.31 of $15.
 
 ## Result: tool loaded and used; not reproduced
 
@@ -30,8 +31,19 @@ call: the first answer had settled the question, and the rest would have
 repeated spike-15's follow-up. (That last request was sent but no response was
 saved, so any cost it had isn't in the ledger.)
 
+## Runs r2–r4 (first answer only)
+
+| Run | Steps | First answer |
+|---|---|---|
+| r2 | view, bash (not loaded), tool_search, bash ×3 | **0.0%** (300 rows) |
+| r3 | view, bash (not loaded), tool_search, bash, view | **0.0%** (300 rows; stopped by the budget guard while checking its output) |
+| r4 | view, bash (not loaded), tool_search | stopped by the budget guard after loading the tool (3 runs in parallel reserved too much) |
+
+All 4 sessions reached for bash at step 2, before loading it, and loaded it
+at step 3; the 3 that got that far did the work in code.
+
 Deferring the tool cost the model one extra step, not the tool. Across spikes
-13–16 (6 sessions), whenever a code tool was available in our harness, in any
+13–16 (9 sessions), whenever a code tool was available in our harness, in any
 form, Haiku 4.5 used it.
 
 ## Files

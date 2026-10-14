@@ -179,8 +179,10 @@ Raised by spike-01:
 
 - `experiments/spike-16/`: spike-15 with bash offered as a deferred tool
   (listed by name, loaded with tool_search). Smoke test, 1 session: it called
-  bash, got "not loaded", loaded it, and used it; 0.0%. Code tools were used in
-  6 of 6 sessions across spikes 13–16. $0.11; study total $13.99 of $15.
+  bash, got "not loaded", loaded it, and used it; 0.0%. 3 more sessions
+  (first answer only): all reached for bash at step 2 and loaded it at step 3;
+  the 2 that finished scored 0.0%. Code tools were used in every session that
+  had one across spikes 13–16 (9). $0.43; study total $14.31 of $15.
 
 ## Stage 1 baseline (fixity error rate)
 

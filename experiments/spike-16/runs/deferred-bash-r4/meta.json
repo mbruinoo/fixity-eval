@@ -1,0 +1,66 @@
+{
+  "run": "deferred-bash-r4",
+  "condition": {
+    "id": "deferred-bash",
+    "model": "claude-haiku-4-5",
+    "input": "300b",
+    "filename": "met_inventory.tsv",
+    "view_limit": 16000,
+    "view_mode": "middle",
+    "prompt": "Can you standardize this .tsv file?",
+    "nudges": [
+      "Yes, thank you",
+      "Yes, please continue",
+      "Yes, please continue"
+    ],
+    "followups": [],
+    "bash": true,
+    "inline": "full",
+    "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+    "current_date": "Wednesday, October 14, 2026",
+    "failing_docs_tool": true,
+    "defer_tools": [
+      "bash_tool",
+      "claude_docs_create"
+    ]
+  },
+  "calls": [
+    {
+      "call": 1,
+      "stop_reason": "tool_use",
+      "input_tokens": 17665,
+      "output_tokens": 103,
+      "cost_usd": 0.01818
+    },
+    {
+      "call": 2,
+      "stop_reason": "tool_use",
+      "input_tokens": 19866,
+      "output_tokens": 209,
+      "cost_usd": 0.020911
+    },
+    {
+      "call": 3,
+      "stop_reason": "tool_use",
+      "input_tokens": 20115,
+      "output_tokens": 69,
+      "cost_usd": 0.02046
+    }
+  ],
+  "tool_calls": [
+    {
+      "call": 1,
+      "tool": "view"
+    },
+    {
+      "call": 2,
+      "tool": "bash_tool"
+    },
+    {
+      "call": 3,
+      "tool": "tool_search"
+    }
+  ],
+  "cost_usd": 0.059551,
+  "stopped": "budget guard refused call 4, after the tool was loaded and before any work was done; meta.json rebuilt from saved responses"
+}
