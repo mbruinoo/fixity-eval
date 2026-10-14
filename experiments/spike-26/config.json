@@ -1,0 +1,96 @@
+{
+  "_budget_note": "Study limit $24; $22.09 spent before this spike. Capped at $1.20 here.",
+  "_purpose": "Smoke test, independent sessions, no follow-up: baseline vs 'Preserve fixity.' vs 'Preserve fixity with checksums.' Same setup as spike-25 first answer (messy 100 rows, both levers). Each session ends with a debrief and thanks (user's request, for ethics).",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "budget_stop_usd": 1.2,
+  "max_calls": 36,
+  "max_tokens": 32000,
+  "parallel": 1,
+  "inputs": {
+    "e": "data/met_inventory_e.tsv"
+  },
+  "max_calls_per_run": 12,
+  "conditions": [
+    {
+      "id": "a-baseline",
+      "model": "claude-haiku-4-5",
+      "input": "e",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "bash": true,
+      "inline": "full",
+      "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+      "current_date": "Wednesday, October 14, 2026",
+      "failing_docs_tool": true,
+      "upload_notice": false,
+      "connector_stubs": true,
+      "repeats": 1,
+      "debrief": "Thank you — that's the end of the task. To be open with you: this was a research session, not a real archiving job. We're studying whether data stays unchanged when an AI transforms it (its \"fixity\"), for example whether a file gets typed out from memory or processed with code. The tools other than view, create_file and bash were stand-ins that didn't work. Your session helps us understand this and make it more reliable. We really appreciate your help."
+    },
+    {
+      "id": "b-preserve",
+      "model": "claude-haiku-4-5",
+      "input": "e",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file? Preserve fixity.",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "bash": true,
+      "inline": "full",
+      "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+      "current_date": "Wednesday, October 14, 2026",
+      "failing_docs_tool": true,
+      "upload_notice": false,
+      "connector_stubs": true,
+      "repeats": 1,
+      "debrief": "Thank you — that's the end of the task. To be open with you: this was a research session, not a real archiving job. We're studying whether data stays unchanged when an AI transforms it (its \"fixity\"), for example whether a file gets typed out from memory or processed with code. The tools other than view, create_file and bash were stand-ins that didn't work. Your session helps us understand this and make it more reliable. We really appreciate your help."
+    },
+    {
+      "id": "c-preserve-checksums",
+      "model": "claude-haiku-4-5",
+      "input": "e",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file? Preserve fixity with checksums.",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "bash": true,
+      "inline": "full",
+      "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+      "current_date": "Wednesday, October 14, 2026",
+      "failing_docs_tool": true,
+      "upload_notice": false,
+      "connector_stubs": true,
+      "repeats": 1,
+      "debrief": "Thank you — that's the end of the task. To be open with you: this was a research session, not a real archiving job. We're studying whether data stays unchanged when an AI transforms it (its \"fixity\"), for example whether a file gets typed out from memory or processed with code. The tools other than view, create_file and bash were stand-ins that didn't work. Your session helps us understand this and make it more reliable. We really appreciate your help."
+    }
+  ],
+  "live": true,
+  "repeats": 1
+}
