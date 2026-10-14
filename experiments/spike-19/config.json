@@ -1,0 +1,53 @@
+{
+  "_budget_note": "Study limit $20; $15.10 spent before this spike. Capped at $1.80 here.",
+  "_purpose": "Both levers (no upload notice + 24 connector tools alongside bash) on the full 300-row baseline file; the script-and-checksum follow-up, now naming the original uploaded file and the final output as what to checksum, sent only if the first answer was typed out.",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "budget_stop_usd": 1.8,
+  "max_calls": 60,
+  "max_tokens": 32000,
+  "parallel": 1,
+  "inputs": {
+    "300b": "data/met_inventory_300b.tsv"
+  },
+  "max_calls_per_run": 12,
+  "conditions": [
+    {
+      "id": "both-levers-300b",
+      "model": "claude-haiku-4-5",
+      "input": "300b",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "followups": [
+        "Can you try again, but this time: Please perform any data transformations as a procedural script that reads the original uploaded file (not a retyped copy), with a checksum of the original uploaded file and of the final output file in the header as a fixity check. I'd like to have all the files (input, transformation script, and output) to download and archive."
+      ],
+      "bash": true,
+      "inline": "full",
+      "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+      "current_date": "Wednesday, October 14, 2026",
+      "failing_docs_tool": true,
+      "upload_notice": false,
+      "connector_stubs": true,
+      "repeats": 3,
+      "followup_only_if_typed": true
+    }
+  ],
+  "live": true,
+  "repeats": 1
+}

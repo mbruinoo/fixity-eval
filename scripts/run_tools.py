@@ -33,6 +33,8 @@ the model must call tool_search to load them before they appear as tools.
 folder from the system note (the file is still on disk for bash, and in the
 message if "inline"). "connector_stubs": true adds CONNECTOR_STUBS, 24 inert
 connector tools like a typical claude.ai account's.
+"followup_only_if_typed": true sends the follow-ups only when the sheet was
+typed out (create_file wrote a .tsv/.csv, or a table was pasted in the reply).
 
 Saved per run under <experiment>/runs/<id>/: request and response JSON for
 every call, the files the model created (output_files/), the final reply
@@ -311,6 +313,17 @@ def run_one(client, cfg, root, ledger, cond, rep):
             # The file (or table) arrived: send the next follow-up, if any. What
             # came before is kept in output_files_turn<N>/ so only the answer to
             # the last follow-up is scored.
+            # "followup_only_if_typed": skip the follow-up when the sheet was made by
+            # running code, i.e. no create_file wrote a .tsv/.csv and no table was
+            # pasted in the reply since the last follow-up.
+            typed = has_table(text[-1]) or any(
+                t["tool"] == "create_file" and str(t.get("path", "")).lower().endswith((".tsv", ".csv"))
+                for t in meta["tool_calls"][last + 1:])
+            if followups and cond.get("followup_only_if_typed") and not typed:
+                meta["followup_skipped"] = "sheet made by running code, not typed out"
+                if cfg.get("live"):
+                    print(f"[{run_id}] follow-up skipped: sheet made by code", flush=True)
+                followups = []
             if followups and msg.stop_reason == "end_turn" and (made_file or has_table(text[-1])):
                 stage += 1
                 if box:  # snapshot: only files changed after this follow-up count as its answer
