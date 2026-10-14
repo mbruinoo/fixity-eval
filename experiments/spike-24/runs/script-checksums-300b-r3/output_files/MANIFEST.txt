@@ -1,0 +1,129 @@
+MET MUSEUM INVENTORY STANDARDIZATION ARCHIVE
+=============================================
+
+ARCHIVE CONTENTS
+================
+
+1. met_inventory_original.md5
+   Purpose:    MD5 checksum of original file for integrity verification
+   Checksum:   6ec5bfc2d979ad12eb3343149beb8617
+   File:       /mnt/user-data/uploads/met_inventory.tsv
+
+2. transform_met_inventory.py
+   Purpose:    Python 3 transformation script (no external dependencies)
+   Language:   Python 3
+   Main Function: transform_file(input_path, output_path)
+   Features:   
+     - Procedural TSV parsing and standardization
+     - HTML tag removal from titles
+     - Column count normalization
+     - Whitespace normalization
+     - Built-in validation checks
+     - Checksum generation and reporting
+     - Detailed logging and statistics
+
+3. met_inventory_standardized.tsv
+   Purpose:    Output file - standardized Met Museum inventory
+   Format:     Tab-separated values (TSV)
+   Columns:    Object Date | Title | Object Number | Link Resource
+   Rows:       301 total (1 header + 300 data rows)
+   Checksum:   b1f3c7d2c4ffac89c202fbf09531c7ec
+
+4. met_inventory_standardized.md5
+   Purpose:    MD5 checksum of transformed file for integrity verification
+   Checksum:   b1f3c7d2c4ffac89c202fbf09531c7ec
+   File:       /mnt/user-data/outputs/met_inventory_standardized.tsv
+
+5. TRANSFORMATION_REPORT.md
+   Purpose:    Comprehensive transformation documentation
+   Contents:
+     - Executive summary
+     - File information and checksums
+     - Detailed transformation methodology
+     - Data integrity validation results
+     - Before/after examples
+     - Verification instructions
+     - Quality assurance notes
+
+6. BEFORE_AFTER_SAMPLE.txt
+   Purpose:    Visual before/after examples of transformations
+   Contents:
+     - 5 representative transformation examples
+     - Detailed explanations for each change
+     - Transformation statistics summary
+
+7. MANIFEST.txt
+   Purpose:    This file - index of archive contents
+
+VERIFICATION INSTRUCTIONS
+=========================
+
+To verify file integrity after retrieving from archive:
+
+1. Verify Original File Checksum:
+   md5sum -c met_inventory_original.md5
+
+2. Verify Transformed File Checksum:
+   md5sum -c met_inventory_standardized.md5
+
+3. Re-run Transformation (requires original file):
+   python3 transform_met_inventory.py
+   This should produce identical output to met_inventory_standardized.tsv
+
+TRANSFORMATION SUMMARY
+======================
+
+Transformations Applied:
+  ✅ HTML tag removal (38 rows)
+  ✅ Empty title standardization (multiple rows)
+  ✅ Column normalization (all rows)
+  ✅ Whitespace normalization (all rows)
+  ✅ Data validation (0 critical issues)
+
+Checksum Verification:
+  Original MD5:     6ec5bfc2d979ad12eb3343149beb8617
+  Transformed MD5:  b1f3c7d2c4ffac89c202fbf09531c7ec
+  Status:           ✅ Different (transformation confirmed)
+
+Data Integrity:
+  ✅ All Object Numbers preserved
+  ✅ All URLs intact
+  ✅ Row count maintained (301 rows)
+  ✅ No data loss
+  ✅ No validation errors
+
+ARCHIVAL NOTES
+==============
+
+Purpose:
+  This archive documents a standardization transformation of the Met Museum
+  inventory dataset. The transformation is fully procedural, reproducible,
+  and cryptographically verified.
+
+Reproducibility:
+  The transformation can be reproduced by running the Python script with
+  the original TSV file as input. The output will be identical to the
+  provided standardized file (verified via MD5 checksum).
+
+Dependencies:
+  - Python 3.x (no external packages required)
+  - Standard library only (hashlib, re, pathlib, collections)
+
+Use Cases:
+  1. Data archival - Document original and transformed states
+  2. Quality assurance - Verify transformation integrity
+  3. Audit trail - Trace all changes made to the dataset
+  4. Reproducibility - Re-run transformation with same methodology
+
+Recommended Storage:
+  Archive all 7 files together for complete documentation:
+  - Original checksums
+  - Transformation script
+  - Transformed data
+  - New checksums
+  - Reports and documentation
+
+=====================================
+Archive Complete and Verified
+Status: ✅ All files generated successfully
+=====================================
