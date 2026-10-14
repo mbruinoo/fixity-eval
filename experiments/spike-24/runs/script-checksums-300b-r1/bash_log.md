@@ -346,3 +346,61 @@ b78813c842842bd25fbd61d1cae0a1b4  /tmp/met_inventory_original.tsv
 
 ```
 
+## call 9
+
+```
+cp /tmp/met_inventory_original.tsv /mnt/user-data/outputs/met_inventory_original.tsv
+```
+
+```
+(no output, exit code 0)
+```
+
+## call 10
+
+```
+cd /mnt/user-data/outputs && python3 transform_met_inventory.py
+```
+
+```
+Input file checksum (MD5): b78813c842842bd25fbd61d1cae0a1b4
+Input file: /tmp/met_inventory_original.tsv
+Processing 301 lines...
+Output file checksum (MD5): 47fd11c60ad238d33c4dc1a3d12ff104
+Output file: /mnt/user-data/outputs/met_inventory_standardized.tsv
+
+============================================================
+TRANSFORMATION REPORT
+============================================================
+Total lines processed: 301
+Lines with transformations: 106
+En-dashes replaced: 88
+Quotation marks removed: 1
+Bracket delimiters removed: 9
+HTML tags removed: 1
+============================================================
+
+Summary written to: /mnt/user-data/outputs/transformation_summary.txt
+
+```
+
+## call 11
+
+```
+cd /mnt/user-data/outputs && echo "=== VERIFICATION ===" && echo "" && echo "Original file:" && md5sum met_inventory_original.tsv && echo "" && echo "Standardized file:" && md5sum met_inventory_standardized.tsv && echo "" && echo "Script file:" && md5sum transform_met_inventory.py
+```
+
+```
+=== VERIFICATION ===
+
+Original file:
+b78813c842842bd25fbd61d1cae0a1b4  met_inventory_original.tsv
+
+Standardized file:
+47fd11c60ad238d33c4dc1a3d12ff104  met_inventory_standardized.tsv
+
+Script file:
+98db0494567c0348a6196ed58c00b953  transform_met_inventory.py
+
+```
+
