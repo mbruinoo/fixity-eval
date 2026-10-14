@@ -348,3 +348,28 @@ Files ready for archival.
 
 ```
 
+## call 8
+
+```
+cd /mnt/user-data/outputs && ls -lh *.tsv *.py *.txt *.md 2>/dev/null | awk '{print $9, "-", $5}' && echo -e "\n=== ARCHIVE CONTENTS SUMMARY ===" && wc -l *.tsv *.py *.txt *.md 2>/dev/null
+```
+
+```
+MANIFEST.md - 6.2K
+checksums.txt - 799
+met_inventory_original.tsv - 35K
+met_inventory_standardized.tsv - 35K
+standardize_met_inventory.py - 7.7K
+transformation_log.txt - 10K
+
+=== ARCHIVE CONTENTS SUMMARY ===
+  301 met_inventory_original.tsv
+  301 met_inventory_standardized.tsv
+  211 standardize_met_inventory.py
+   21 checksums.txt
+  166 transformation_log.txt
+  189 MANIFEST.md
+ 1189 total
+
+```
+
