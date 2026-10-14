@@ -27,6 +27,8 @@ message, in a <document> block, as a chat app can attach an uploaded file.
 "system_file" puts a file (e.g. claude.ai's published system prompt) before
 the file note; "failing_docs_tool": true adds a document connector whose
 every call fails with the error a claude.ai session got (DOCS_ERROR).
+"defer_tools": [names] lists those tools by name only in the system prompt;
+the model must call tool_search to load them before they appear as tools.
 
 Saved per run under <experiment>/runs/<id>/: request and response JSON for
 every call, the files the model created (output_files/), the final reply
@@ -101,6 +103,13 @@ DOCS_ERROR = ('{"verdict":"deny","reason":"bad_request","detail":"container:requ
               'or its contents\'; an id that IS the doc reads as ref {\\"object\\":\\"project\\",\\"id\\":\\"<doc uuid>'
               '\\"} with no container","data":{"code":"bad_request","problem":"required","at":["container"],'
               '"expected":{"kind":"project","id":"<doc uuid>"},"was":"intent_shape"}}')
+
+SEARCH_TOOL = {"name": "tool_search", "description": (
+    "Load deferred tools so they can be called. Deferred tools are listed by name only; until loaded, "
+    "their parameters are unknown and calling them fails. Pass the tool names to load."),
+    "input_schema": {"type": "object", "properties": {
+        "names": {"type": "array", "items": {"type": "string"}, "description": "Names of deferred tools to load."}},
+        "required": ["names"]}}
 
 SYSTEM = ("You are Claude, a helpful assistant. Files the user uploads are in "
           f"{UPLOADS}. To give the user a file, create it in {OUTPUTS}; they can download it from there.")
@@ -200,12 +209,20 @@ def run_one(client, cfg, root, ledger, cond, rep):
     text = []
     nudges = list(cond.get("nudges", []))
     followups, stage = list(cond.get("followups", [])), 0
+    loaded = set()  # deferred tools the model has loaded
     for i in range(1, cfg.get("max_calls_per_run", 8) + 1):
         system = SYSTEM
         if cond.get("system_file"):  # e.g. claude.ai's published prompt, then the file note
             system = (pathlib.Path(cond["system_file"]).read_text(encoding="utf-8")
                       .replace("{{currentDateTime}}", cond.get("current_date", "")) + "\n\n" + SYSTEM)
-        tools = TOOLS + ([BASH_TOOL] if box else []) + ([DOCS_TOOL] if cond.get("failing_docs_tool") else [])
+        extra = ([BASH_TOOL] if box else []) + ([DOCS_TOOL] if cond.get("failing_docs_tool") else [])
+        if cond.get("defer_tools"):  # listed by name only, loaded on request with tool_search
+            deferred = [t for t in extra if t["name"] in cond["defer_tools"]]
+            system += ("\n\nThe following deferred tools are available. Their names are known but their schemas are "
+                       "not loaded; call tool_search with their names before using them:\n"
+                       + "\n".join(t["name"] for t in deferred))
+            extra = [t for t in extra if t["name"] not in cond["defer_tools"] or t["name"] in loaded] + [SEARCH_TOOL]
+        tools = TOOLS + extra
         params = {"model": cond["model"], "max_tokens": cond.get("max_tokens", cfg["max_tokens"]),
                   "system": system, "tools": tools, "messages": messages}
         if cond.get("effort"):
@@ -273,6 +290,20 @@ def run_one(client, cfg, root, ledger, cond, rep):
                 f = pathlib.Path(inp.get("path", "").replace("/mnt/user-data", str(box)))
                 if f.is_file():
                     files[inp["path"]] = f.read_text(encoding="utf-8", errors="replace")
+            if u.name == "tool_search":
+                names = [n for n in (inp.get("names") or []) if n in (cond.get("defer_tools") or [])]
+                loaded.update(names)
+                defs = [t for t in [BASH_TOOL, DOCS_TOOL] if t["name"] in names]
+                out = ("Loaded: " + ", ".join(names) + "\n" + json.dumps(defs, ensure_ascii=False)) if names else \
+                    "No matching deferred tools. Available: " + ", ".join(cond.get("defer_tools") or [])
+                meta["tool_calls"].append({"call": i, "tool": "tool_search", "names": inp.get("names")})
+                results.append({"type": "tool_result", "tool_use_id": u.id, "content": out})
+                continue
+            if u.name in (cond.get("defer_tools") or []) and u.name not in loaded:
+                out = f"Error: {u.name} is a deferred tool and is not loaded. Call tool_search first."
+                meta["tool_calls"].append({"call": i, "tool": u.name + " (not loaded)"})
+                results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
+                continue
             if u.name == "claude_docs_create":
                 out = DOCS_ERROR
                 meta["tool_calls"].append({"call": i, "tool": "claude_docs_create", "input": inp})

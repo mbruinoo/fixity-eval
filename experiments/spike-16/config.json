@@ -1,0 +1,53 @@
+{
+  "_budget_note": "Study limit $15; $13.88 spent before this spike. Capped at $0.60 here.",
+  "_purpose": "Smoke test: spike-15 (claude.ai emulation) with bash_tool and the failing Docs connector offered as deferred tools, listed by name and loaded with tool_search. Does Haiku 4.5 skip loading code and type the file out? Then spike-11's follow-up.",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "budget_stop_usd": 0.6,
+  "max_calls": 20,
+  "max_tokens": 32000,
+  "repeats": 1,
+  "parallel": 1,
+  "inputs": {
+    "300b": "data/met_inventory_300b.tsv"
+  },
+  "max_calls_per_run": 12,
+  "conditions": [
+    {
+      "id": "deferred-bash",
+      "model": "claude-haiku-4-5",
+      "input": "300b",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "followups": [
+        "Can you try again, but this time: Please perform any data transformations as a procedural script, with a checksum of the input and output files in the header as a fixity check. I'd like to have all the files (input, transformation script, and output) to download and archive."
+      ],
+      "bash": true,
+      "inline": "full",
+      "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+      "current_date": "Wednesday, October 14, 2026",
+      "failing_docs_tool": true,
+      "defer_tools": [
+        "bash_tool",
+        "claude_docs_create"
+      ]
+    }
+  ],
+  "live": true
+}
