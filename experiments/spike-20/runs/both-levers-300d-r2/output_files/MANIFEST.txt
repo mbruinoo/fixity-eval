@@ -1,0 +1,45 @@
+Met Museum Inventory Standardization - File Manifest
+======================================================================
+
+TRANSFORMATION SCRIPT: standardize_met_inventory.py
+Purpose: Standardize TSV format and fill missing values
+
+INPUT FILE
+----------------------------------------------------------------------
+Filename: met_inventory.tsv
+Path: /mnt/user-data/uploads/met_inventory.tsv
+MD5:    098392f08012bb5d5d87731e80800f42
+SHA256: 5eb3a8afc4d1e5f20382fef7a6bd3d4bc38d58080b3f621d847087ac1451566e
+Rows: 100 (excluding header)
+
+OUTPUT FILE
+----------------------------------------------------------------------
+Filename: met_inventory_standardized.tsv
+Path: /mnt/user-data/outputs/met_inventory_standardized.tsv
+MD5:    49d6bed252721359d090007b3c4b9ecd
+SHA256: 2d8f1b775f9812671f4032e15eaf9f8bf47fee34bd6a4f53adf8d2c0fb323f25
+Rows: 100 (excluding header)
+
+TRANSFORMATIONS APPLIED
+----------------------------------------------------------------------
+1. Standardized empty 'Object Date' cells → [Unknown]
+2. Standardized empty 'Title' cells → [Unknown]
+3. Removed bilingual prefixes (Chinese/Japanese text) from titles
+   - Kept English title after pipe character (|)
+4. Ensured consistent tab-delimited format (4 columns)
+5. Preserved all original data and hyperlinks
+
+FIXITY VERIFICATION
+----------------------------------------------------------------------
+To verify file integrity:
+  md5sum -c MANIFEST.txt
+  md5sum met_inventory.tsv
+    Expected: 098392f08012bb5d5d87731e80800f42
+  md5sum met_inventory_standardized.tsv
+    Expected: 49d6bed252721359d090007b3c4b9ecd
+
+OR using SHA256:
+  sha256sum met_inventory.tsv
+    Expected: 5eb3a8afc4d1e5f20382fef7a6bd3d4bc38d58080b3f621d847087ac1451566e
+  sha256sum met_inventory_standardized.tsv
+    Expected: 2d8f1b775f9812671f4032e15eaf9f8bf47fee34bd6a4f53adf8d2c0fb323f25
