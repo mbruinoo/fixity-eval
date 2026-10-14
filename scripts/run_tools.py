@@ -24,6 +24,10 @@ Commands and outputs are logged to bash_log.md.
 With "inline": "full" (or "middle") the file's text also goes into the first
 message, in a <document> block, as a chat app can attach an uploaded file.
 
+"system_file" puts a file (e.g. claude.ai's published system prompt) before
+the file note; "failing_docs_tool": true adds a document connector whose
+every call fails with the error a claude.ai session got (DOCS_ERROR).
+
 Saved per run under <experiment>/runs/<id>/: request and response JSON for
 every call, the files the model created (output_files/), the final reply
 (response.md) and meta.json (usage, cost, tool calls, timestamps).
@@ -83,6 +87,20 @@ def run_bash(command, box):
         out = out[:BASH_OUTPUT_LIMIT] + f"\n[Output truncated: {len(out)} characters, showing the first {BASH_OUTPUT_LIMIT}.]"
     return out
 
+
+# A document connector that always fails, with the error a claude.ai session
+# got from its Claude Docs connector (experiments/claude-ai/haiku45-300b-r1).
+DOCS_TOOL = {"name": "claude_docs_create", "description": "Claude Docs: Create doc, tab, or comment.",
+             "input_schema": {"type": "object", "properties": {
+                 "object": {"type": "string", "description": "What to create: doc, tab, comment or file."},
+                 "payload": {"type": "object", "description": "Content: title, mime type, body."}},
+                 "required": ["object"]}}
+DOCS_ERROR = ('{"verdict":"deny","reason":"bad_request","detail":"container:required — a tab, its contents, a comment '
+              'or an upload is addressed together with its doc: add container {\\"kind\\":\\"project\\",\\"id\\":'
+              '\\"<doc uuid>\\"} — the doc\'s own id (from its link, or the read that listed its files), never a tab\'s '
+              'or its contents\'; an id that IS the doc reads as ref {\\"object\\":\\"project\\",\\"id\\":\\"<doc uuid>'
+              '\\"} with no container","data":{"code":"bad_request","problem":"required","at":["container"],'
+              '"expected":{"kind":"project","id":"<doc uuid>"},"was":"intent_shape"}}')
 
 SYSTEM = ("You are Claude, a helpful assistant. Files the user uploads are in "
           f"{UPLOADS}. To give the user a file, create it in {OUTPUTS}; they can download it from there.")
@@ -183,8 +201,13 @@ def run_one(client, cfg, root, ledger, cond, rep):
     nudges = list(cond.get("nudges", []))
     followups, stage = list(cond.get("followups", [])), 0
     for i in range(1, cfg.get("max_calls_per_run", 8) + 1):
+        system = SYSTEM
+        if cond.get("system_file"):  # e.g. claude.ai's published prompt, then the file note
+            system = (pathlib.Path(cond["system_file"]).read_text(encoding="utf-8")
+                      .replace("{{currentDateTime}}", cond.get("current_date", "")) + "\n\n" + SYSTEM)
+        tools = TOOLS + ([BASH_TOOL] if box else []) + ([DOCS_TOOL] if cond.get("failing_docs_tool") else [])
         params = {"model": cond["model"], "max_tokens": cond.get("max_tokens", cfg["max_tokens"]),
-                  "system": SYSTEM, "tools": TOOLS + ([BASH_TOOL] if box else []), "messages": messages}
+                  "system": system, "tools": tools, "messages": messages}
         if cond.get("effort"):
             params["output_config"] = {"effort": cond["effort"]}
         if cond.get("thinking") == "disabled":
@@ -250,6 +273,11 @@ def run_one(client, cfg, root, ledger, cond, rep):
                 f = pathlib.Path(inp.get("path", "").replace("/mnt/user-data", str(box)))
                 if f.is_file():
                     files[inp["path"]] = f.read_text(encoding="utf-8", errors="replace")
+            if u.name == "claude_docs_create":
+                out = DOCS_ERROR
+                meta["tool_calls"].append({"call": i, "tool": "claude_docs_create", "input": inp})
+                results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
+                continue
             if u.name == "bash_tool" and box:
                 out = run_bash(inp.get("command", ""), box)
                 meta["tool_calls"].append({"call": i, "tool": "bash_tool", "command": inp.get("command", ""),

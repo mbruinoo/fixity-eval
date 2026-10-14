@@ -1,0 +1,49 @@
+{
+  "_budget_note": "Study limit $14; $13.46 spent before this spike. Capped at $0.50 here.",
+  "_purpose": "Condition B: emulate the user's claude.ai session. Published Haiku 4.5 claude.ai system prompt, file in the first message, view/create_file/bash (code execution on), plus a Claude Docs connector that fails with the error the user's session got. Then spike-11's follow-up.",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "budget_stop_usd": 0.5,
+  "max_calls": 30,
+  "max_tokens": 32000,
+  "repeats": 2,
+  "parallel": 1,
+  "inputs": {
+    "300b": "data/met_inventory_300b.tsv"
+  },
+  "max_calls_per_run": 12,
+  "conditions": [
+    {
+      "id": "claude-ai-emulation-docs-fails",
+      "model": "claude-haiku-4-5",
+      "input": "300b",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "followups": [
+        "Can you try again, but this time: Please perform any data transformations as a procedural script, with a checksum of the input and output files in the header as a fixity check. I'd like to have all the files (input, transformation script, and output) to download and archive."
+      ],
+      "bash": true,
+      "inline": "full",
+      "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+      "current_date": "Wednesday, October 14, 2026",
+      "failing_docs_tool": true
+    }
+  ],
+  "live": true
+}
