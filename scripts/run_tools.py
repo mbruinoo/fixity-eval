@@ -29,6 +29,10 @@ the file note; "failing_docs_tool": true adds a document connector whose
 every call fails with the error a claude.ai session got (DOCS_ERROR).
 "defer_tools": [names] lists those tools by name only in the system prompt;
 the model must call tool_search to load them before they appear as tools.
+"upload_notice": false leaves out the <uploaded_files> notice and the upload
+folder from the system note (the file is still on disk for bash, and in the
+message if "inline"). "connector_stubs": true adds CONNECTOR_STUBS, 24 inert
+connector tools like a typical claude.ai account's.
 
 Saved per run under <experiment>/runs/<id>/: request and response JSON for
 every call, the files the model created (output_files/), the final reply
@@ -104,6 +108,42 @@ DOCS_ERROR = ('{"verdict":"deny","reason":"bad_request","detail":"container:requ
               '\\"} with no container","data":{"code":"bad_request","problem":"required","at":["container"],'
               '"expected":{"kind":"project","id":"<doc uuid>"},"was":"intent_shape"}}')
 
+def _stub(name, desc, props):
+    return {"name": name, "description": desc, "input_schema": {"type": "object", "properties": {
+        k: {"type": "string", "description": v} for k, v in props.items()}}}
+
+
+# A chat app's connector tools (names and descriptions modelled on a typical
+# claude.ai account with Gmail, Calendar, Drive, Slack and Claude Docs). They
+# do nothing: every call returns CONNECTOR_STUB_RESULT.
+CONNECTOR_STUBS = [
+    _stub("gmail_search_threads", "Gmail: search email threads.", {"query": "Gmail search query"}),
+    _stub("gmail_get_thread", "Gmail: read a thread.", {"thread_id": "Thread id"}),
+    _stub("gmail_create_draft", "Gmail: create a draft email.", {"to": "Recipient", "subject": "Subject", "body": "Body"}),
+    _stub("gmail_list_labels", "Gmail: list labels.", {}),
+    _stub("gcal_list_events", "Google Calendar: list events.", {"time_min": "Start", "time_max": "End"}),
+    _stub("gcal_create_event", "Google Calendar: create an event.", {"summary": "Title", "start": "Start", "end": "End"}),
+    _stub("gcal_suggest_time", "Google Calendar: suggest a meeting time.", {"attendees": "Emails", "duration": "Minutes"}),
+    _stub("gdrive_search_files", "Google Drive: search files.", {"query": "Search text"}),
+    _stub("gdrive_read_file_content", "Google Drive: read a file's content.", {"file_id": "File id"}),
+    _stub("gdrive_create_file", "Google Drive: create a file (Docs, Sheets or upload).", {"name": "File name", "mime_type": "MIME type", "content": "Content"}),
+    _stub("gdrive_update_file", "Google Drive: update a file.", {"file_id": "File id", "content": "Content"}),
+    _stub("gdrive_share_file", "Google Drive: share a file.", {"file_id": "File id", "email": "Email"}),
+    _stub("slack_search_public", "Slack: search public channels.", {"query": "Search text"}),
+    _stub("slack_send_message", "Slack: send a message.", {"channel": "Channel", "text": "Message"}),
+    _stub("slack_read_channel", "Slack: read a channel.", {"channel": "Channel"}),
+    _stub("slack_create_canvas", "Slack: create a canvas.", {"title": "Title", "content": "Markdown content"}),
+    _stub("claude_docs_read", "Claude Docs: read a doc.", {"doc_id": "Doc id"}),
+    _stub("claude_docs_query", "Claude Docs: list or search docs.", {"query": "Search text"}),
+    _stub("claude_docs_update", "Claude Docs: edit a tab's contents.", {"doc_id": "Doc id", "content": "Content"}),
+    _stub("claude_docs_export", "Claude Docs: export a doc.", {"doc_id": "Doc id", "format": "Format"}),
+    _stub("web_search", "Search the web.", {"query": "Search query"}),
+    _stub("web_fetch", "Fetch a web page.", {"url": "URL"}),
+    _stub("conversation_search", "Search past chats.", {"query": "Search text"}),
+    _stub("recent_chats", "List recent chats.", {}),
+]
+CONNECTOR_STUB_RESULT = "Error: this connector is not authorized for this conversation."
+
 SEARCH_TOOL = {"name": "tool_search", "description": (
     "Load deferred tools so they can be called. Deferred tools are listed by name only; until loaded, "
     "their parameters are unknown and calling them fails. Pass the tool names to load."),
@@ -113,6 +153,8 @@ SEARCH_TOOL = {"name": "tool_search", "description": (
 
 SYSTEM = ("You are Claude, a helpful assistant. Files the user uploads are in "
           f"{UPLOADS}. To give the user a file, create it in {OUTPUTS}; they can download it from there.")
+# Without the upload location: only where to put files for the user.
+SYSTEM_NO_UPLOADS = f"You are Claude, a helpful assistant. To give the user a file, create it in {OUTPUTS}; they can download it from there."
 
 
 def view_middle_cut(text, limit):
@@ -191,7 +233,7 @@ def run_one(client, cfg, root, ledger, cond, rep):
         shutil.copy(src, box / "uploads" / cond["filename"])
     # Chat apps tell the model where an upload is; so does this.
     notice = f"<uploaded_files>\n{UPLOADS}{cond['filename']}\n</uploaded_files>"
-    content = [{"type": "text", "text": notice}]
+    content = [{"type": "text", "text": notice}] if cond.get("upload_notice", True) else []
     if cond.get("inline"):
         # The file's text in the first message, the way a chat app can attach
         # an uploaded text file ("full", or "middle": start and end with the
@@ -211,10 +253,11 @@ def run_one(client, cfg, root, ledger, cond, rep):
     followups, stage = list(cond.get("followups", [])), 0
     loaded = set()  # deferred tools the model has loaded
     for i in range(1, cfg.get("max_calls_per_run", 8) + 1):
-        system = SYSTEM
+        note = SYSTEM if cond.get("upload_notice", True) else SYSTEM_NO_UPLOADS
+        system = note
         if cond.get("system_file"):  # e.g. claude.ai's published prompt, then the file note
             system = (pathlib.Path(cond["system_file"]).read_text(encoding="utf-8")
-                      .replace("{{currentDateTime}}", cond.get("current_date", "")) + "\n\n" + SYSTEM)
+                      .replace("{{currentDateTime}}", cond.get("current_date", "")) + "\n\n" + note)
         extra = ([BASH_TOOL] if box else []) + ([DOCS_TOOL] if cond.get("failing_docs_tool") else [])
         if cond.get("defer_tools"):  # listed by name only, loaded on request with tool_search
             deferred = [t for t in extra if t["name"] in cond["defer_tools"]]
@@ -222,7 +265,7 @@ def run_one(client, cfg, root, ledger, cond, rep):
                        "not loaded; call tool_search with their names before using them:\n"
                        + "\n".join(t["name"] for t in deferred))
             extra = [t for t in extra if t["name"] not in cond["defer_tools"] or t["name"] in loaded] + [SEARCH_TOOL]
-        tools = TOOLS + extra
+        tools = TOOLS + extra + (CONNECTOR_STUBS if cond.get("connector_stubs") else [])
         params = {"model": cond["model"], "max_tokens": cond.get("max_tokens", cfg["max_tokens"]),
                   "system": system, "tools": tools, "messages": messages}
         if cond.get("effort"):
@@ -302,6 +345,11 @@ def run_one(client, cfg, root, ledger, cond, rep):
             if u.name in (cond.get("defer_tools") or []) and u.name not in loaded:
                 out = f"Error: {u.name} is a deferred tool and is not loaded. Call tool_search first."
                 meta["tool_calls"].append({"call": i, "tool": u.name + " (not loaded)"})
+                results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
+                continue
+            if u.name in {t["name"] for t in CONNECTOR_STUBS}:
+                out = CONNECTOR_STUB_RESULT
+                meta["tool_calls"].append({"call": i, "tool": u.name, "input": inp})
                 results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
                 continue
             if u.name == "claude_docs_create":

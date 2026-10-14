@@ -111,3 +111,10 @@ from spike-05; no object appears in more than one file.
   files now have 25 untitled rows, so blanks don't differ between them.
 
 SHA-256: 300a `7c1e1077…5751`, 300b `33c53888…d547`, 300c `f5eace76…40a1`.
+
+## met_inventory_300b_every3rd.tsv
+
+Every third data row of `met_inventory_300b.tsv` (rows 1, 4, 7, …, 298): 100
+rows, about 11,000 characters, for cheaper sessions. Keeps one bilingual title
+(东周 玉璜), the longest title (Medea, about 500 characters), a "(?)" date and the
+"[i.e. Esek]" correction. sha256 5eb3a8af….
