@@ -125,3 +125,15 @@ FileNotFoundError: [Errno 2] No such file or directory: '/mnt/user-data/uploads/
 
 ```
 
+## call 12
+
+```
+python3 -c "import os; print(os.path.exists('/mnt/user-data/uploads/met_inventory.tsv')); print(os.access('/mnt/user-data/uploads/met_inventory.tsv', os.R_OK))"
+```
+
+```
+True
+True
+
+```
+

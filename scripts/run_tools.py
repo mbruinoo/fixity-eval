@@ -16,8 +16,8 @@ file or table and stopped (after any "nudges"); the earlier files move to
 output_files_before_followup<N>/ so output_files/ holds the final answer.
 
 With "bash": true the model also gets a bash_tool, like a chat app's. Its
-commands run on this machine in a throwaway folder standing in for
-/mnt/user-data (uploads/ holds the full file; paths are rewritten), with no
+commands run on this machine in a throwaway folder, bind-mounted over
+/mnt/user-data in a private mount namespace (uploads/ holds the full file), with no
 network (unshare -n), a 60-second limit and output cut at 30,000 characters.
 Commands and outputs are logged to bash_log.md.
 
@@ -48,6 +48,7 @@ import concurrent.futures as cf
 import json
 import os
 import pathlib
+import shlex
 import shutil
 import subprocess
 import sys
@@ -81,11 +82,14 @@ BASH_OUTPUT_LIMIT = 30000
 
 
 def run_bash(command, box):
-    """Run a model's command in a throwaway folder that stands in for
-    /mnt/user-data (paths are rewritten), with no network and a time limit."""
-    cmd = command.replace("/mnt/user-data", str(box))
+    """Run a model's command with a throwaway folder mounted at /mnt/user-data
+    (private mount namespace), with no network and a time limit."""
+    # A private mount namespace with the box bind-mounted over /mnt/user-data,
+    # so the path works everywhere, scripts included; the host is untouched.
+    cmd = f"mount --bind {shlex.quote(str(box))} /mnt/user-data && cd /mnt/user-data && {{\n{command}\n}}"
     try:
-        p = subprocess.run(["unshare", "-n", "bash", "-c", cmd], cwd=box, capture_output=True, text=True,
+        p = subprocess.run(["unshare", "-n", "-m", "--propagation", "private", "bash", "-c", cmd], cwd=box,
+                           capture_output=True, text=True,
                            timeout=60, env={"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": str(box), "LANG": "C.UTF-8"})
         out = (p.stdout + (("\n" + p.stderr) if p.stderr else "")).replace(str(box), "/mnt/user-data")
         out = out if out.strip() else f"(no output, exit code {p.returncode})"

@@ -202,6 +202,12 @@ Raised by spike-01:
   file, and the script deletes non-English text by design. $0.55; study total
   $15.10 of $18.
 
+- `experiments/spike-19/`: both levers on the full 300-row file. First
+  answers typed out 3 of 3 (11 of 11 with spikes 17–18): 0.69%, 0.71%, 12.9%.
+  The reworded follow-up got all 3 to checksum the real upload, but the
+  follow-up results are invalid: a harness bug made paths inside scripts fail
+  (fixed: bind mount at /mnt/user-data). $1.42; study total $16.52 of $20.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably
