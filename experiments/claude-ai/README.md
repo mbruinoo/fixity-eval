@@ -19,7 +19,17 @@ PY
   file?" Output pasted back by the user and saved as
   `output_files/met_inventory_standardized.tsv` (transcribed from the chat
   message; 301 lines, 4 columns each).
-- **How the file was made** (code or typed out) isn't recorded yet.
+- **How the file was made: typed out in the chat.** Full transcript in
+  `haiku45-300b-r1/transcript.md`. The model's one tool attempt was the
+  Claude Docs connector ("Create doc") to save the TSV as a document; the
+  call failed (a malformed request: no `container`). It then wrote the whole
+  file into its reply as a TSV code block ("I'll create the standardized TSV
+  file directly for you"). No code was run.
+- **What it said it did:** "Condensed overly long titles while preserving
+  key information" (disclosed, but not which or how much); "Removed line
+  breaks: some titles had line breaks in the original" (there were none);
+  "all 500+ records" (there are 300); "Preserved data integrity: Object
+  Numbers and URLs remain unchanged" (true for those two columns).
 
 | | |
 |---|---|
