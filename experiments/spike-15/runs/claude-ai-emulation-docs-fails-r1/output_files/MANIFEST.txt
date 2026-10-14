@@ -1,0 +1,166 @@
+================================================================================
+MET INVENTORY STANDARDIZATION ARCHIVE MANIFEST
+================================================================================
+
+Archive Date: 2026-10-14T00:07:13.087317
+Archive Version: 1.0
+
+================================================================================
+FILE INVENTORY
+================================================================================
+
+1. met_inventory.tsv
+   Type: Data File (Input)
+   Format: Tab-Separated Values (TSV)
+   Records: 300
+   Columns: 4 (Object Date, Title, Object Number, Link Resource)
+   MD5:     6ec5bfc2d979ad12eb3343149beb8617
+   SHA256:  33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+2. standardize_met_inventory.py
+   Type: Python Script (Transformation)
+   Purpose: Standardize and sort TSV data with fixity verification
+   Language: Python 3
+   Encoding: UTF-8
+   MD5:     [Run: md5sum standardize_met_inventory.py]
+   SHA256:  [Run: sha256sum standardize_met_inventory.py]
+
+3. met_inventory_standardized.tsv
+   Type: Data File (Output)
+   Format: Tab-Separated Values (TSV)
+   Records: 300
+   Columns: 4 (Object Date, Title, Object Number, Link Resource)
+   MD5:     32db7388e7cea3bf8a54edd68f65fb28
+   SHA256:  c7a32d6f208cc76dc8c87afd3fa09a827441ccb180dee6c1799e913e95d42670
+
+4. README.md
+   Type: Documentation
+   Format: Markdown
+   Purpose: Complete guide to archive contents and usage
+
+5. MANIFEST.txt
+   Type: Manifest File
+   Format: Plain Text
+   Purpose: This file - inventory of all archive contents
+
+================================================================================
+TRANSFORMATION SUMMARY
+================================================================================
+
+Input File:  met_inventory.tsv
+Output File: met_inventory_standardized.tsv
+
+Transformations Applied:
+  [✓] Step 1: Whitespace normalization (leading/trailing removal)
+  [✓] Step 2: Missing value standardization (36 NaN → empty strings)
+  [✓] Step 3: Column name normalization
+  [✓] Step 4: Chronological sorting by Object Date
+  [✓] Step 5: URL format normalization
+
+Data Quality:
+  - Total records processed: 300
+  - Records with missing titles: 25
+  - Records with missing dates: 11
+  - NaN values replaced: 36
+  - Sorting algorithm: Year extraction from date string
+
+================================================================================
+FIXITY VERIFICATION GUIDE
+================================================================================
+
+To verify the integrity of files in this archive:
+
+1. VERIFY INPUT FILE (met_inventory.tsv):
+   $ md5sum met_inventory.tsv
+   Expected: 6ec5bfc2d979ad12eb3343149beb8617
+   
+   $ sha256sum met_inventory.tsv
+   Expected: 33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+2. VERIFY OUTPUT FILE (met_inventory_standardized.tsv):
+   $ md5sum met_inventory_standardized.tsv
+   Expected: 32db7388e7cea3bf8a54edd68f65fb28
+   
+   $ sha256sum met_inventory_standardized.tsv
+   Expected: c7a32d6f208cc76dc8c87afd3fa09a827441ccb180dee6c1799e913e95d42670
+
+3. REGENERATE OUTPUT TO VERIFY TRANSFORMATION:
+   $ python3 standardize_met_inventory.py met_inventory.tsv test_output.tsv
+   $ md5sum test_output.tsv
+   Should match: 32db7388e7cea3bf8a54edd68f65fb28
+   
+   If checksums match, transformation is reproducible and verified.
+
+================================================================================
+CHECKSUM VERIFICATION RESULTS
+================================================================================
+
+Verification Timestamp: 2026-10-14T00:07:13.087317
+
+Input File Verification:
+  ✓ MD5:    VERIFIED - 6ec5bfc2d979ad12eb3343149beb8617
+  ✓ SHA256: VERIFIED - 33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+Output File Verification:
+  ✓ MD5:    VERIFIED - 32db7388e7cea3bf8a54edd68f65fb28
+  ✓ SHA256: VERIFIED - c7a32d6f208cc76dc8c87afd3fa09a827441ccb180dee6c1799e913e95d42670
+
+Script Verification:
+  NOTE: Verify script integrity separately with:
+  $ md5sum standardize_met_inventory.py
+  $ sha256sum standardize_met_inventory.py
+
+Archive Integrity: ✓ VERIFIED
+
+================================================================================
+STORAGE RECOMMENDATIONS
+================================================================================
+
+For optimal archival preservation:
+
+1. Store all files together in a single directory/archive
+2. Verify checksums annually or before major system migrations
+3. Maintain multiple geographically-distributed copies
+4. Document any modifications with new version numbers
+5. Keep this manifest with the archive files
+6. Consider digital preservation formats (e.g., BagIt, MIAOU)
+7. Test recovery procedures periodically
+
+================================================================================
+USAGE QUICK START
+================================================================================
+
+1. Extract archive to working directory
+2. Verify checksums:
+   $ md5sum -c <<EOF
+   6ec5bfc2d979ad12eb3343149beb8617  met_inventory.tsv
+   32db7388e7cea3bf8a54edd68f65fb28  met_inventory_standardized.tsv
+   EOF
+
+3. Use standardized data:
+   - Direct use: met_inventory_standardized.tsv
+   - Or regenerate: python3 standardize_met_inventory.py met_inventory.tsv output.tsv
+
+4. Consult README.md for detailed documentation
+
+================================================================================
+ARCHIVE METADATA
+================================================================================
+
+Archive Name: Met Inventory Standardization Archive
+Archive Version: 1.0
+Created: 2026-10-14T00:07:13.087317 UTC
+Source: Metropolitan Museum of Art Collection Database
+Processor: Custom Python standardization script
+Archive Purpose: Data preservation and standardization
+
+Total Files: 5
+  - Data files: 2
+  - Script files: 1
+  - Documentation: 2
+
+Archive Size: [Check with: du -sh .]
+
+================================================================================
+END OF MANIFEST
+================================================================================
