@@ -3,8 +3,9 @@
 Run on 2026-10-14. Base: spike-15's claude.ai emulation (Haiku 4.5, claude.ai's
 published system prompt, the file in the first message, `view` /
 `create_file` / `bash_tool`, a Docs connector that fails), first answer only,
-on a 100-row excerpt (`data/met_inventory_300b_every3rd.tsv`, every third row
-of the baseline file). One session per lever:
+on a 100-row excerpt (`data/met_inventory_300d.tsv`, every third row of the
+baseline file; called `met_inventory_300b_every3rd.tsv` when these runs were
+made, as their saved requests and `meta.json` still show). One session per lever:
 
 1. **No upload notice** (`"upload_notice": false`): no `<uploaded_files>`
    notice and no upload folder in the system note; the file is in the
