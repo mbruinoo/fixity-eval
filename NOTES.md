@@ -245,7 +245,12 @@ Raised by spike-01:
   checksums computed by code, none invented (new provenance grading in
   `eval_fixity.py`). But this session looked for the upload only in `/tmp`,
   then retyped the "original" from its message (4 rows differ). First answer
-  0.68%, result 0.10%. $0.59; study total $19.93 of $22.
+  0.68%, result 0.10%. Runs 2–4: all found and used the upload (4 of 5 with
+  this wording, incl. spike-23); no invented checksums in any run. Run 3:
+  18.4% → 0.07%. Run 2: 0.67% → 14.8%, from a shell-script bug (`IFS=$'\t'
+  read` collapses empty fields, shifting columns) that its checksums and
+  4-column check couldn't catch, though the archived script makes it
+  traceable. $2.33 in all; study total $21.68 of $22.
 
 ## Stage 1 baseline (fixity error rate)
 
