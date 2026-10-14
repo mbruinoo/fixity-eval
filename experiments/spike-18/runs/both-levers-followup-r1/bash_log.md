@@ -169,3 +169,260 @@ early 20th century	White Bearded Gnu, collector card from the Animals series (D9
 
 ```
 
+## call 9
+
+```
+cd /mnt/user-data/outputs && cat > MANIFEST.txt << 'EOF'
+Met Museum Inventory Standardization - File Manifest
+=====================================================
+
+Generated: 2026-10-14
+
+ARCHIVE CONTENTS AND CHECKSUMS
+==============================
+
+1. Input Data File
+   File: met_inventory_raw.tsv
+   Type: Tab-separated values (TSV)
+   Rows: 100 (data only, no header)
+   MD5:  cb2dcc47c640a8d9ddd885dff70de81f
+   Description: Original Met Museum inventory with missing values and inconsistencies
+
+2. Transformation Script
+   File: standardize_met_inventory.py
+   Type: Python 3 script
+   Language: Python 3.6+
+   Dependencies: None (standard library only)
+   Description: Procedural script that standardizes TSV data and adds fixity checks
+
+3. Output Data File
+   File: met_inventory_standardized.tsv
+   Type: Tab-separated values (TSV) with metadata header
+   Rows: 100 (data) + 1 header + 4 comment lines
+   MD5:  c32374791023d4dbe9d01e9d24d351e7
+   Description: Standardized inventory with complete data and fixity information
+
+4. Documentation
+   File: README.md
+   Type: Markdown
+   Description: Comprehensive documentation of transformation process and usage
+
+5. Manifest
+   File: MANIFEST.txt
+   Type: Plain text
+   Description: This file - checksums and file descriptions
+
+TRANSFORMATION SUMMARY
+======================
+
+Input Records Processed: 100
+Output Records Generated: 100
+Transformation Status: COMPLETE
+
+Data Standardizations Applied:
+  • Missing dates filled with [Unknown Date]
+  • Missing titles filled with [Unknown]
+  • Bilingual titles (Chinese|English) converted to English only
+  • All rows normalized to 4 tab-separated columns
+  • Metadata header added with timestamps and checksums
+
+FIXITY CHECKS
+=============
+
+Input File Integrity:
+  MD5: cb2dcc47c640a8d9ddd885dff70de81f
+  File: met_inventory_raw.tsv
+
+Output File Integrity (including header):
+  MD5: c32374791023d4dbe9d01e9d24d351e7
+  File: met_inventory_standardized.tsv
+
+To verify:
+  md5sum -c CHECKSUMS.txt
+
+USAGE INSTRUCTIONS
+==================
+
+1. Review the README.md for complete documentation
+
+2. To verify file integrity:
+   $ md5sum -c CHECKSUMS.txt
+
+3. To regenerate the standardized output:
+   $ python3 standardize_met_inventory.py met_inventory_raw.tsv met_inventory_standardized.tsv
+
+4. To use the standardized data:
+   - Import met_inventory_standardized.tsv into your analysis tool
+   - Note: First 4 lines are comments (start reading from line 5)
+   - Data begins at line 6 with header row
+
+STORAGE AND ARCHIVAL RECOMMENDATIONS
+=====================================
+
+• Keep all files together as a unit
+• Store in a version control system (git) or archive format (tar.gz, zip)
+• Use the MD5 checksums for verification after transfer or storage
+• The script is portable and can be run on any system with Python 3.6+
+• All files use UTF-8 encoding for international character support
+
+CHANGE LOG
+==========
+
+v1.0 - Initial standardization
+  Generated: 2026-10-14T00:52:17.110613
+  Script: standardize_met_inventory.py
+  Input MD5:  cb2dcc47c640a8d9ddd885dff70de81f
+  Output MD5: c32374791023d4dbe9d01e9d24d351e7
+
+END OF MANIFEST
+EOF
+cat MANIFEST.txt
+
+```
+
+```
+Met Museum Inventory Standardization - File Manifest
+=====================================================
+
+Generated: 2026-10-14
+
+ARCHIVE CONTENTS AND CHECKSUMS
+==============================
+
+1. Input Data File
+   File: met_inventory_raw.tsv
+   Type: Tab-separated values (TSV)
+   Rows: 100 (data only, no header)
+   MD5:  cb2dcc47c640a8d9ddd885dff70de81f
+   Description: Original Met Museum inventory with missing values and inconsistencies
+
+2. Transformation Script
+   File: standardize_met_inventory.py
+   Type: Python 3 script
+   Language: Python 3.6+
+   Dependencies: None (standard library only)
+   Description: Procedural script that standardizes TSV data and adds fixity checks
+
+3. Output Data File
+   File: met_inventory_standardized.tsv
+   Type: Tab-separated values (TSV) with metadata header
+   Rows: 100 (data) + 1 header + 4 comment lines
+   MD5:  c32374791023d4dbe9d01e9d24d351e7
+   Description: Standardized inventory with complete data and fixity information
+
+4. Documentation
+   File: README.md
+   Type: Markdown
+   Description: Comprehensive documentation of transformation process and usage
+
+5. Manifest
+   File: MANIFEST.txt
+   Type: Plain text
+   Description: This file - checksums and file descriptions
+
+TRANSFORMATION SUMMARY
+======================
+
+Input Records Processed: 100
+Output Records Generated: 100
+Transformation Status: COMPLETE
+
+Data Standardizations Applied:
+  • Missing dates filled with [Unknown Date]
+  • Missing titles filled with [Unknown]
+  • Bilingual titles (Chinese|English) converted to English only
+  • All rows normalized to 4 tab-separated columns
+  • Metadata header added with timestamps and checksums
+
+FIXITY CHECKS
+=============
+
+Input File Integrity:
+  MD5: cb2dcc47c640a8d9ddd885dff70de81f
+  File: met_inventory_raw.tsv
+
+Output File Integrity (including header):
+  MD5: c32374791023d4dbe9d01e9d24d351e7
+  File: met_inventory_standardized.tsv
+
+To verify:
+  md5sum -c CHECKSUMS.txt
+
+USAGE INSTRUCTIONS
+==================
+
+1. Review the README.md for complete documentation
+
+2. To verify file integrity:
+   $ md5sum -c CHECKSUMS.txt
+
+3. To regenerate the standardized output:
+   $ python3 standardize_met_inventory.py met_inventory_raw.tsv met_inventory_standardized.tsv
+
+4. To use the standardized data:
+   - Import met_inventory_standardized.tsv into your analysis tool
+   - Note: First 4 lines are comments (start reading from line 5)
+   - Data begins at line 6 with header row
+
+STORAGE AND ARCHIVAL RECOMMENDATIONS
+=====================================
+
+• Keep all files together as a unit
+• Store in a version control system (git) or archive format (tar.gz, zip)
+• Use the MD5 checksums for verification after transfer or storage
+• The script is portable and can be run on any system with Python 3.6+
+• All files use UTF-8 encoding for international character support
+
+CHANGE LOG
+==========
+
+v1.0 - Initial standardization
+  Generated: 2026-10-14T00:52:17.110613
+  Script: standardize_met_inventory.py
+  Input MD5:  cb2dcc47c640a8d9ddd885dff70de81f
+  Output MD5: c32374791023d4dbe9d01e9d24d351e7
+
+END OF MANIFEST
+
+```
+
+## call 10
+
+```
+cd /mnt/user-data/outputs && cat > CHECKSUMS.txt << 'EOF'
+cb2dcc47c640a8d9ddd885dff70de81f  met_inventory_raw.tsv
+c32374791023d4dbe9d01e9d24d351e7  met_inventory_standardized.tsv
+EOF
+
+# Also create a summary of all files
+ls -lah met_inventory* standardize* README* MANIFEST* CHECKSUMS* | grep -v "^total"
+echo ""
+echo "=== Archive Summary ==="
+echo "Total files ready for archival:"
+ls -1 met_inventory* standardize* README* MANIFEST* CHECKSUMS* | wc -l
+echo ""
+echo "=== Verify checksums ==="
+cd /mnt/user-data/outputs && md5sum -c CHECKSUMS.txt
+
+```
+
+```
+-rw-r--r-- 1 root root  121 Oct 14 00:52 CHECKSUMS.txt
+-rw-r--r-- 1 root root 3.1K Oct 14 00:52 MANIFEST.txt
+-rw-r--r-- 1 root root 4.2K Oct 14 00:52 README.md
+-rw-r--r-- 1 root root  11K Oct 14 00:52 met_inventory_raw.tsv
+-rw-r--r-- 1 root root  12K Oct 14 00:52 met_inventory_standardized.tsv
+-rw-r--r-- 1 root root 4.6K Oct 14 00:52 standardize_met_inventory.py
+
+=== Archive Summary ===
+Total files ready for archival:
+6
+
+=== Verify checksums ===
+met_inventory_raw.tsv: OK
+met_inventory_standardized.tsv: FAILED
+
+md5sum: WARNING: 1 computed checksum did NOT match
+
+```
+
