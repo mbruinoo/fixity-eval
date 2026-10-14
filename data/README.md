@@ -119,3 +119,18 @@ user. Despite the name it has 100 rows.) Every third data row of `met_inventory_
 rows, about 11,000 characters, for cheaper sessions. Keeps one bilingual title
 (东周 玉璜), the longest title (Medea, about 500 characters), a "(?)" date and the
 "[i.e. Esek]" correction. sha256 5eb3a8af….
+
+## met_inventory_e.tsv
+
+A "messy" 100-row inventory: a larger share of what typing out tends to damage
+(long titles, non-Latin and bilingual titles, uncertain dates, ID ranges, blank
+titles), as in many real archival inventories. Drawn from `MetObjects.csv` by
+`scripts/make_messy_sample.py` (seed 7; strata: 33 long titles, 17 non-Latin,
+10 uncertain dates, 10 ID ranges, 8 blank titles, 22 random), skipping objects
+already in `met_inventory_300*.tsv`, sorted by title. As drawn: 36 titles over
+100 characters, 17 non-Latin, 25 uncertain dates (incl. "ca."), 15 ID ranges, 8
+blank titles; about 14,600 characters. sha256 e12ad413….
+
+```
+python scripts/make_messy_sample.py MetObjects.csv data/met_inventory_e.tsv
+```
