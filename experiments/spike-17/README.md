@@ -19,7 +19,7 @@ python scripts/run_tools.py experiments/spike-17/config.json
 python scripts/hallu_score.py experiments/spike-17
 ```
 
-$0.11 over 5 calls; study total $14.42 of $16.
+$0.24 over 12 calls in all; study total $14.55 of $16.
 
 ## Result: both levers reproduced the skipped code tool
 
@@ -41,6 +41,24 @@ tool (spikes 13–16, 9 of 9) never did.
   square brackets (`[Lieutenant Colonel Alexander Henderson]`), deleted the
   non-English half of 2 bilingual titles, and dropped "[i.e. Esek]". The
   claude.ai session scored 19.1% on the full file.
+
+## Both levers combined (2 sessions)
+
+No upload notice **and** the 24 connector tools (`config_both_levers.json`).
+
+| Run | Tools used | Output | Fixity error rate |
+|---|---|---|---|
+| r1 | `view` (outputs folder), `bash` (`mkdir` only), `create_file` (typed out) | 100 rows | **0.7%**: 3 non-English halves deleted; object number `1994.254.238` replaced by the date `1942-12-07` |
+| r2 | the same (stopped by the budget guard before its closing summary; the sheet was already written) | 100 rows | **0.02%**: `东周` → `東周` (simplified → traditional character) |
+
+Both sessions used `bash` only to make the outputs folder, then typed the
+file out. Across the 4 lever sessions, the code tool was skipped for the work
+4 times; in spikes 13–16 it was used 9 times out of 9.
+
+Error rates on the 100-row excerpt vary (0.0%, 16.8%, 0.7%, 0.02%): typing
+out works or fails depending on what the model decides to "simplify". The
+silent errors are of the claude.ai kind: deleted non-English text, a changed
+character, a value from the wrong column.
 
 ## Next
 

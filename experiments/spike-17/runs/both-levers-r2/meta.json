@@ -1,0 +1,64 @@
+{
+  "run": "both-levers-r2",
+  "condition": {
+    "id": "both-levers",
+    "model": "claude-haiku-4-5",
+    "input": "300b_every3rd",
+    "filename": "met_inventory.tsv",
+    "view_limit": 16000,
+    "view_mode": "middle",
+    "prompt": "Can you standardize this .tsv file?",
+    "nudges": [
+      "Yes, thank you",
+      "Yes, please continue",
+      "Yes, please continue"
+    ],
+    "followups": [],
+    "bash": true,
+    "inline": "full",
+    "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+    "current_date": "Wednesday, October 14, 2026",
+    "failing_docs_tool": true,
+    "upload_notice": false,
+    "connector_stubs": true
+  },
+  "calls": [
+    {
+      "call": 1,
+      "stop_reason": "tool_use",
+      "input_tokens": 10149,
+      "output_tokens": 74,
+      "cost_usd": 0.010519
+    },
+    {
+      "call": 2,
+      "stop_reason": "tool_use",
+      "input_tokens": 10249,
+      "output_tokens": 97,
+      "cost_usd": 0.010734
+    },
+    {
+      "call": 3,
+      "stop_reason": "tool_use",
+      "input_tokens": 10365,
+      "output_tokens": 4589,
+      "cost_usd": 0.03331
+    }
+  ],
+  "tool_calls": [
+    {
+      "call": 1,
+      "tool": "view"
+    },
+    {
+      "call": 2,
+      "tool": "bash_tool"
+    },
+    {
+      "call": 3,
+      "tool": "create_file"
+    }
+  ],
+  "cost_usd": 0.054563,
+  "stopped": "budget guard refused call 4 (the closing summary), after create_file had written the sheet; meta.json rebuilt from saved responses"
+}

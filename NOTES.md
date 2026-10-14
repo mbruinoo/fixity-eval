@@ -189,7 +189,10 @@ Raised by spike-01:
   create_file at step 1, no bash; 0.0% at this size. (2) 24 connector tools
   alongside bash: typed it out too, cutting long titles and deleting
   non-English text; **16.8%** (claude.ai: 19.1%). First sessions in our
-  harness to skip an available code tool. $0.11; study total $14.42 of $16.
+  harness to skip an available code tool. Both levers combined (2 sessions):
+  bash used only for `mkdir`, file typed out both times; 0.7% (3 non-English
+  halves deleted, an object number replaced by a date) and 0.02% (东周 → 東周).
+  Code tool skipped in 4 of 4 lever sessions. $0.24; study total $14.55 of $16.
 
 ## Stage 1 baseline (fixity error rate)
 
