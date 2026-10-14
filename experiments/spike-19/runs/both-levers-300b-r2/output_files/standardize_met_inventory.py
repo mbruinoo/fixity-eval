@@ -21,9 +21,9 @@ from pathlib import Path
 from datetime import datetime
 
 # File paths
-INPUT_FILE = Path('/mnt/user-data/uploads/met_inventory.tsv')
-OUTPUT_FILE = Path('/mnt/user-data/outputs/met_inventory_standardized.tsv')
-SCRIPT_FILE = Path('/mnt/user-data/outputs/standardize_met_inventory.py')
+INPUT_FILE = Path('/tmp/fixity-box-jzdw6i3_/outputs/met_inventory_input.tsv')
+OUTPUT_FILE = Path('/tmp/fixity-box-jzdw6i3_/outputs/met_inventory_standardized.tsv')
+SCRIPT_FILE = Path('/tmp/fixity-box-jzdw6i3_/outputs/standardize_met_inventory.py')
 
 
 def calculate_md5(file_path):
