@@ -184,6 +184,13 @@ Raised by spike-01:
   the 2 that finished scored 0.0%. Code tools were used in every session that
   had one across spikes 13–16 (9). $0.43; study total $14.31 of $15.
 
+- `experiments/spike-17/`: two levers on the claude.ai emulation, 100-row
+  excerpt, 1 session each. (1) No upload notice: typed the file out with
+  create_file at step 1, no bash; 0.0% at this size. (2) 24 connector tools
+  alongside bash: typed it out too, cutting long titles and deleting
+  non-English text; **16.8%** (claude.ai: 19.1%). First sessions in our
+  harness to skip an available code tool. $0.11; study total $14.42 of $16.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably
