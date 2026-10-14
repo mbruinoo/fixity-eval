@@ -234,6 +234,13 @@ Raised by spike-01:
   unasked. But it retyped the "original" (5 rows changed, incl. 东周 → 東周)
   and ran its script on that copy. $0.71; study total $18.78 of $22.
 
+- `experiments/spike-23/`: "(not a retyped copy)" added to the short
+  follow-up. First answer typed out: **20.3%** (claude.ai on the same file:
+  19.1%). After the follow-up: **4.0%**, from a byte-identical copy of the
+  upload, a script run on it and correct MD5s; the rest is 7 long titles
+  shortened by the script's own rule. One typed SHA-256 was made up
+  (`…5e5e5e…`). $0.56; study total $19.35 of $22.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably
