@@ -194,6 +194,14 @@ Raised by spike-01:
   halves deleted, an object number replaced by a date) and 0.02% (东周 → 東周).
   Code tool skipped in 4 of 4 lever sessions. $0.24; study total $14.55 of $16.
 
+- `experiments/spike-18/`: both levers on `met_inventory_300d.tsv` (the
+  100-row excerpt, renamed). First answers: typed out 4 of 4 (8 of 8 with
+  spike-17); 0.0–0.67%, mostly deleted non-English halves. After the
+  follow-up it used code, but on a **retyped copy of the input**: the input
+  checksum is of that copy, the output checksum doesn't match the delivered
+  file, and the script deletes non-English text by design. $0.55; study total
+  $15.10 of $18.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably

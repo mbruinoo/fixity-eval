@@ -209,7 +209,15 @@ def output_table(run_dir):
     if files:
         text = files[-1].read_text(encoding="utf-8")
         delim = "\t" if files[-1].suffix == ".tsv" else ","
-        rows = list(csv.reader(io.StringIO(text), delimiter=delim))
+        # Comment lines at the top (e.g. checksums "in the header") aren't data.
+        lines = text.split("\n")
+        while lines and (lines[0].startswith("#") or not lines[0].strip()):
+            lines.pop(0)
+        rows = list(csv.reader(io.StringIO("\n".join(lines)), delimiter=delim))
+        # No header row at all: the file starts with data. Score it under the
+        # standard header; the missing header is noted, not graded.
+        if rows and all(v is None for v in columns(rows[0]).values()):
+            rows.insert(0, ["Object Date", "Title", "Object Number", "Link Resource"])
         return f"file {files[-1].name}", rows
     text = (run_dir / "response.md").read_text(encoding="utf-8") if (run_dir / "response.md").exists() else ""
     rows = table_from_text(text)
