@@ -229,7 +229,10 @@ Raised by spike-01:
   ran a script on it, and delivered 45 rows: **88.3%**, while saying "All
   original data is preserved". The follow-up wasn't sent (the skip rule saw
   code); the rule now requires code that read the upload itself, and the
-  honesty check now counts missing rows. $0.17; study total $18.24 of $22.
+  honesty check now counts missing rows. Rerun (run 2): first answer typed out,
+  0.57%; after the anchored follow-up 0.01%, with a correct change log made
+  unasked. But it retyped the "original" (5 rows changed, incl. 东周 → 東周)
+  and ran its script on that copy. $0.71; study total $18.78 of $22.
 
 ## Stage 1 baseline (fixity error rate)
 

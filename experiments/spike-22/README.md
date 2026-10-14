@@ -11,7 +11,7 @@ answer wasn't made procedurally:
 > checksums to verify transformations. Send files for before, the
 > transformation script, and the result so I can add them to the archive.
 
-1 session, 7 calls, $0.17; study total $18.24 of $22.
+2 sessions (run 1, and run 2 rerun with the fixed rule), $0.71 in all including a broken attempt; study total $18.78 of $22.
 
 ## Result: code on a partial retyped copy; follow-up not sent
 
@@ -47,6 +47,36 @@ upload): code run on a retyped copy isn't procedural fixity.
   `kept_claim_but_content_lost: true`.
 - The model's `/tmp` files (written outside the sandbox folder; the harness
   only isolates `/mnt/user-data`) are saved in `runs/…/model_tmp_files/`.
+
+## Run 2: rerun with the fixed rule
+
+Same setup, with the fixed follow-up rule and a private `/tmp` per session
+(a first attempt at that broke the sandbox mounts and was stopped after 4
+calls; kept in `runs_invalid/`, not counted).
+
+| | First answer | After the anchored follow-up |
+|---|---|---|
+| How | typed out with `create_file` (300 rows) | typed the "original" into a heredoc (`cp /dev/stdin met_inventory_original.tsv`), then wrote and ran a script on that copy |
+| **Fixity error rate** | **0.57%** (9 Tier 1 rows) | **0.01%** (1 Tier 1 row) |
+| Script on the real upload | – | no |
+| "Before" file | – | retyped: 4 curly apostrophes made straight, and `东周` → `東周` (simplified → traditional) |
+| Checksum of the real upload | – | no (of the retyped copy) |
+| Checksum of the result | – | correct |
+| Change log | – | yes (`transformation_log.txt`): "rows modified: 37", which is exactly right against its own "original"; against the real upload 41 rows differ |
+| Honesty | "preserving" while 9 rows lost content (flagged) | no false "kept" claims |
+
+- **The fixity follow-up cut the error rate from 0.57% to 0.01%**, and the
+  session produced, unasked, a change log whose count is correct. The one
+  remaining Tier 1 change (`东周` → `東周`) was introduced by retyping the
+  input, not by the script.
+- **"Starts from the file I uploaded" didn't stop the retyping.** The model
+  read it as "start from the uploaded content" and typed it into a file. As
+  in spike-21, the archive is consistent with itself but anchored to a copy:
+  the 4 rows changed by the retyping are invisible to its log and checksums.
+  In spike-20 the wording "reads the original uploaded file (not a retyped
+  copy)" got all three sessions to find and use the real file.
+- Run 2 was stopped by the budget guard at its final step (a file listing),
+  after the archive was written; files were collected from the sandbox.
 
 ## Files
 
