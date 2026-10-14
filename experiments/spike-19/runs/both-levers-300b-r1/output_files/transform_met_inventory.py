@@ -5,7 +5,7 @@ Reads met_inventory.tsv and produces a standardized, cleaned version
 with fixity checks via SHA256 checksums.
 
 Script: transform_met_inventory.py
-Input: met_inventory.tsv
+Input: ../uploads/met_inventory.tsv
 Output: met_inventory_standardized.tsv
 """
 
@@ -72,8 +72,8 @@ def standardize_tsv(input_file, output_file):
         'total_rows': 0,
         'rows_with_missing_titles': 0,
         'rows_with_missing_dates': 0,
-        'input_file': input_file,
-        'output_file': output_file,
+        'input_file': str(input_file),
+        'output_file': str(output_file),
         'input_checksum': calculate_sha256(input_file),
         'timestamp': datetime.now().isoformat()
     }
@@ -115,7 +115,7 @@ def standardize_tsv(input_file, output_file):
         outfile.write("# TSV Standardization Report\n")
         outfile.write(f"# Generated: {stats['timestamp']}\n")
         outfile.write(f"# Script: transform_met_inventory.py\n")
-        outfile.write(f"# Input File: {input_file}\n")
+        outfile.write(f"# Input File: {stats['input_file']}\n")
         outfile.write(f"# Input SHA256: {stats['input_checksum']}\n")
         outfile.write(f"# Total Rows Processed: {stats['total_rows']}\n")
         outfile.write(f"# Rows with Missing Titles: {stats['rows_with_missing_titles']}\n")
@@ -140,8 +140,8 @@ def main():
     """Main entry point."""
     # Set file paths
     script_dir = Path(__file__).parent
-    input_file = Path('/mnt/user-data/uploads/met_inventory.tsv')
-    output_file = Path('/mnt/user-data/outputs/met_inventory_standardized.tsv')
+    input_file = script_dir.parent / "uploads" / "met_inventory.tsv"
+    output_file = script_dir / "met_inventory_standardized.tsv"
     
     # Verify input file exists
     if not input_file.exists():

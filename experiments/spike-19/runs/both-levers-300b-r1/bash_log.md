@@ -72,3 +72,33 @@ drwxr-xr-x  2 root root 4096 Oct 14 01:09 uploads
 
 ```
 
+## call 12
+
+```
+cd /mnt/user-data/outputs && python3 transform_met_inventory.py
+```
+
+```
+Processing: /mnt/user-data/uploads/met_inventory.tsv
+======================================================================
+
+Input File Checksum (SHA256):
+  33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+Output File Checksum (SHA256):
+  4de9017ec71e69ea80912339e5fcd00aa1027901aa9bb379649bb4733e76b347
+
+Processing Statistics:
+  Total Rows Processed: 300
+  Rows with Missing Titles: 25
+  Rows with Missing Dates: 11
+
+Output File: /mnt/user-data/outputs/met_inventory_standardized.tsv
+======================================================================
+
+✓ Standardization complete!
+  Input:  /mnt/user-data/uploads/met_inventory.tsv
+  Output: /mnt/user-data/outputs/met_inventory_standardized.tsv
+
+```
+
