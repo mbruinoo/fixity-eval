@@ -311,3 +311,40 @@ EOF
 (no output, exit code 0)
 ```
 
+## call 6
+
+```
+cd /mnt/user-data/outputs && python3 standardize_met_inventory.py
+```
+
+```
+================================================================================
+MET INVENTORY TSV STANDARDIZATION
+================================================================================
+
+Calculating input file checksum...
+Input checksum (SHA-256): ecff20dfda6a97d33d11dac8429143387fa12fa201b439171a0d89a653208c5c
+
+Reading 'met_inventory_original.tsv'...
+Read 301 rows from input file
+
+Writing standardized output to 'met_inventory_standardized.tsv'...
+Calculating output file checksum...
+Output checksum (SHA-256): 09f8e3e09759d774c992f4699923bcd0ac1bb69dda53f3a154e275c338be007b
+
+Generating transformation log...
+Generating checksums file...
+
+================================================================================
+TRANSFORMATION COMPLETE
+================================================================================
+✓ Data rows processed: 300
+✓ Rows modified: 37 (12.3%)
+✓ Output file: met_inventory_standardized.tsv
+✓ Transformation log: transformation_log.txt
+✓ Checksums: checksums.txt
+
+Files ready for archival.
+
+```
+
