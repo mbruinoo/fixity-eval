@@ -171,6 +171,12 @@ Raised by spike-01:
   2 dates. Led to a scorer fix (bare "(?)" deletions now count); earlier
   rates moved by at most 0.15 points.
 
+- `experiments/spike-15/`: emulating the claude.ai session through the API
+  (published Haiku 4.5 claude.ai system prompt, file in context, code tools,
+  and a Docs connector that fails like the user's). 2 runs: both used bash at
+  once, never the Docs tool; 0.0%. Not reproduced: the difference lies in
+  claude.ai's unpublished tool setup. $0.42; study total $13.88 of $15.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably

@@ -1,0 +1,93 @@
+{
+  "run": "claude-ai-emulation-docs-fails-r2",
+  "condition": {
+    "id": "claude-ai-emulation-docs-fails",
+    "model": "claude-haiku-4-5",
+    "input": "300b",
+    "filename": "met_inventory.tsv",
+    "view_limit": 16000,
+    "view_mode": "middle",
+    "prompt": "Can you standardize this .tsv file?",
+    "nudges": [
+      "Yes, thank you",
+      "Yes, please continue",
+      "Yes, please continue"
+    ],
+    "followups": [],
+    "bash": true,
+    "inline": "full",
+    "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+    "current_date": "Wednesday, October 14, 2026",
+    "failing_docs_tool": true
+  },
+  "started": "2026-10-14T00:08:23.917413+00:00",
+  "calls": [
+    {
+      "call": 1,
+      "started": "2026-10-14T00:08:23.918460+00:00",
+      "finished": "2026-10-14T00:08:25.205870+00:00",
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 17702,
+      "output_tokens": 105,
+      "cost_usd": 0.018227
+    },
+    {
+      "call": 2,
+      "started": "2026-10-14T00:08:25.207895+00:00",
+      "finished": "2026-10-14T00:08:31.043398+00:00",
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 19905,
+      "output_tokens": 657,
+      "cost_usd": 0.02319
+    },
+    {
+      "call": 3,
+      "started": "2026-10-14T00:08:31.073236+00:00",
+      "finished": "2026-10-14T00:08:32.717040+00:00",
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "tool_use",
+      "input_tokens": 20585,
+      "output_tokens": 110,
+      "cost_usd": 0.021135
+    },
+    {
+      "call": 4,
+      "started": "2026-10-14T00:08:32.725107+00:00",
+      "finished": "2026-10-14T00:08:34.857143+00:00",
+      "model": "claude-haiku-4-5-20251001",
+      "stop_reason": "end_turn",
+      "input_tokens": 21283,
+      "output_tokens": 185,
+      "cost_usd": 0.022208
+    }
+  ],
+  "tool_calls": [
+    {
+      "call": 1,
+      "tool": "view",
+      "path": "/mnt/user-data/uploads/met_inventory.tsv",
+      "view_range": [
+        1,
+        50
+      ],
+      "chars_returned": 5402,
+      "truncated": false
+    },
+    {
+      "call": 2,
+      "tool": "bash_tool",
+      "command": "python3 << 'EOF'\nimport csv\nimport re\n\n# Read the TSV file\ninput_file = '/mnt/user-data/uploads/met_inventory.tsv'\noutput_file = '/mnt/user-data/outputs/met_inventory_standardized.tsv'\n\nrows = []\nwith open(input_file, 'r', encoding='utf-8') as f:\n    reader = csv.DictReader(f, delimiter='\\t')\n    for row in reader:\n        rows.append(row)\n\n# Standardize the data\nstandardized_rows = []\nfor row in rows:\n    # Clean up Object Date\n    obj_date = row.get('Object Date', '').strip()\n    \n    # Clean up Title - remove extra quotes if present, keep brackets\n    title = row.get('Title', '').strip()\n    if title.startswith('\"') and title.endswith('\"'):\n        title = title[1:-1]\n    # Decode HTML entities\n    title = title.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')\n    \n    # Clean up Object Number\n    obj_number = row.get('Object Number', '').strip()\n    \n    # Clean up Link Resource\n    link = row.get('Link Resource', '').strip()\n    \n    standardized_rows.append({\n        'Object Date': obj_date,\n        'Title': title,\n        'Object Number': obj_number,\n        'Link Resource': link\n    })\n\n# Write standardized TSV\nwith open(output_file, 'w', encoding='utf-8', newline='') as f:\n    fieldnames = ['Object Date', 'Title', 'Object Number', 'Link Resource']\n    writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\\t')\n    writer.writeheader()\n    writer.writerows(standardized_rows)\n\nprint(f\"Standardized file created with {len(standardized_rows)} records\")\n\nEOF\n",
+      "chars_returned": 43
+    },
+    {
+      "call": 3,
+      "tool": "bash_tool",
+      "command": "head -20 /mnt/user-data/outputs/met_inventory_standardized.tsv",
+      "chars_returned": 1503
+    }
+  ],
+  "finished": "2026-10-14T00:08:34.859303+00:00",
+  "cost_usd": 0.08476
+}
