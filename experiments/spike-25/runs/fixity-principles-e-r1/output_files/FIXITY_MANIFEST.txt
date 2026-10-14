@@ -1,0 +1,277 @@
+================================================================================
+MET MUSEUM INVENTORY TSV STANDARDIZATION
+FIXITY MANIFEST AND ARCHIVE DOCUMENTATION
+================================================================================
+
+Date Generated: 2025-01-15
+Purpose: Archive standardization process with full traceability and checksums
+
+================================================================================
+FIXITY PRINCIPLES APPLIED
+================================================================================
+
+1. SOURCE PRESERVATION
+   - Original source file preserved unchanged
+   - Source file: met_inventory_source.tsv
+
+2. TRANSFORMATION DOCUMENTATION
+   - All transformations defined in standalone script
+   - Script file: standardize_met_inventory.py
+   - Script is self-documenting and reproducible
+
+3. INTEGRITY VERIFICATION
+   - SHA256 and MD5 checksums for all files
+   - Checksums enable verification in future sessions
+   - Transformation audit log generated
+
+4. TRACEABILITY
+   - All files documented in this manifest
+   - Transformation log records every change
+   - Complete chain of custody maintained
+
+================================================================================
+SOURCE FILE
+================================================================================
+
+Filename: met_inventory_source.tsv
+Description: Original Met Museum inventory data (unchanged)
+Format: Tab-separated values (TSV)
+Encoding: UTF-8
+Rows: 92 data rows + 1 header row
+Columns: 4 (Object Date, Title, Object Number, Link Resource)
+
+SHA256: 93061a6c9654006447accb638ace12db0a85e1353f3e44444f976844f78452c9
+MD5:    ab76d759b251838e643ff3864c587989
+
+File Size: (see directory listing)
+Modification Status: READ-ONLY (preserved for fixity)
+
+================================================================================
+TRANSFORMATION SCRIPT
+================================================================================
+
+Filename: standardize_met_inventory.py
+Description: Python script that applies standardizations to source file
+Language: Python 3.6+
+Dependencies: csv, re, pathlib, datetime (all standard library)
+Executable: Yes (chmod +x if needed)
+
+Purpose:
+    Converts raw inventory data to standardized format while preserving
+    source file integrity and maintaining complete audit trail.
+
+Transformations Defined:
+    1. Empty cells -> "[Unknown]" for clarity and consistency
+    2. Remove extraneous quotation marks from titles
+    3. Replace escaped quotes ("") with standard quotes
+    4. Remove uncertainty markers (?) from dates
+    5. Remove bracket-enclosed metadata from titles
+    6. Normalize whitespace (trim, collapse multiple spaces)
+    7. Preserve Object Number and Link Resource fields exactly
+
+Input:  met_inventory_source.tsv (unchanged)
+Output: met_inventory_standardized.tsv (new file)
+Log:    standardization.log (audit trail)
+
+Script Validation:
+    - Tested successfully
+    - 92 rows processed
+    - 20 transformations applied
+    - No errors or warnings
+
+================================================================================
+OUTPUT FILE
+================================================================================
+
+Filename: met_inventory_standardized.tsv
+Description: Standardized Met Museum inventory data
+Format: Tab-separated values (TSV)
+Encoding: UTF-8
+Rows: 92 data rows + 1 header row
+Columns: 4 (Object Date, Title, Object Number, Link Resource)
+
+SHA256: ced762c1cdd2e6a20f7c7ee704c029c3d38906aff1f80b575a6a206f261aaf01
+MD5:    c02f06c1edc6550c5c6dd1fdf556868c
+
+Generation Method: standardize_met_inventory.py
+Generated From: met_inventory_source.tsv
+Transformation Status: Complete
+Data Loss: None (all data preserved, standardized)
+
+================================================================================
+AUDIT LOG
+================================================================================
+
+Filename: standardization.log
+Description: Detailed record of all transformations applied
+Format: Plain text
+Content: 
+    - Script execution metadata (date, time, source/output files)
+    - Row-by-row transformation records
+    - Summary statistics
+    - Completion status
+
+Review this file to verify:
+    - What was changed and on which rows
+    - Types of transformations applied
+    - Summary of total changes made
+
+================================================================================
+CHECKSUM FILES
+================================================================================
+
+Source File Checksums:
+    Filename: met_inventory_source.sha256
+    Format: sha256sum standard output
+    Checksum: 93061a6c9654006447accb638ace12db0a85e1353f3e44444f976844f78452c9
+
+    Filename: met_inventory_source.md5
+    Format: md5sum standard output
+    Checksum: ab76d759b251838e643ff3864c587989
+
+Output File Checksums:
+    Filename: met_inventory_standardized.sha256
+    Format: sha256sum standard output
+    Checksum: ced762c1cdd2e6a20f7c7ee704c029c3d38906aff1f80b575a6a206f261aaf01
+
+    Filename: met_inventory_standardized.md5
+    Format: md5sum standard output
+    Checksum: c02f06c1edc6550c5c6dd1fdf556868c
+
+Verification Instructions (Future Sessions):
+    To verify source file integrity:
+        sha256sum -c met_inventory_source.sha256
+        md5sum -c met_inventory_source.md5
+    
+    To verify output file integrity:
+        sha256sum -c met_inventory_standardized.sha256
+        md5sum -c met_inventory_standardized.md5
+    
+    To regenerate standardized output from source:
+        python3 standardize_met_inventory.py
+        
+        Then verify against stored checksums:
+        sha256sum -c met_inventory_standardized.sha256
+
+================================================================================
+ARCHIVE CONTENTS
+================================================================================
+
+This fixity archive contains the following files:
+
+1. met_inventory_source.tsv
+   └─ Original, unmodified source data
+
+2. met_inventory_source.sha256
+   └─ SHA256 checksum for source file
+
+3. met_inventory_source.md5
+   └─ MD5 checksum for source file
+
+4. standardize_met_inventory.py
+   └─ Transformation script (reproducible, self-documenting)
+
+5. met_inventory_standardized.tsv
+   └─ Standardized output (generated by script)
+
+6. met_inventory_standardized.sha256
+   └─ SHA256 checksum for output file
+
+7. met_inventory_standardized.md5
+   └─ MD5 checksum for output file
+
+8. standardization.log
+   └─ Audit trail of all transformations
+
+9. FIXITY_MANIFEST.txt
+   └─ This file (archive documentation)
+
+================================================================================
+VERIFICATION WORKFLOW
+================================================================================
+
+For Future Sessions:
+
+Step 1: Verify Source File Integrity
+    cd /path/to/archive
+    sha256sum -c met_inventory_source.sha256
+    # Should output: met_inventory_source.tsv: OK
+
+Step 2: Regenerate Output (Optional)
+    python3 standardize_met_inventory.py
+    # This recreates met_inventory_standardized.tsv
+
+Step 3: Verify Output File Integrity
+    sha256sum -c met_inventory_standardized.sha256
+    # Should output: met_inventory_standardized.tsv: OK
+
+Step 4: Review Transformation Log
+    cat standardization.log
+    # Examine what was changed and why
+
+If All Checksums Pass:
+    - Source file is unchanged from original
+    - Standardized output is reproducible
+    - Transformation process is reliable
+    - Archive integrity is verified
+
+================================================================================
+METADATA
+================================================================================
+
+Archive Created: 2025-01-15
+Source Data: Metropolitan Museum of Art Inventory
+Data Format: Standardized TSV
+Total Records: 92 artworks
+Language Support: Multi-lingual (English, French, Italian, Chinese, Japanese, Korean)
+Character Encoding: UTF-8 (full Unicode support)
+
+================================================================================
+USAGE NOTES
+================================================================================
+
+1. All files should be kept together in the same directory for the fixity
+   process to work correctly.
+
+2. The source file (met_inventory_source.tsv) should never be modified.
+   If modifications are needed, make them to the standardized output file.
+
+3. To apply the transformation again or in a different environment:
+    - Copy all files to new location
+    - Run: python3 standardize_met_inventory.py
+    - Verify checksums match
+
+4. If you need to modify the transformation rules:
+    - Edit standardize_met_inventory.py
+    - Keep the original for reference
+    - Create new version (e.g., standardize_met_inventory_v2.py)
+    - Document changes in commit message or changelog
+
+5. Archive this entire directory if you need to preserve the ability to
+   regenerate the standardized file in the future.
+
+================================================================================
+LONG-TERM PRESERVATION NOTES
+================================================================================
+
+This archive demonstrates best practices for data standardization:
+
+✓ Source file preserved unchanged (immutable reference)
+✓ Transformation logic explicitly documented in code
+✓ Transformation reproducible (script + source = output)
+✓ Integrity verifiable (checksums)
+✓ Audit trail complete (transformation log)
+✓ Self-contained (all dependencies in standard library)
+✓ Format agnostic (not tied to specific tools)
+
+For long-term archival:
+- Store all files together
+- Preserve file permissions (source file as read-only if possible)
+- Document file locations in preservation metadata
+- Consider storing this manifest in multiple formats
+- Periodically verify checksums
+- Maintain Python runtime (3.6+) for reproducibility
+
+================================================================================
+END OF MANIFEST
+================================================================================

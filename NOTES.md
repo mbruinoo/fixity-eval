@@ -252,6 +252,14 @@ Raised by spike-01:
   4-column check couldn't catch, though the archived script makes it
   traceable. $2.33 in all; study total $21.68 of $22.
 
+- `experiments/spike-25/`: messy 100-row inventory (`met_inventory_e.tsv`) +
+  the user's principle-based follow-up naming fixity ("make sure the source
+  file stays unchanged…"). First answer 9.5%. After the follow-up the session
+  retyped the "source file" from its message: one dropped closing quote made
+  its own script merge 8 records: 15.0%, with real, matching checksums of the
+  copy. The principle alone didn't anchor to the upload. $0.41; study total
+  $22.09 of $24.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably
