@@ -2,3 +2,23 @@
     -> view: /mnt/user-data/outputs
 [anchored-followup-300b-r1 call 2] $0.020 tool_use | says: Let me create the output directory and then generate a standardized version:
     -> bash_tool: mkdir -p /mnt/user-data/outputs
+[anchored-followup-300b-r1 call 3] $0.022 tool_use | says: Now let me process the TSV file and standardize it:
+    -> bash_tool: cat > /tmp/standardize_tsv.py << 'EOF'
+import csv
+import sys
+
+# Read the TSV file
+with open('/tmp/met_inventory.tsv', 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# Parse as TSV
+reader = csv.reader(content.strip().split('\n'), delimiter='\t')
+rows = list(reader)
+
+# Standardize: ensure consis
+[anchored-followup-300b-r1 call 4] $0.028 tool_use | says: Let me first create the input file from the document content:
+    -> bash_tool: cat > /tmp/met_inventory.tsv << 'INPUTEOF'
+Object Date	Title	Object Number	Link Resource
+7th–9th century		2002.556.36	http://www.metmuseum.org/art/collection/search/65194
+		02.18.509	http://www.metmuseum.org/art/collection/search/43906
+19th century		93.1.168	http://www.metmuseum.org/art/collection/s
