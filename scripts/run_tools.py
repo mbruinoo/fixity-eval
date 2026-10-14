@@ -87,7 +87,10 @@ def run_bash(command, box):
     (private mount namespace), with no network and a time limit."""
     # A private mount namespace with the box bind-mounted over /mnt/user-data,
     # so the path works everywhere, scripts included; the host is untouched.
-    cmd = f"mount --bind {shlex.quote(str(box))} /mnt/user-data && cd /mnt/user-data && {{\n{command}\n}}"
+    (box / "tmp").mkdir(exist_ok=True)  # the session's own /tmp, kept with the run
+    # Order matters: the box lives under /tmp, so mount it first, then its tmp/.
+    cmd = (f"mount --bind {shlex.quote(str(box))} /mnt/user-data && mount --bind /mnt/user-data/tmp /tmp && "
+           f"cd /mnt/user-data && {{\n{command}\n}}")
     try:
         p = subprocess.run(["unshare", "-n", "-m", "--propagation", "private", "bash", "-c", cmd], cwd=box,
                            capture_output=True, text=True,
@@ -412,6 +415,8 @@ def run_one(client, cfg, root, ledger, cond, rep):
         messages.append({"role": "user", "content": results})
     if box:
         collect_outputs(box, d, stage)
+        if (box / "tmp").exists() and any((box / "tmp").iterdir()):
+            shutil.copytree(box / "tmp", d / "model_tmp_files", dirs_exist_ok=True)
         shutil.rmtree(box, ignore_errors=True)
     (d / "response.md").write_text("\n\n".join(t for t in text if t), encoding="utf-8")
     meta["finished"] = now()
