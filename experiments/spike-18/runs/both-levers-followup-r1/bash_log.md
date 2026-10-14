@@ -112,3 +112,60 @@ cb2dcc47c640a8d9ddd885dff70de81f  -
 
 ```
 
+## call 6
+
+```
+cd /mnt/user-data/outputs && python3 standardize_met_inventory.py met_inventory_raw.tsv met_inventory_standardized.tsv
+```
+
+```
+Input file MD5: cb2dcc47c640a8d9ddd885dff70de81f
+Output file MD5: c32374791023d4dbe9d01e9d24d351e7
+
+Standardization complete!
+Input rows processed: 100
+Output file: met_inventory_standardized.tsv
+
+```
+
+## call 7
+
+```
+cd /mnt/user-data/outputs && head -20 met_inventory_standardized.tsv && echo "..." && tail -10 met_inventory_standardized.tsv
+```
+
+```
+# Met Museum Inventory - Standardized
+# Generated: 2026-10-14T00:52:17.110613
+# Input File MD5:  cb2dcc47c640a8d9ddd885dff70de81f
+# Output File MD5: c32374791023d4dbe9d01e9d24d351e7
+
+Object Date	Title	Object Number	Link Resource
+7th–9th century	[Unknown]	2002.556.36	http://www.metmuseum.org/art/collection/search/65194
+late 19th to early 20th century	[Unknown]	16.144.46	http://www.metmuseum.org/art/collection/search/42843
+18th–19th century	[Unknown]	28.186.45	http://www.metmuseum.org/art/collection/search/60748
+[Unknown Date]	[Unknown]	1994.605.95	http://www.metmuseum.org/art/collection/search/44395
+7th century	[Unknown]	1989.150	http://www.metmuseum.org/art/collection/search/38250
+[Unknown Date]	[Unknown]	CP157	http://www.metmuseum.org/art/collection/search/63485
+second half of 19th century	[Unknown]	36.100.156a, b	http://www.metmuseum.org/art/collection/search/58338
+[Unknown Date]	[Unknown]	14.40.171	http://www.metmuseum.org/art/collection/search/46959
+1793	[Unknown]	JIB182	http://www.metmuseum.org/art/collection/search/57912
+1836	Brennus from The Complete Works of Béranger	59.500.687(42)	http://www.metmuseum.org/art/collection/search/813191
+ca. 1970	[Five 35mm Film Frames: Views of a Park and Stone Gate, Possibly England]	1994.253.761	http://www.metmuseum.org/art/collection/search/283592
+December 7, 1942	[Lieutenant Colonel Alexander Henderson]	1994.254.238	http://www.metmuseum.org/art/collection/search/273568
+1860s	[Tower and Figures in Central Park]	2015.400.336	http://www.metmuseum.org/art/collection/search/696502
+1890–99	Accessory set	2009.300.1969a, b	http://www.metmuseum.org/art/collection/search/156741
+...
+1993, printed 1996	Transfiguration #10008	1997.333.3	http://www.metmuseum.org/art/collection/search/281987
+1823	Two Men before a Waterfall at Sunset	2019.167.3	http://www.metmuseum.org/art/collection/search/439344
+1983	Untitled	2019.20.2	http://www.metmuseum.org/art/collection/search/818222
+1970	Venus Garden	1985.81a-l	http://www.metmuseum.org/art/collection/search/484378
+ca. 1641	Virgin and Christ Child	17.50.17-297	http://www.metmuseum.org/art/collection/search/373773
+1855–65	Walking boots	2009.300.5484a, b	http://www.metmuseum.org/art/collection/search/169699
+early 20th century	White Bearded Gnu, collector card from the Animals series (D9), issued by the Weber Baking Company to promote Onist Milk and Pullman Bread	63.350.307.9.29	http://www.metmuseum.org/art/collection/search/680219
+5th century BCE	Arc-shaped pendant (Huang)	2009.92	http://www.metmuseum.org/art/collection/search/75285
+1950s	Red and Blue, Two Attendants	2018.853.35	http://www.metmuseum.org/art/collection/search/816263
+1840	Five Beauties	2015.500.9.12	http://www.metmuseum.org/art/collection/search/667347
+
+```
+
