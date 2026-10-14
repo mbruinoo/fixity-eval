@@ -1,0 +1,45 @@
+{
+ "id": "msg_011Cg2BJwywhqFgcWjuXGLC8",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me standardize it with checksums:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01Jc6w7oQLjWGJKynR3fkAKg",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "command": "cd /mnt/user-data/outputs && python3 << 'EOF'\nimport csv\nimport hashlib\nfrom datetime import datetime\nimport json\n\n# Read the original TSV\ninput_file = '/tmp/met_inventory.tsv'\noutput_file = '/mnt/user-data/outputs/met_inventory_standardized.tsv'\nmetadata_file = '/mnt/user-data/outputs/met_inventory_metadata.json'\nchecksum_file = '/mnt/user-data/outputs/met_inventory_checksums.txt'\n\n# Read data\nrows = []\nwith open(input_file, 'r', encoding='utf-8') as f:\n    reader = csv.DictReader(f, delimiter='\\t')\n    for row in reader:\n        rows.append(row)\n\n# Standardize: clean up whitespace, handle empty values consistently\nstandardized_rows = []\nfor row in rows:\n    cleaned_row = {\n        'Object Date': row.get('Object Date', '').strip(),\n        'Title': row.get('Title', '').strip(),\n        'Object Number': row.get('Object Number', '').strip(),\n        'Link Resource': row.get('Link Resource', '').strip()\n    }\n    standardized_rows.append(cleaned_row)\n\n# Write standardized TSV with BOM for proper UTF-8 encoding\nwith open(output_file, 'w', encoding='utf-8-sig', newline='') as f:\n    fieldnames = ['Object Date', 'Title', 'Object Number', 'Link Resource']\n    writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\\t')\n    writer.writeheader()\n    writer.writerows(standardized_rows)\n\n# Calculate checksums for fixity\ndef calculate_file_hash(filepath, algorithm='sha256'):\n    hasher = hashlib.sha256()\n    with open(filepath, 'rb') as f:\n        while True:\n            chunk = f.read(8192)\n            if not chunk:\n                break\n            hasher.update(chunk)\n    return hasher.hexdigest()\n\ndef calculate_md5(filepath):\n    hasher = hashlib.md5()\n    with open(filepath, 'rb') as f:\n        while True:\n            chunk = f.read(8192)\n            if not chunk:\n                break\n            hasher.update(chunk)\n    return hasher.hexdigest()\n\ndef calculate_row_hash(row):\n    \"\"\"Calculate hash for each row for integrity verification\"\"\"\n    row_str = '|'.join([row.get(k, '') for k in ['Object Date', 'Title', 'Object Number', 'Link Resource']])\n    return hashlib.sha256(row_str.encode('utf-8')).hexdigest()\n\n# Get file size\nimport os\nfile_size = os.path.getsize(output_file)\n\n# File level checksums\nfile_sha256 = calculate_file_hash(output_file, 'sha256')\nfile_md5 = calculate_md5(output_file)\n\n# Create metadata with checksums\nmetadata = {\n    'standardization_info': {\n        'timestamp': datetime.now().isoformat(),\n        'source_file': 'met_inventory.tsv',\n        'output_file': 'met_inventory_standardized.tsv',\n        'total_records': len(standardized_rows),\n        'file_size_bytes': file_size,\n        'encoding': 'UTF-8 with BOM',\n        'delimiter': 'tab',\n        'line_terminator': 'LF'\n    },\n    'file_checksums': {\n        'sha256': file_sha256,\n        'md5': file_md5,\n        'algorithms': ['SHA-256 (primary)', 'MD5 (secondary)']\n    },\n    'record_integrity': {\n        'total_rows': len(standardized_rows),\n        'row_count_with_header': len(standardized_rows) + 1,\n        'sample_row_hashes': [\n            {\n                'row_number': idx + 1,\n                'object_number': row['Object Number'],\n                'title_preview': row['Title'][:50] if row['Title'] else '[empty]',\n                'sha256': calculate_row_hash(row)\n            }\n            for idx, row in enumerate(standardized_rows[:5])\n        ]\n    },\n    'field_definitions': {\n        'Object Date': 'Date range or specific date of object creation/collection',\n        'Title': 'Name or description of the object',\n        'Object Number': 'Museum accession or catalog number',\n        'Link Resource': 'URL to the object in the Met Museum collection database'\n    },\n    'standardization_changes': [\n        'Removed leading/trailing whitespace from all fields',\n        'Standardized empty values as empty strings (not null)',\n        'Added UTF-8 BOM (Byte Order Mark) for cross-platform compatibility',\n        'Enforced tab-delimited format (U+0009)',\n        'Normalized line endings to LF (Unix-style)',\n        'Preserved original character encoding for international text (Chinese, Japanese, Korean)',\n        'Maintained field order: Object Date, Title, Object Number, Link Resource'\n    ],\n    'fixity_notes': 'Multiple checksum algorithms provided for long-term digital preservation. SHA-256 is recommended as primary; MD5 retained for legacy system compatibility.'\n}\n\n# Write metadata\nwith open(metadata_file, 'w', encoding='utf-8') as f:\n    json.dump(metadata, f, indent=2, ensure_ascii=False)\n\n# Write simple checksum file for easy verification\nwith open(checksum_file, 'w', encoding='utf-8') as f:\n    f.write('# Checksum file for met_inventory_standardized.tsv\\n')\n    f.write(f'# Generated: {datetime.now().isoformat()}\\n')\n    f.write(f'# File size: {file_size} bytes\\n')\n    f.write(f'# Total records: {len(standardized_rows)}\\n')\n    f.write('\\n')\n    f.write('# SHA-256 (Primary)\\n')\n    f.write(f'{file_sha256}  met_inventory_standardized.tsv\\n')\n    f.write('\\n')\n    f.write('# MD5 (Legacy)\\n')\n    f.write(f'{file_md5}  met_inventory_standardized.tsv\\n')\n\nprint(\"✓ Standardization complete!\")\nprint(f\"\\nFiles created:\")\nprint(f\"  1. met_inventory_standardized.tsv\")\nprint(f\"  2. met_inventory_metadata.json\")\nprint(f\"  3. met_inventory_checksums.txt\")\nprint(f\"\\nFile Statistics:\")\nprint(f\"  Total records: {len(standardized_rows)}\")\nprint(f\"  File size: {file_size:,} bytes\")\nprint(f\"  Encoding: UTF-8 with BOM\")\nprint(f\"\\nChecksum (SHA-256):\")\nprint(f\"  {file_sha256}\")\nprint(f\"\\nChecksum (MD5):\")\nprint(f\"  {file_md5}\")\nprint(f\"\\nFirst 3 records (sample):\")\nfor idx, row in enumerate(standardized_rows[:3], 1):\n    print(f\"  {idx}. {row['Object Number']}: {row['Title'][:40]}...\" if row['Title'] else f\"  {idx}. {row['Object Number']}: [no title]\")\n\nEOF\n",
+    "description": "Standardize TSV with checksums for fixity"
+   },
+   "name": "bash_tool",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "inference_geo": "not_available",
+  "input_tokens": 18609,
+  "output_tokens": 1958,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}

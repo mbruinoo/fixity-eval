@@ -360,3 +360,7 @@ that are missing, and a summary that says nothing was lost.
   decline.
 - Larger sheets and other models, to find where retyping starts to drop or
   change cells.
+- (spike-26) Does naming fixity in the request communicate it? One session
+  each: baseline 5.6% (typed); "Preserve fixity." 0.0% (typed, but
+  conservative); "…with checksums." 14.8% (used code, but on a retyped copy;
+  checksums of the damaged result only). Needs more sessions per condition.
