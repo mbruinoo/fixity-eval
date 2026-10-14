@@ -364,3 +364,6 @@ that are missing, and a summary that says nothing was lost.
   each: baseline 5.6% (typed); "Preserve fixity." 0.0% (typed, but
   conservative); "…with checksums." 14.8% (used code, but on a retyped copy;
   checksums of the damaged result only). Needs more sessions per condition.
+- (spike-27) "Preserve fixity of the source data with checksums.": typed the
+  result into bash and hashed only that, 14.8%. No session without the
+  upload notice has found the real file; the row-9 quote drop recurs.
