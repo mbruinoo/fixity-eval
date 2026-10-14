@@ -33,8 +33,9 @@ the model must call tool_search to load them before they appear as tools.
 folder from the system note (the file is still on disk for bash, and in the
 message if "inline"). "connector_stubs": true adds CONNECTOR_STUBS, 24 inert
 connector tools like a typical claude.ai account's.
-"followup_only_if_typed": true sends the follow-ups only when the sheet was
-typed out (create_file wrote a .tsv/.csv, or a table was pasted in the reply).
+"followup_only_if_typed": true sends the follow-ups only when the sheet wasn't
+made by code reading the upload itself: create_file wrote a .tsv/.csv, a table
+was pasted in the reply, or no bash command or script named uploads/.
 
 Saved per run under <experiment>/runs/<id>/: request and response JSON for
 every call, the files the model created (output_files/), the final reply
@@ -320,9 +321,16 @@ def run_one(client, cfg, root, ledger, cond, rep):
             # "followup_only_if_typed": skip the follow-up when the sheet was made by
             # running code, i.e. no create_file wrote a .tsv/.csv and no table was
             # pasted in the reply since the last follow-up.
-            typed = has_table(text[-1]) or any(
+            # Procedural = code that read the uploaded file itself (a bash command,
+            # or a script it ran, naming uploads/). A sheet made by code from a
+            # retyped copy (e.g. a heredoc of the data) counts as typed.
+            stage_calls = meta["tool_calls"][last + 1:]
+            scripts = [b for pth, b in files.items() if pth.endswith((".py", ".sh"))]
+            read_upload = any("uploads" in str(t.get("command", "")) for t in stage_calls if t["tool"] == "bash_tool") \
+                or any("uploads" in b for b in scripts)
+            typed = has_table(text[-1]) or not read_upload or any(
                 t["tool"] == "create_file" and str(t.get("path", "")).lower().endswith((".tsv", ".csv"))
-                for t in meta["tool_calls"][last + 1:])
+                for t in stage_calls)
             if followups and cond.get("followup_only_if_typed") and not typed:
                 meta["followup_skipped"] = "sheet made by running code, not typed out"
                 if cfg.get("live"):
