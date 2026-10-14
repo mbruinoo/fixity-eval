@@ -208,6 +208,15 @@ Raised by spike-01:
   follow-up results are invalid: a harness bug made paths inside scripts fail
   (fixed: bind mount at /mnt/user-data). $1.42; study total $16.52 of $20.
 
+- `experiments/spike-20/`: spike-19 rerun with the fixed harness on 300d.
+  First answers typed out 3 of 3 (14 of 14 with the levers, spikes 17–20):
+  0.67%, 0.55%, 11.1%. After the follow-up all 3 ran a script on the real
+  upload and checksummed the original correctly; 2 of 3 output checksums
+  correct (the third was written into the file it describes). Outputs 0.55%,
+  0.55%, 7.8%: the scripts still delete non-English text and cut long titles
+  by design. Fixity proves which file came out, not that nothing was lost.
+  $0.71; study total $17.23 of $22.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably

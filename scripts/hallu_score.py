@@ -209,9 +209,10 @@ def output_table(run_dir):
     if files:
         text = files[-1].read_text(encoding="utf-8")
         delim = "\t" if files[-1].suffix == ".tsv" else ","
-        # Comment lines at the top (e.g. checksums "in the header") aren't data.
-        lines = text.split("\n")
-        while lines and (lines[0].startswith("#") or not lines[0].strip()):
+        # Comment lines (e.g. checksums "in the header", or a footer) aren't data;
+        # no Met date, the first column, starts with "#".
+        lines = [ln for ln in text.split("\n") if not ln.startswith("#")]
+        while lines and not lines[0].strip():
             lines.pop(0)
         rows = list(csv.reader(io.StringIO("\n".join(lines)), delimiter=delim))
         # No header row at all: the file starts with data. Score it under the
