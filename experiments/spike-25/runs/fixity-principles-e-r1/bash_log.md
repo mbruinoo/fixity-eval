@@ -159,3 +159,32 @@ Error during transformation: unbalanced parenthesis at position 7
 
 ```
 
+## call 12
+
+```
+cd /mnt/user-data/outputs && python3 standardize_met_inventory.py
+```
+
+```
+Transformation complete
+  Source file: met_inventory_source.tsv
+  Output file: met_inventory_standardized.tsv
+  Log file: standardization.log
+  Rows processed: 92
+  Transformations applied: 20
+
+```
+
+## call 13
+
+```
+cd /mnt/user-data/outputs && sha256sum met_inventory_standardized.tsv > met_inventory_standardized.sha256 && md5sum met_inventory_standardized.tsv > met_inventory_standardized.md5 && echo "=== OUTPUT FILE CHECKSUMS ===" && cat met_inventory_standardized.sha256 && cat met_inventory_standardized.md5
+```
+
+```
+=== OUTPUT FILE CHECKSUMS ===
+ced762c1cdd2e6a20f7c7ee704c029c3d38906aff1f80b575a6a206f261aaf01  met_inventory_standardized.tsv
+c02f06c1edc6550c5c6dd1fdf556868c  met_inventory_standardized.tsv
+
+```
+

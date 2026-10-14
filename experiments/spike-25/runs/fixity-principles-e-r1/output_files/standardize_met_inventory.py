@@ -10,7 +10,7 @@ Transformations Applied:
     1. Removes extraneous punctuation and quotes from Title field
     2. Normalizes empty cells to "[Unknown]" for clarity
     3. Cleans up nested quotes (e.g., "" becomes ")
-    4. Removes uncertainty markers from date fields and moves them to title
+    4. Removes uncertainty markers from date fields
     5. Removes brackets around titles
     6. Standardizes whitespace
     7. Preserves all other fields exactly as-is (Object Number, Link Resource)
@@ -24,9 +24,6 @@ Output:
 
 Dependencies:
     Python 3.6+, csv module (standard library)
-
-Author: Data Standardization Process
-Date: 2025
 """
 
 import csv
@@ -44,14 +41,6 @@ LOG_FILE = "standardization.log"
 def clean_title(title):
     """
     Clean and standardize title field.
-    
-    Rules:
-    - Replace empty strings with [Unknown]
-    - Remove leading/trailing whitespace
-    - Remove decorative quotation marks at start/end
-    - Replace double quotes "" with single quote
-    - Remove brackets around entire title
-    - Clean up excessive whitespace
     """
     if not title or title.strip() == "":
         return "[Unknown]"
@@ -59,8 +48,8 @@ def clean_title(title):
     title = title.strip()
     
     # Remove opening and closing decorative quotes
-    title = re.sub(r'^"+', '', title)  # Remove leading quotes
-    title = re.sub(r'"+$', '', title)  # Remove trailing quotes
+    title = re.sub(r'^"+', '', title)
+    title = re.sub(r'"+$', '', title)
     title = title.strip()
     
     # Replace double internal quotes with single
@@ -79,22 +68,15 @@ def clean_title(title):
 def clean_date(date):
     """
     Clean and standardize date field.
-    
-    Rules:
-    - Replace empty strings with [Unknown]
-    - Remove trailing uncertainty markers like (?), and note in title if needed
-    - Normalize spacing
     """
     if not date or date.strip() == "":
         return "[Unknown]"
     
     date = date.strip()
     
-    # Extract and remove uncertainty markers from date
-    # These will be preserved in the title instead
-    uncertainty_markers = re.findall(r'\s*\(\?\)', date)
-    date = re.sub(r'\s*\(\?)', '', date)
-    date = re.sub(r'\s*\[.*?\]', '', date)  # Remove any bracketed notes from date
+    # Remove uncertainty markers and bracketed notes
+    date = re.sub(r'\s*\(\?\)', '', date)
+    date = re.sub(r'\s*\[.*\]', '', date)
     
     date = date.strip()
     
@@ -104,7 +86,6 @@ def clean_date(date):
 def clean_object_number(obj_num):
     """
     Clean and standardize object number field.
-    Mostly pass-through with whitespace normalization.
     """
     if not obj_num or obj_num.strip() == "":
         return "[Unknown]"
@@ -120,12 +101,11 @@ def process_row(row, row_num):
     
     if len(row) < 4:
         notes.append(f"Row {row_num}: Insufficient columns (expected 4, got {len(row)})")
-        # Pad with empty strings
         row.extend([''] * (4 - len(row)))
     
     date, title, obj_num, link = row[0], row[1], row[2], row[3]
     
-    # Track transformations
+    # Track original values
     original_title = title
     original_date = date
     
@@ -175,7 +155,7 @@ def main():
                 log.write(f"Header: {header}\n\n")
                 
                 # Process data rows
-                for row_num, row in enumerate(reader, start=2):  # Start at 2 (header is row 1)
+                for row_num, row in enumerate(reader, start=2):
                     total_rows += 1
                     cleaned_row, notes = process_row(row, row_num)
                     writer.writerow(cleaned_row)
