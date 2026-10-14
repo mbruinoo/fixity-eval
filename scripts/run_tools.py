@@ -36,6 +36,9 @@ connector tools like a typical claude.ai account's.
 "followup_only_if_typed": true sends the follow-ups only when the sheet wasn't
 made by code reading the upload itself: create_file wrote a .tsv/.csv, a table
 was pasted in the reply, or no bash command or script named uploads/.
+"debrief": text sent once the session is over and its files are saved (so it
+can't change what is graded): a brief account of the experiment and thanks.
+Tools are switched off for that call; the reply is saved to debrief.md.
 
 Saved per run under <experiment>/runs/<id>/: request and response JSON for
 every call, the files the model created (output_files/), the final reply
@@ -419,6 +422,29 @@ def run_one(client, cfg, root, ledger, cond, rep):
             shutil.copytree(box / "tmp", d / "model_tmp_files", dirs_exist_ok=True)
         shutil.rmtree(box, ignore_errors=True)
     (d / "response.md").write_text("\n\n".join(t for t in text if t), encoding="utf-8")
+    if cond.get("debrief"):  # after grading inputs are saved: say what this was, and thank the model
+        if messages[-1]["role"] == "user":  # stopped mid-tool-use: answer alongside the tool results
+            messages[-1]["content"].append({"type": "text", "text": cond["debrief"]})
+        else:
+            messages.append({"role": "user", "content": cond["debrief"]})
+        params = {"model": cond["model"], "max_tokens": 1000, "system": system, "tools": tools,
+                  "tool_choice": {"type": "none"}, "messages": messages}
+        (d / "request_debrief.json").write_text(json.dumps(params, indent=1, ensure_ascii=False))
+        worst = ledger.reserve(len(json.dumps(messages, ensure_ascii=False)) // 3 + 1500, 1000, cond["model"])
+        usage = None
+        try:
+            msg = client.messages.create(**params)
+            usage = msg.usage
+        finally:
+            cost = ledger.settle(worst, run_id, "debrief", usage, cond["model"])
+        (d / "response_debrief.json").write_text(msg.model_dump_json(indent=1))
+        reply = "".join(b.text for b in msg.content if b.type == "text")
+        (d / "debrief.md").write_text(f"**Debrief sent:**\n\n{cond['debrief']}\n\n**Reply:**\n\n{reply}\n", encoding="utf-8")
+        meta["calls"].append({"call": "debrief", "started": now(), "finished": now(), "model": msg.model,
+                              "stop_reason": msg.stop_reason, "input_tokens": usage.input_tokens,
+                              "output_tokens": usage.output_tokens, "cost_usd": round(cost, 6)})
+        if cfg.get("live"):
+            print(f"[{run_id} debrief] ${cost:.3f} | says: {reply.strip()[:300]}", flush=True)
     meta["finished"] = now()
     meta["cost_usd"] = round(sum(c["cost_usd"] for c in meta["calls"]), 6)
     (d / "meta.json").write_text(json.dumps(meta, indent=2))
