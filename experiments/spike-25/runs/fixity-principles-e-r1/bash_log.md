@@ -133,3 +133,17 @@ ab76d759b251838e643ff3864c587989  met_inventory_source.tsv
 
 ```
 
+## call 8
+
+```
+cd /mnt/user-data/outputs && python3 standardize_met_inventory.py
+```
+
+```
+
+  File "/mnt/user-data/outputs/standardize_met_inventory.py", line 194
+    print(f"✓ Transformation complete")
+SyntaxError: expected 'except' or 'finally' block
+
+```
+
