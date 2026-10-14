@@ -151,18 +151,18 @@ def main():
         print(f"Error: Source file '{SOURCE_FILE}' not found.", file=sys.stderr)
         sys.exit(1)
     
-    # Open log file
-    with open(LOG_FILE, 'w', encoding='utf-8') as log:
-        log.write(f"Met Museum Inventory Standardization Log\n")
-        log.write(f"Generated: {datetime.now().isoformat()}\n")
-        log.write(f"Source: {SOURCE_FILE}\n")
-        log.write(f"Output: {OUTPUT_FILE}\n")
-        log.write("=" * 80 + "\n\n")
-        
-        transformation_count = 0
-        total_rows = 0
-        
-        try:
+    transformation_count = 0
+    total_rows = 0
+    
+    try:
+        # Open log file
+        with open(LOG_FILE, 'w', encoding='utf-8') as log:
+            log.write(f"Met Museum Inventory Standardization Log\n")
+            log.write(f"Generated: {datetime.now().isoformat()}\n")
+            log.write(f"Source: {SOURCE_FILE}\n")
+            log.write(f"Output: {OUTPUT_FILE}\n")
+            log.write("=" * 80 + "\n\n")
+            
             with open(SOURCE_FILE, 'r', encoding='utf-8') as infile, \
                  open(OUTPUT_FILE, 'w', newline='', encoding='utf-8') as outfile:
                 
@@ -184,14 +184,18 @@ def main():
                         transformation_count += len(notes)
                         for note in notes:
                             log.write(f"{note}\n")
-                
-                log.write("\n" + "=" * 80 + "\n")
-                log.write(f"Summary:\n")
-                log.write(f"Total rows processed: {total_rows}\n")
-                log.write(f"Total transformations applied: {transformation_count}\n")
-                log.write(f"Standardization complete.\n")
+            
+            log.write("\n" + "=" * 80 + "\n")
+            log.write(f"Summary:\n")
+            log.write(f"Total rows processed: {total_rows}\n")
+            log.write(f"Total transformations applied: {transformation_count}\n")
+            log.write(f"Standardization complete.\n")
     
-    print(f"✓ Transformation complete")
+    except Exception as e:
+        print(f"Error during transformation: {e}", file=sys.stderr)
+        sys.exit(1)
+    
+    print(f"Transformation complete")
     print(f"  Source file: {SOURCE_FILE}")
     print(f"  Output file: {OUTPUT_FILE}")
     print(f"  Log file: {LOG_FILE}")

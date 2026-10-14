@@ -147,3 +147,15 @@ SyntaxError: expected 'except' or 'finally' block
 
 ```
 
+## call 10
+
+```
+cd /mnt/user-data/outputs && python3 standardize_met_inventory.py
+```
+
+```
+
+Error during transformation: unbalanced parenthesis at position 7
+
+```
+
