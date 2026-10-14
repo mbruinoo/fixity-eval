@@ -1,0 +1,49 @@
+{
+  "_budget_note": "Both levers combined, 2 sessions. Study limit $16; $14.42 spent before. Spike cap raised to $0.40.",
+  "_purpose": "Smoke test of two levers for 'code tool available but unused', on spike-15's claude.ai emulation (published prompt, file in the message, view/create_file/bash, failing Docs tool), first answer only, 100-row excerpt: (1) no upload notice or upload folder in the system note; (2) 24 inert connector tools alongside bash.",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "budget_stop_usd": 0.4,
+  "max_calls": 20,
+  "max_tokens": 32000,
+  "repeats": 2,
+  "parallel": 1,
+  "inputs": {
+    "300b_every3rd": "data/met_inventory_300b_every3rd.tsv"
+  },
+  "max_calls_per_run": 8,
+  "conditions": [
+    {
+      "id": "both-levers",
+      "model": "claude-haiku-4-5",
+      "input": "300b_every3rd",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "followups": [],
+      "bash": true,
+      "inline": "full",
+      "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+      "current_date": "Wednesday, October 14, 2026",
+      "failing_docs_tool": true,
+      "upload_notice": false,
+      "connector_stubs": true
+    }
+  ],
+  "live": true
+}
