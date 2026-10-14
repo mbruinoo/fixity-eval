@@ -21,3 +21,17 @@ Object Date	Title	Object Number	Link
 INPUT_FILE="/mnt/user-data/uploads/met_inventory.tsv"
 TRANSFORM_SCRIPT="/mnt/user-data/outputs/01_standardize_met_inventory.sh"
 OUTPUT_FILE="/mnt/user-data/outputs/met_i
+[script-checksums-300b-r2 call 7] $0.043 tool_use
+    -> bash_tool: cat > /mnt/user-data/outputs/01_standardize_met_inventory.sh << 'TRANSFORM_EOF'
+#!/bin/bash
+#
+# Met Museum Inventory Standardization Script
+# 
+# Purpose: Standardize the Met Museum inventory TSV file by:
+#   1. Cleaning up column headers
+#   2. Handling missing title values
+#   3. Decoding HTML enti
+[script-checksums-300b-r2 call 8] $0.036 tool_use
+    -> bash_tool: cp /mnt/user-data/uploads/met_inventory.tsv /mnt/user-data/outputs/met_inventory_ORIGINAL.tsv && echo "Original file copied to outputs"
+[script-checksums-300b-r2 call 9] $0.036 tool_use | says: Now let's run the transformation script:
+    -> bash_tool: /mnt/user-data/outputs/01_standardize_met_inventory.sh
