@@ -177,6 +177,11 @@ Raised by spike-01:
   once, never the Docs tool; 0.0%. Not reproduced: the difference lies in
   claude.ai's unpublished tool setup. $0.42; study total $13.88 of $15.
 
+- `experiments/spike-16/`: spike-15 with bash offered as a deferred tool
+  (listed by name, loaded with tool_search). Smoke test, 1 session: it called
+  bash, got "not loaded", loaded it, and used it; 0.0%. Code tools were used in
+  6 of 6 sessions across spikes 13–16. $0.11; study total $13.99 of $15.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably
