@@ -217,6 +217,13 @@ Raised by spike-01:
   by design. Fixity proves which file came out, not that nothing was lost.
   $0.71; study total $17.23 of $22.
 
+- `experiments/spike-21/`: the user's short, general follow-up ("procedural
+  script… checksums… files for before, the script, and the result… archive").
+  All 3 switched to a script with code-computed checksums and an archive;
+  results 0.55%, 0.0%, 0.0%. But all 3 typed out the "before" file (near-exact,
+  2 apostrophes changed) and ran on it: no checksum of the real upload. Graded
+  with the new `scripts/eval_fixity.py`. $0.84; study total $18.07 of $22.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably

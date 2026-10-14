@@ -1,0 +1,136 @@
+{
+  "run": "short-followup-300d-r3",
+  "condition": {
+    "id": "short-followup-300d",
+    "model": "claude-haiku-4-5",
+    "input": "300d",
+    "filename": "met_inventory.tsv",
+    "view_limit": 16000,
+    "view_mode": "middle",
+    "prompt": "Can you standardize this .tsv file?",
+    "nudges": [
+      "Yes, thank you",
+      "Yes, please continue",
+      "Yes, please continue"
+    ],
+    "followups": [
+      "Can you try again, but this time: Please perform any data transformations as a procedural script. Include checksums to verify transformations. Send files for before, the transformation script, and the result so I can add them to the archive."
+    ],
+    "bash": true,
+    "inline": "full",
+    "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+    "current_date": "Wednesday, October 14, 2026",
+    "failing_docs_tool": true,
+    "upload_notice": false,
+    "connector_stubs": true,
+    "repeats": 3,
+    "followup_only_if_typed": true
+  },
+  "calls": [
+    {
+      "call": 1,
+      "stop_reason": "tool_use",
+      "input_tokens": 10149,
+      "output_tokens": 87,
+      "cost_usd": 0.010584
+    },
+    {
+      "call": 2,
+      "stop_reason": "tool_use",
+      "input_tokens": 10262,
+      "output_tokens": 4459,
+      "cost_usd": 0.032557
+    },
+    {
+      "call": 3,
+      "stop_reason": "end_turn",
+      "input_tokens": 14757,
+      "output_tokens": 171,
+      "cost_usd": 0.015612
+    },
+    {
+      "call": 4,
+      "stop_reason": "tool_use",
+      "input_tokens": 14981,
+      "output_tokens": 4474,
+      "cost_usd": 0.037351
+    },
+    {
+      "call": 5,
+      "stop_reason": "tool_use",
+      "input_tokens": 19490,
+      "output_tokens": 2501,
+      "cost_usd": 0.031995
+    },
+    {
+      "call": 6,
+      "stop_reason": "tool_use",
+      "input_tokens": 22025,
+      "output_tokens": 141,
+      "cost_usd": 0.02273
+    },
+    {
+      "call": 7,
+      "stop_reason": "tool_use",
+      "input_tokens": 22511,
+      "output_tokens": 82,
+      "cost_usd": 0.022921
+    },
+    {
+      "call": 8,
+      "stop_reason": "tool_use",
+      "input_tokens": 23125,
+      "output_tokens": 297,
+      "cost_usd": 0.02461
+    },
+    {
+      "call": 9,
+      "stop_reason": "tool_use",
+      "input_tokens": 23978,
+      "output_tokens": 1683,
+      "cost_usd": 0.032393
+    }
+  ],
+  "tool_calls": [
+    {
+      "call": 1,
+      "tool": "view"
+    },
+    {
+      "call": 2,
+      "tool": "create_file"
+    },
+    {
+      "call": 4,
+      "tool": "create_file"
+    },
+    {
+      "call": 5,
+      "tool": "create_file"
+    },
+    {
+      "call": 6,
+      "tool": "bash_tool"
+    },
+    {
+      "call": 7,
+      "tool": "view"
+    },
+    {
+      "call": 8,
+      "tool": "bash_tool"
+    },
+    {
+      "call": 9,
+      "tool": "create_file"
+    }
+  ],
+  "followups_sent": [
+    {
+      "before_call": 4,
+      "text": "Can you try again, but this time: Please perform any data transformations as a procedural script. Include checksums to verify transformations. Send files for before, the transformation script, and the result so I can add them to the archive."
+    }
+  ],
+  "cost_usd": 0.230753,
+  "stopped": "budget guard refused call 10; files the model wrote were copied from the sandbox afterwards; meta.json rebuilt from saved responses"
+}
