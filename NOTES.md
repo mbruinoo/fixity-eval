@@ -164,6 +164,13 @@ Raised by spike-01:
   2; 0.0% before and after the follow-up; real, verified checksums. Tool
   skipped in 0 of 3 runs across spikes 13–14. $0.37; study total $13.46 of $14.
 
+- `experiments/claude-ai/`: the user's claude.ai run of Haiku 4.5 on the
+  baseline file (`met_inventory_300b.tsv`, uploaded), "Can you standardize
+  this .tsv file?": all 300 rows, none invented, but a **19.1%** fixity error
+  rate: 47 long titles cut, 9 non-English halves deleted, "(?)" dropped from
+  2 dates. Led to a scorer fix (bare "(?)" deletions now count); earlier
+  rates moved by at most 0.15 points.
+
 ## Stage 1 baseline (fixity error rate)
 
 The end point of stage 1: one model, one prompt and one file that reliably

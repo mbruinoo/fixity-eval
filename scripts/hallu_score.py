@@ -98,8 +98,8 @@ def same(a, b, date=False):
         return True
     # Repeated text removed (e.g. a title that repeats itself): nothing lost.
     if nb and nb in na:
-        removed = na.replace(nb, " ")
-        return set(re.findall(r"\w+", removed)) <= set(re.findall(r"\w+", nb))
+        removed = na.replace(nb, " ")  # "?" and brackets removed with it still count ("20th century (?)")
+        return set(words(removed)) <= set(words(nb))
     return False
 
 
