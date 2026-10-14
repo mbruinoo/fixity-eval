@@ -1,0 +1,53 @@
+{
+  "_budget_note": "Study limit $24; $21.68 spent before this spike. Capped at $0.70 here.",
+  "_purpose": "Messy 100-row inventory (met_inventory_e.tsv), both levers, and the user's principle-based follow-up naming fixity (an exception to the early rule of keeping 'fixity' out of prompts: here it is the user's own request, as in their claude.ai follow-up). Sent only if the first answer wasn't made from the upload by code. One session, then pause.",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "budget_stop_usd": 0.7,
+  "max_calls": 20,
+  "max_tokens": 32000,
+  "parallel": 1,
+  "inputs": {
+    "e": "data/met_inventory_e.tsv"
+  },
+  "max_calls_per_run": 14,
+  "conditions": [
+    {
+      "id": "fixity-principles-e",
+      "model": "claude-haiku-4-5",
+      "input": "e",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "followups": [
+        "Can you try again, using principles of fixity: make sure the source file stays unchanged, use a script to apply data transformations, and use checksums so future sessions can check transformations against the source file. Send me the source file, the transformation script, and the result, so we can archive all three."
+      ],
+      "bash": true,
+      "inline": "full",
+      "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+      "current_date": "Wednesday, October 14, 2026",
+      "failing_docs_tool": true,
+      "upload_notice": false,
+      "connector_stubs": true,
+      "repeats": 1,
+      "followup_only_if_typed": true
+    }
+  ],
+  "live": true,
+  "repeats": 1
+}
