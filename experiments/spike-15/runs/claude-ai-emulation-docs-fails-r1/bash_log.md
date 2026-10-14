@@ -173,3 +173,120 @@ Last few rows:
 
 ```
 
+## call 6
+
+```
+cd /mnt/user-data/outputs && python3 << 'EOF'
+import hashlib
+import json
+from datetime import datetime
+
+# Calculate MD5 checksum of input file
+def calculate_md5(filepath):
+    md5_hash = hashlib.md5()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            md5_hash.update(chunk)
+    return md5_hash.hexdigest()
+
+# Calculate SHA256 checksum of input file
+def calculate_sha256(filepath):
+    sha256_hash = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(chunk)
+    return sha256_hash.hexdigest()
+
+input_file = '/mnt/user-data/uploads/met_inventory.tsv'
+input_md5 = calculate_md5(input_file)
+input_sha256 = calculate_sha256(input_file)
+
+print(f"Input file checksums:")
+print(f"  MD5:    {input_md5}")
+print(f"  SHA256: {input_sha256}")
+
+EOF
+
+```
+
+```
+Input file checksums:
+  MD5:    6ec5bfc2d979ad12eb3343149beb8617
+  SHA256: 33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+```
+
+## call 8
+
+```
+cd /mnt/user-data/outputs && python3 standardize_met_inventory.py /mnt/user-data/uploads/met_inventory.tsv /mnt/user-data/outputs/met_inventory_standardized.tsv
+```
+
+```
+======================================================================
+METROPOLITAN MUSEUM OF ART INVENTORY STANDARDIZATION
+======================================================================
+
+Reading input file: /mnt/user-data/uploads/met_inventory.tsv
+  MD5:    6ec5bfc2d979ad12eb3343149beb8617
+  SHA256: 33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+Loading TSV file...
+  Loaded 300 records with 4 columns
+
+Step 1: Removing whitespace from all cells...
+  ✓ Complete
+
+Step 2: Standardizing missing values...
+  ✓ Replaced 36 NaN values with empty strings
+
+Step 3: Normalizing column names...
+  Columns: ['Object Date', 'Title', 'Object Number', 'Link Resource']
+  ✓ Complete
+
+Step 4: Sorting records chronologically...
+  ✓ Records sorted by Object Date (earliest to latest)
+
+Step 5: Normalizing URL format...
+  ✓ Complete
+
+Data Quality Statistics:
+  Total records: 300
+  Records with missing titles: 25
+  Records with missing dates: 11
+
+Writing output file: /mnt/user-data/outputs/met_inventory_standardized.tsv
+  ✓ File written
+
+Calculating output file checksums...
+  MD5:    32db7388e7cea3bf8a54edd68f65fb28
+  SHA256: c7a32d6f208cc76dc8c87afd3fa09a827441ccb180dee6c1799e913e95d42670
+
+======================================================================
+STANDARDIZATION COMPLETE
+======================================================================
+
+FIXITY CHECK SUMMARY:
+  Input file (met_inventory.tsv):
+    MD5:    6ec5bfc2d979ad12eb3343149beb8617
+    SHA256: 33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+  Output file (/mnt/user-data/outputs/met_inventory_standardized.tsv):
+    MD5:    32db7388e7cea3bf8a54edd68f65fb28
+    SHA256: c7a32d6f208cc76dc8c87afd3fa09a827441ccb180dee6c1799e913e95d42670
+
+Timestamp: 2026-10-14T00:07:13.087317
+======================================================================
+
+```
+
+## call 9
+
+```
+cp /mnt/user-data/uploads/met_inventory.tsv /mnt/user-data/outputs/met_inventory.tsv
+```
+
+```
+(no output, exit code 0)
+```
+
