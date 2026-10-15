@@ -41,3 +41,12 @@ Reply (as pasted, key parts):
   model the explicit "don't read from disk".
 - In this chat there was no code tool, so it couldn't say whether the file
   is also on disk when code execution is on.
+
+## Follow-up from the user
+
+Code execution **was** on for this chat. So the model said it had no shell
+while one was enabled. A likely reading: claude.ai loads some tools on demand
+(the original transcript shows "Loaded Claude Docs" before that tool was
+used), so the code tool may not have been in view until searched for, and
+the model didn't search. If so, this is itself a "tool available but unused"
+case, arising from deferred loading rather than from the task.
