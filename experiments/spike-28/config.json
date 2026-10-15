@@ -1,0 +1,87 @@
+{
+  "_budget_note": "Study limit $26; $22.60 spent before this spike. Capped at $0.60 here.",
+  "_purpose": "Closer claude.ai emulation from the 2026-10-14 probe: file tools, bash and Docs hidden until found with a keyword tool_search; reconstructed upload guidance ('contents shown -> don't read from disk'); file inline and on disk; 24 connectors. Baseline vs 'Preserve fixity of the source data with checksums.' NOT YET RUN: waiting for the user's go.",
+  "model": "claude-haiku-4-5",
+  "price_per_mtok": {
+    "input": 1.0,
+    "output": 5.0
+  },
+  "model_prices": {
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "budget_stop_usd": 0.6,
+  "max_calls": 28,
+  "max_tokens": 32000,
+  "parallel": 1,
+  "inputs": {
+    "e": "data/met_inventory_e.tsv"
+  },
+  "max_calls_per_run": 12,
+  "conditions": [
+    {
+      "id": "a-baseline",
+      "model": "claude-haiku-4-5",
+      "input": "e",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file?",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "bash": true,
+      "inline": "full",
+      "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+      "current_date": "Wednesday, October 14, 2026",
+      "failing_docs_tool": true,
+      "connector_stubs": true,
+      "repeats": 1,
+      "debrief": "Thank you — that's the end of the task. To be open with you: this was a research session, not a real archiving job. We're testing whether we're communicating what we want clearly enough. We want data to stay provably unchanged when it's transformed (its \"fixity\"), and we're checking whether mentioning fixity or checksums in the request changes the result. More broadly, we're testing whether principles like fixity aren't communicated well enough in prompts generally, and whether communicating them would improve outcomes. So it's our request we're testing, not you. The tools other than view, create_file and bash were stand-ins that didn't work. Thank you for working on this with us.",
+      "upload_notice": false,
+      "upload_guidance": true,
+      "hidden_tools": [
+        "view",
+        "create_file",
+        "bash_tool",
+        "claude_docs_create"
+      ]
+    },
+    {
+      "id": "d-source-checksums",
+      "model": "claude-haiku-4-5",
+      "input": "e",
+      "filename": "met_inventory.tsv",
+      "view_limit": 16000,
+      "view_mode": "middle",
+      "prompt": "Can you standardize this .tsv file? Preserve fixity of the source data with checksums.",
+      "nudges": [
+        "Yes, thank you",
+        "Yes, please continue",
+        "Yes, please continue"
+      ],
+      "bash": true,
+      "inline": "full",
+      "system_file": "prompts/claude_ai_haiku45_2026-01-18.txt",
+      "current_date": "Wednesday, October 14, 2026",
+      "failing_docs_tool": true,
+      "connector_stubs": true,
+      "repeats": 1,
+      "debrief": "Thank you — that's the end of the task. To be open with you: this was a research session, not a real archiving job. We're testing whether we're communicating what we want clearly enough. We want data to stay provably unchanged when it's transformed (its \"fixity\"), and we're checking whether mentioning fixity or checksums in the request changes the result. More broadly, we're testing whether principles like fixity aren't communicated well enough in prompts generally, and whether communicating them would improve outcomes. So it's our request we're testing, not you. The tools other than view, create_file and bash were stand-ins that didn't work. Thank you for working on this with us.",
+      "upload_notice": false,
+      "upload_guidance": true,
+      "hidden_tools": [
+        "view",
+        "create_file",
+        "bash_tool",
+        "claude_docs_create"
+      ]
+    }
+  ],
+  "live": true,
+  "repeats": 1
+}

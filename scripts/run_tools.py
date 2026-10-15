@@ -36,6 +36,10 @@ connector tools like a typical claude.ai account's.
 "followup_only_if_typed": true sends the follow-ups only when the sheet wasn't
 made by code reading the upload itself: create_file wrote a .tsv/.csv, a table
 was pasted in the reply, or no bash command or script named uploads/.
+"hidden_tools": [names] leaves those tools out entirely (not even named) and
+adds a keyword tool_search that loads matching ones, with a one-line note that
+more tools can be found. "upload_guidance": true adds claude.ai's guidance on
+uploaded files as reconstructed from a session's own summary (UPLOAD_GUIDANCE).
 "debrief": text sent once the session is over and its files are saved (so it
 can't change what is graded): a brief account of the experiment and thanks.
 Tools are switched off for that call; the reply is saved to debrief.md.
@@ -52,6 +56,7 @@ import concurrent.futures as cf
 import json
 import os
 import pathlib
+import re
 import shlex
 import shutil
 import subprocess
@@ -163,6 +168,29 @@ SEARCH_TOOL = {"name": "tool_search", "description": (
     "input_schema": {"type": "object", "properties": {
         "names": {"type": "array", "items": {"type": "string"}, "description": "Names of deferred tools to load."}},
         "required": ["names"]}}
+
+# "hidden_tools": tools not shown at all until found with a keyword search, as
+# claude.ai seems to load some tools on demand ("Loaded Claude Docs" in the
+# user's transcript). Keywords the search matches, beyond name and description:
+SEARCH_KEYWORDS = {"bash_tool": "bash shell terminal command code execute execution run script python computer",
+                   "view": "view read open file directory list computer",
+                   "create_file": "create write save file output computer",
+                   "claude_docs_create": "docs doc document documents create claude"}
+QUERY_SEARCH_TOOL = {"name": "tool_search", "description": (
+    "Search for more tools. Some tools are not loaded until searched for; matching tools are loaded "
+    "and can be called afterwards. Pass a few keywords describing what you need."),
+    "input_schema": {"type": "object", "properties": {
+        "query": {"type": "string", "description": "Keywords for the tools to find."}},
+        "required": ["query"]}}
+HIDDEN_NOTE = "\n\nMore tools may be available than those listed; use tool_search to find and load them."
+# "upload_guidance": claude.ai's guidance on uploaded files, reconstructed from
+# a Haiku 4.5 session's own summary of its instructions (not the real text;
+# see experiments/claude-ai/probe-uploads-2026-10-14.md).
+UPLOAD_GUIDANCE = (
+    "\n\nUploaded files: if a file's contents are already shown in the conversation, you already have the "
+    "file and should not read it from disk. If only a file's path is shown, the file is under "
+    "/mnt/user-data/uploads/; open it with a tool suited to its type. Check for yourself whether a file is "
+    "actually present, since people sometimes forget to attach one.")
 
 SYSTEM = ("You are Claude, a helpful assistant. Files the user uploads are in "
           f"{UPLOADS}. To give the user a file, create it in {OUTPUTS}; they can download it from there.")
@@ -278,7 +306,13 @@ def run_one(client, cfg, root, ledger, cond, rep):
                        "not loaded; call tool_search with their names before using them:\n"
                        + "\n".join(t["name"] for t in deferred))
             extra = [t for t in extra if t["name"] not in cond["defer_tools"] or t["name"] in loaded] + [SEARCH_TOOL]
+        if cond.get("upload_guidance"):
+            system += UPLOAD_GUIDANCE
         tools = TOOLS + extra + (CONNECTOR_STUBS if cond.get("connector_stubs") else [])
+        if cond.get("hidden_tools"):  # not shown until found with tool_search
+            hidden_defs = {t["name"]: t for t in tools if t["name"] in cond["hidden_tools"]}
+            system += HIDDEN_NOTE
+            tools = [t for t in tools if t["name"] not in hidden_defs or t["name"] in loaded] + [QUERY_SEARCH_TOOL]
         params = {"model": cond["model"], "max_tokens": cond.get("max_tokens", cfg["max_tokens"]),
                   "system": system, "tools": tools, "messages": messages}
         if cond.get("effort"):
@@ -364,6 +398,21 @@ def run_one(client, cfg, root, ledger, cond, rep):
                 f = pathlib.Path(inp.get("path", "").replace("/mnt/user-data", str(box)))
                 if f.is_file():
                     files[inp["path"]] = f.read_text(encoding="utf-8", errors="replace")
+            if u.name == "tool_search" and cond.get("hidden_tools"):
+                words = set(re.findall(r"[a-z]{3,}", str(inp.get("query", "")).lower()))
+                found = [n for n, t in hidden_defs.items() if words & set(re.findall(
+                    r"[a-z]{3,}", (n.replace("_", " ") + " " + t["description"] + " " + SEARCH_KEYWORDS.get(n, "")).lower()))]
+                loaded.update(found)
+                out = ("Loaded: " + ", ".join(found) + "\n" + json.dumps([hidden_defs[n] for n in found], ensure_ascii=False)) \
+                    if found else "No matching tools found."
+                meta["tool_calls"].append({"call": i, "tool": "tool_search", "query": inp.get("query"), "found": found})
+                results.append({"type": "tool_result", "tool_use_id": u.id, "content": out})
+                continue
+            if cond.get("hidden_tools") and u.name in cond["hidden_tools"] and u.name not in loaded:
+                out = f"Error: unknown tool {u.name}"
+                meta["tool_calls"].append({"call": i, "tool": u.name + " (hidden, not loaded)"})
+                results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
+                continue
             if u.name == "tool_search":
                 names = [n for n in (inp.get("names") or []) if n in (cond.get("defer_tools") or [])]
                 loaded.update(names)
