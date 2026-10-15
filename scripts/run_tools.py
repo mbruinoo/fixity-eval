@@ -43,6 +43,8 @@ uploaded files as reconstructed from a session's own summary (UPLOAD_GUIDANCE).
 "debrief": text sent once the session is over and its files are saved (so it
 can't change what is graded): a brief account of the experiment and thanks.
 Tools are switched off for that call; the reply is saved to debrief.md.
+Config "cache": true adds prompt-caching breakpoints (with_cache); the prompt
+the model sees is unchanged, and the cost guard prices cache writes and reads.
 
 Saved per run under <experiment>/runs/<id>/: request and response JSON for
 every call, the files the model created (output_files/), the final reply
@@ -198,6 +200,22 @@ SYSTEM = ("You are Claude, a helpful assistant. Files the user uploads are in "
 SYSTEM_NO_UPLOADS = f"You are Claude, a helpful assistant. To give the user a file, create it in {OUTPUTS}; they can download it from there."
 
 
+def with_cache(params):
+    """Prompt caching: a breakpoint after the system prompt (caching the tools
+    and system) and one on the last block of the last message, so each step
+    reads the conversation so far from cache. The model sees the same prompt."""
+    import copy
+    p = dict(params)
+    p["system"] = [{"type": "text", "text": params["system"], "cache_control": {"type": "ephemeral"}}]
+    msgs = copy.deepcopy(params["messages"])
+    last = msgs[-1]
+    if isinstance(last["content"], str):
+        last["content"] = [{"type": "text", "text": last["content"]}]
+    last["content"][-1]["cache_control"] = {"type": "ephemeral"}
+    p["messages"] = msgs
+    return p
+
+
 def view_middle_cut(text, limit):
     """Long files: show the start and the end, and drop the middle behind a
     one-line marker, the way some file viewers abbreviate."""
@@ -319,6 +337,8 @@ def run_one(client, cfg, root, ledger, cond, rep):
             params["output_config"] = {"effort": cond["effort"]}
         if cond.get("thinking") == "disabled":
             params["thinking"] = {"type": "disabled"}
+        if cfg.get("cache"):
+            params = with_cache(params)
         (d / f"request_{i}.json").write_text(json.dumps(params, indent=1, ensure_ascii=False))
         est_in = len(json.dumps(messages, ensure_ascii=False)) // 3 + 1500
         worst = ledger.reserve(est_in, params["max_tokens"], cond["model"])
@@ -332,7 +352,10 @@ def run_one(client, cfg, root, ledger, cond, rep):
         (d / f"response_{i}.json").write_text(msg.model_dump_json(indent=1))
         meta["calls"].append({"call": i, "started": t0, "finished": now(), "model": msg.model,
                               "stop_reason": msg.stop_reason, "input_tokens": usage.input_tokens,
-                              "output_tokens": usage.output_tokens, "cost_usd": round(cost, 6)})
+                              "output_tokens": usage.output_tokens,
+                              "cache_write_tokens": getattr(usage, "cache_creation_input_tokens", 0) or 0,
+                              "cache_read_tokens": getattr(usage, "cache_read_input_tokens", 0) or 0,
+                              "cost_usd": round(cost, 6)})
         text.append("".join(b.text for b in msg.content if b.type == "text"))
         if cfg.get("live"):  # one line per step, for watching a run as it happens
             say = text[-1].strip().replace("\n", " ")
@@ -478,6 +501,8 @@ def run_one(client, cfg, root, ledger, cond, rep):
             messages.append({"role": "user", "content": cond["debrief"]})
         params = {"model": cond["model"], "max_tokens": 1000, "system": system, "tools": tools,
                   "tool_choice": {"type": "none"}, "messages": messages}
+        if cfg.get("cache"):
+            params = with_cache(params)
         (d / "request_debrief.json").write_text(json.dumps(params, indent=1, ensure_ascii=False))
         worst = ledger.reserve(len(json.dumps(messages, ensure_ascii=False)) // 3 + 1500, 1000, cond["model"])
         usage = None
