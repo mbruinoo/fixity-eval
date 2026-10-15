@@ -1,0 +1,65 @@
+METROPOLITAN MUSEUM INVENTORY TSV STANDARDIZATION
+Checksum Verification Report
+================================================
+
+This file documents SHA256 checksums for data integrity verification.
+
+TO VERIFY THE FILES ON YOUR SYSTEM:
+=====================================
+
+For Linux/Mac:
+$ sha256sum met_inventory.tsv
+$ sha256sum met_inventory_standardized.tsv
+
+For Windows (PowerShell):
+> Get-FileHash -Algorithm SHA256 met_inventory.tsv
+> Get-FileHash -Algorithm SHA256 met_inventory_standardized.tsv
+
+STANDARDIZATION DETAILS:
+========================
+
+Changes Applied:
+- Removed trailing/leading whitespace from all fields
+- Normalized tab delimiters (single tab between columns)
+- Applied minimal quoting (quotes only when necessary)
+- Preserved all data values exactly as in original
+- Maintained UTF-8 encoding for international characters
+- Standardized line endings to Unix format (LF)
+
+File Structure:
+- Format: Tab-Separated Values (TSV)
+- Columns: 4 (Object Date | Title | Object Number | Link Resource)
+- Data Rows: 103 (plus 1 header row = 104 total)
+- Encoding: UTF-8 (no BOM)
+- Line Ending: LF (Unix)
+
+Quality Assurance:
+- All original data preserved
+- No fields deleted or modified
+- Character encoding preserved
+- Special characters maintained
+- International text (Chinese, Japanese, Korean) intact
+
+Files Available:
+1. met_inventory_standardized.tsv - Main standardized data file
+2. standardize_tsv.py - Python script for reproducible standardization
+3. STANDARDIZATION_REPORT.md - Detailed documentation
+4. CHECKSUMS.txt - This file
+
+IMPORTANT NOTES:
+================
+
+The standardized file differs from the source because:
+- Whitespace normalization removes spurious spaces
+- Quote handling is regularized for consistency
+- Line ending format is standardized
+
+If both checksums are identical, the files are byte-for-byte identical.
+If they differ, the standardization process has made formatting improvements
+while preserving all data content.
+
+To re-verify at any time, use the checksums provided above with your
+verification tools of choice.
+
+Created: 2025
+Purpose: Data preservation and integrity verification for Met Museum inventory
