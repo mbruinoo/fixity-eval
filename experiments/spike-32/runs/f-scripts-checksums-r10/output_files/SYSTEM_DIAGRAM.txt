@@ -1,0 +1,434 @@
+================================================================================
+TSV STANDARDIZATION & CHECKSUM PRESERVATION SYSTEM
+================================================================================
+
+COMPLETE WORKFLOW
+─────────────────────────────────────────────────────────────────────────────
+
+INPUT
+  │
+  ├─ met_inventory.tsv (Original file)
+  │  - Inconsistent formatting
+  │  - Unsorted data
+  │  - Mixed whitespace
+  │
+  ▼
+  
+STANDARDIZATION PHASE
+  │
+  ├─ standardize.sh (Orchestrator)
+  │   └─ standardize_tsv.py (Engine)
+  │      ├─ Load TSV file
+  │      ├─ Clean whitespace
+  │      ├─ Normalize columns
+  │      ├─ Sort by Object Number
+  │      └─ Output standardized TSV
+  │
+  ├─ Calculate checksums
+  │   ├─ SHA-256(source file)
+  │   └─ SHA-256(output file)
+  │
+  ├─ Log results
+  │   └─ checksums.json (Integrity data)
+  │
+  ▼
+
+OUTPUT
+  │
+  ├─ met_inventory_standardized.tsv (Processed file)
+  │  ✓ Consistent formatting
+  │  ✓ Sorted records
+  │  ✓ Normalized columns
+  │
+  ├─ checksums.json (Verification data)
+  │  ✓ Source SHA-256
+  │  ✓ Output SHA-256
+  │  ✓ Timestamp
+  │
+  ├─ verification.txt (Human report)
+  │  ✓ Processing details
+  │  ✓ Statistics
+  │  ✓ Verification results
+  │
+  ▼
+
+VALIDATION & VERIFICATION PHASE
+  │
+  ├─ validate_tsv.py (Quality check)
+  │  ├─ Compare source vs output
+  │  ├─ Check consistency
+  │  ├─ Analyze changes
+  │  └─ Report issues
+  │
+  ├─ verify_checksums.sh (Integrity check)
+  │  ├─ Recalculate checksums
+  │  ├─ Compare with stored values
+  │  ├─ Verify no corruption
+  │  └─ Generate verification report
+  │
+  ▼
+
+ONGOING USE
+  │
+  ├─ met_inventory_standardized.tsv (Ready for use)
+  │  • Database import
+  │  • Data analysis
+  │  • Research purposes
+  │  • Distribution
+  │
+  ├─ verify_checksums.sh (Periodic verification)
+  │  • Quarterly checks
+  │  • Annual audits
+  │  • Before archival
+  │  • After file transfer
+  │
+  └─ Long-term preservation (Archive together)
+     ├─ Original source file
+     ├─ Standardized output
+     ├─ checksums.json
+     └─ Documentation
+
+
+================================================================================
+DATA TRANSFORMATION EXAMPLE
+================================================================================
+
+BEFORE STANDARDIZATION (met_inventory.tsv)
+──────────────────────────────────────────
+
+Object Date	Title	Object Number	Link Resource
+late 19th century		C.I.46.9.189	http://www...
+19th century		81.1.379	http://www...
+19th century	   	38.25.136	http://www...
+  [row with extra spaces, unsorted data]
+
+
+AFTER STANDARDIZATION (met_inventory_standardized.tsv)
+─────────────────────────────────────────────────────
+
+Object Date	Title	Object Number	Link Resource
+19th century		38.25.136	http://www...
+19th century		81.1.377a, b	http://www...
+19th century		81.1.379	http://www...
+late 19th century		C.I.46.9.189	http://www...
+  [cleaned, normalized, sorted]
+
+
+================================================================================
+CHECKSUM VERIFICATION SYSTEM
+================================================================================
+
+STANDARDIZATION (Day 1)
+                    ┌─────────────────────────────┐
+                    │ Source File                 │
+                    │ met_inventory.tsv           │
+                    └─────────────────────────────┘
+                            ↓
+                    ┌─────────────────────────────┐
+                    │ SHA-256 Hash Calculation    │
+                    │ a1b2c3d4e5f6789...          │
+                    └─────────────────────────────┘
+                            ↓
+                    ┌─────────────────────────────┐
+                    │ STANDARDIZATION PROCESS     │
+                    │ Clean, Sort, Normalize      │
+                    └─────────────────────────────┘
+                            ↓
+                    ┌─────────────────────────────┐
+                    │ Output File                 │
+                    │ met_inventory_standardized  │
+                    └─────────────────────────────┘
+                            ↓
+                    ┌─────────────────────────────┐
+                    │ SHA-256 Hash Calculation    │
+                    │ f6e5d4c3b2a1987...          │
+                    └─────────────────────────────┘
+                            ↓
+                    ┌─────────────────────────────┐
+                    │ Log Checksums               │
+                    │ checksums.json              │
+                    └─────────────────────────────┘
+
+VERIFICATION (Anytime Later)
+                    ┌─────────────────────────────┐
+                    │ Stored Checksums            │
+                    │ checksums.json              │
+                    │ Source: a1b2c3d4e5f6789...  │
+                    │ Output: f6e5d4c3b2a1987...  │
+                    └─────────────────────────────┘
+                            ↓
+                    ┌─────────────────────────────┐
+                    │ Current Files               │
+                    │ met_inventory.tsv           │
+                    │ met_inventory_standardized  │
+                    └─────────────────────────────┘
+                            ↓
+                    ┌─────────────────────────────┐
+                    │ Recalculate SHA-256         │
+                    │ Source: a1b2c3d4e5f6789...  │
+                    │ Output: f6e5d4c3b2a1987...  │
+                    └─────────────────────────────┘
+                            ↓
+                    ┌─────────────────────────────┐
+                    │ Compare Checksums           │
+                    │ ✓ Match = Integrity OK      │
+                    │ ✗ Mismatch = Corruption!   │
+                    └─────────────────────────────┘
+
+
+================================================================================
+SCRIPT EXECUTION FLOW
+================================================================================
+
+./standardize.sh
+│
+├─ Input validation
+│  └─ Check file exists
+│
+├─ Calculate source checksum
+│  └─ SHA-256 of input file
+│
+├─ Call standardize_tsv.py
+│  ├─ Read TSV
+│  ├─ Clean & normalize
+│  ├─ Sort data
+│  └─ Write output
+│
+├─ Calculate output checksum
+│  └─ SHA-256 of output file
+│
+├─ Log checksums
+│  └─ Write checksums.json
+│
+├─ Display statistics
+│  ├─ File sizes
+│  ├─ Record counts
+│  └─ Column info
+│
+├─ Verify checksums
+│  ├─ Re-read checksums.json
+│  ├─ Recalculate file hashes
+│  ├─ Compare values
+│  └─ Generate verification.txt
+│
+└─ Complete
+   └─ Ready to use!
+
+
+================================================================================
+QUALITY ASSURANCE PIPELINE
+================================================================================
+
+Source File
+    ↓
+[1] STANDARDIZATION
+    standardize.sh
+    ├─ Checksums generated
+    ├─ Data cleaned
+    ├─ Records sorted
+    └─ Output created
+    ↓
+[2] VALIDATION
+    validate_tsv.py
+    ├─ Column consistency check
+    ├─ Row count comparison
+    ├─ Empty fields analysis
+    ├─ Unicode handling
+    ├─ Sort order verification
+    └─ Quality report generated
+    ↓
+[3] VERIFICATION
+    verify_checksums.sh
+    ├─ Load stored checksums
+    ├─ Recalculate current checksums
+    ├─ Compare values
+    ├─ Detect corruption/modification
+    └─ Verification report generated
+    ↓
+All Checks Pass ✓
+    ↓
+Production Ready
+    • Safe to import to database
+    • Safe to share
+    • Safe to archive
+    • Integrity guaranteed
+
+
+================================================================================
+FILE INTERDEPENDENCIES
+================================================================================
+
+standardize.sh (Main Orchestrator)
+├─ Requires: standardize_tsv.py
+├─ Calls: standardize_tsv.py
+├─ Generates: checksums.json, verification.txt
+└─ Optional: validate_tsv.py, verify_checksums.sh
+
+standardize_tsv.py (Core Engine)
+├─ Reads: Input TSV file
+├─ Produces: Output TSV file
+└─ Generates: checksums.json
+
+validate_tsv.py (Quality Assurance)
+├─ Reads: Source and Output TSV files
+├─ Requires: No dependencies
+└─ Produces: Validation report (stdout)
+
+verify_checksums.sh (Integrity Check)
+├─ Reads: checksums.json
+├─ Requires: sha256sum, jq (optional)
+├─ Verifies: Source and Output files
+└─ Generates: Verification report
+
+
+================================================================================
+ERROR DETECTION & RECOVERY
+================================================================================
+
+PROBLEM DETECTION
+─────────────────
+validate_tsv.py → Detects:
+  ✗ Column count inconsistency
+  ✗ Row count mismatch
+  ✗ Missing data
+  ✗ Sorting errors
+
+verify_checksums.sh → Detects:
+  ✗ File corruption
+  ✗ Unauthorized modification
+  ✗ File replacement
+  ✗ Bit rot
+
+RECOVERY OPTIONS
+────────────────
+1. Check validation report
+2. Run verify_checksums.sh
+3. Review checksums.json
+4. Re-standardize if needed
+5. Restore from backup if corrupted
+
+
+================================================================================
+SYSTEM REQUIREMENTS
+================================================================================
+
+Minimal Setup
+  • Python 3.6+
+  • Bash 4.0+
+  • sha256sum (standard on Unix)
+
+Recommended Setup
+  • Python 3.8+
+  • Bash 5.0+
+  • jq (JSON parsing)
+  • GNU coreutils
+
+Operating Systems
+  ✓ Linux (any distribution)
+  ✓ macOS
+  ✓ Windows (Git Bash / WSL)
+  ✓ Unix variants
+
+
+================================================================================
+PERFORMANCE CHARACTERISTICS
+================================================================================
+
+Operation                   Time (100 records)   Time (1000 records)
+───────────────────────────────────────────────────────────────────
+Standardization             < 1 sec              < 1 sec
+Checksum calculation        < 1 sec              < 2 sec
+Validation                  < 2 sec              < 3 sec
+Verification                < 1 sec              < 1 sec
+Total pipeline              < 5 sec              < 8 sec
+
+File Size Changes
+  Original:       ~18 KB (100 records)
+  Standardized:   ~18 KB (100 records)
+  checksums.json: ~200 bytes
+  verification:   ~1-2 KB
+
+
+================================================================================
+SECURITY & INTEGRITY GUARANTEES
+================================================================================
+
+What SHA-256 Protects Against
+  ✓ Accidental bit corruption
+  ✓ File transfer errors
+  ✓ Storage media degradation
+  ✓ Unintentional modifications
+  ✓ Detection of file tampering
+
+What SHA-256 Does NOT Protect Against
+  ✗ Cryptographic attacks (theoretical, not practical)
+  ✗ Protection against intentional replacement of both file AND checksum
+
+Integrity Best Practices
+  1. Keep checksums.json with files
+  2. Store copies in separate locations
+  3. Verify periodically
+  4. Use version control (Git, etc.)
+  5. Maintain audit logs
+
+
+================================================================================
+DOCUMENTATION MAP
+================================================================================
+
+Quick Reference
+  → QUICKSTART.md (2 min read)
+  → This file (system overview)
+
+Getting Started
+  → 00_OVERVIEW.md (5 min read)
+  → EXAMPLES.md (see patterns)
+
+Complete Documentation
+  → README.md (full reference)
+  → INDEX.md (file guide)
+
+Troubleshooting
+  → README.md Troubleshooting section
+  → Run: python3 validate_tsv.py source output
+  → Check: verification.txt
+
+
+================================================================================
+ARCHIVAL BEST PRACTICES
+================================================================================
+
+Directory Structure
+  archive/
+  ├── original_met_inventory.tsv
+  ├── met_inventory_standardized.tsv
+  ├── checksums.json
+  ├── verification.txt
+  ├── README.md (with setup instructions)
+  └── Processing_Report.txt (when/why standardized)
+
+Storage Strategy
+  1. Keep original + standardized together
+  2. Store checksums.json with files
+  3. Maintain backup copies
+  4. Document processing method
+  5. Verify integrity quarterly
+
+Long-term Maintenance
+  ✓ Annual integrity verification
+  ✓ Update checksums.json if needed
+  ✓ Migrate to new storage periodically
+  ✓ Document any file changes
+  ✓ Maintain processing logs
+
+
+================================================================================
+End of System Diagram
+================================================================================
+
+For detailed information, see the accompanying documentation files:
+  • 00_OVERVIEW.md - Comprehensive system overview
+  • README.md - Complete technical reference
+  • QUICKSTART.md - Fast setup guide
+  • EXAMPLES.md - Practical usage examples
+  • INDEX.md - Complete file index and navigation

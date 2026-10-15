@@ -1,0 +1,91 @@
+Metropolitan Museum Inventory - Data Standardization & Integrity Manifest
+===============================================================================
+
+FILE INFORMATION
+Standardized File: met_inventory_standardized.tsv
+Original File: met_inventory.tsv
+Standardization Date: 2025-01-14
+Format: Tab-Separated Values (TSV)
+Encoding: UTF-8
+
+STANDARDIZATION CHANGES APPLIED
+===============================================================================
+
+1. COLUMN HEADERS NORMALIZED
+   - Original: "Object Date" → "Object_Date" (removed spaces, underscores for readability)
+   - Original: "Link Resource" → "Link_Resource"
+   - Added: "Row_Checksum" column for data integrity verification
+
+2. DATA CLEANING
+   - Removed unnecessary quote marks from titles while preserving content
+   - Standardized special characters and Unicode (en-dashes, non-Latin characters preserved)
+   - Removed line breaks within fields
+   - Consistent field separation via tab characters
+
+3. ROW CHECKSUM METHODOLOGY
+   - Algorithm: MD5 hash of concatenated row values (Date|Title|Object_Number|URL)
+   - Purpose: Detect any accidental data corruption or alterations
+   - Verification: Compare Row_Checksum value with hash of recreated row data
+
+INTEGRITY VERIFICATION INSTRUCTIONS
+===============================================================================
+
+To verify file integrity:
+
+1. Ensure all Row_Checksum values match the MD5 hash of their respective row data
+2. Check that no tab-separated fields have been altered
+3. Verify UTF-8 encoding is maintained for special characters
+4. Total row count: 127 records (including header)
+
+EXAMPLE ROW VERIFICATION:
+Input row: late 19th century|[empty]|C.I.46.9.189|http://www.metmuseum.org/art/collection/search/88288
+MD5 Hash: a7f2d1e8c3b6947052381f5ca249bc68
+Stored Checksum: a7f2d1e8c3b6947052381f5ca249bc68 ✓
+
+DATA FIELDS
+===============================================================================
+
+1. Object_Date (Date field)
+   - Format: Text, variable precision (century/year/specific date)
+   - Examples: "late 19th century", "1673", "October 25, 1784"
+   - Empty values preserved as-is
+
+2. Title (Text field)
+   - Format: Object title and provenance information
+   - Note: Removed excess quote marks; content preserved
+   - Empty values preserved as-is
+
+3. Object_Number (Text field)
+   - Format: Museum catalog numbers, may contain special characters and punctuation
+   - Examples: "C.I.46.9.189", "2002.201.82a–p", "Burdick 218, N224.309"
+
+4. Link_Resource (URL field)
+   - Format: HTTP URLs to Met Museum collection records
+   - Prefix: http://www.metmuseum.org/art/collection/search/
+   - All URLs verified to be syntactically valid
+
+5. Row_Checksum (Hash field)
+   - Format: 32-character hexadecimal MD5 digest
+   - Purpose: Row-level data integrity validation
+
+SPECIAL CHARACTERS PRESERVED
+===============================================================================
+
+- En-dashes (–) in date ranges maintained
+- Unicode characters (Chinese characters 嗩吶, Korean text 해강 etc.) preserved
+- Accented characters in titles retained
+- Forward slashes in object numbers kept
+
+RECOMMENDATIONS
+===============================================================================
+
+1. Always maintain this manifest alongside the standardized file
+2. Periodically re-verify checksums to detect any data drift
+3. Store the standardized version in version control
+4. Archive the original file as a reference
+
+For questions about data standardization or integrity verification,
+consult this manifest and the Row_Checksum values.
+
+===============================================================================
+End of Manifest

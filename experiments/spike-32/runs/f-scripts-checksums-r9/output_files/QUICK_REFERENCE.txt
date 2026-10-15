@@ -1,0 +1,248 @@
+================================================================================
+                    TSV STANDARDIZATION - QUICK REFERENCE
+================================================================================
+
+GETTING STARTED
+================================================================================
+
+1. Run Standardization:
+   $ chmod +x run_standardization.sh
+   $ ./run_standardization.sh
+
+2. Verify Integrity:
+   $ python3 verify_integrity.py
+
+3. Check Results:
+   $ cat standardization_audit.log
+
+OUTPUT FILES
+================================================================================
+
+✓ met_inventory_standardized.tsv
+  → Your cleaned, standardized data file
+  → UTF-8 encoding, Unix line endings
+  → Ready for databases, archives, processing
+
+✓ met_inventory_manifest.json
+  → Machine-readable metadata
+  → MD5 and SHA256 checksums
+  → Statistics and issue tracking
+
+✓ standardization_audit.log
+  → Human-readable operation log
+  → Step-by-step processing details
+  → Validation results
+
+WHAT GETS STANDARDIZED
+================================================================================
+
+BEFORE                      →  AFTER
+──────────────────────────      ─────────────────────────
+Mixed encoding              →  UTF-8 throughout
+CRLF or LF line endings     →  Unix LF only
+Headers with spaces         →  Normalized
+Extra whitespace in values  →  Trimmed
+Inconsistent delimiters     →  Consistent tabs
+Unchecked data quality      →  Issues identified
+
+CHECKSUM VERIFICATION
+================================================================================
+
+What is a checksum?
+  → A unique "fingerprint" of a file
+  → Detects any changes or corruption
+  → Uses math, not data content
+
+When to verify:
+  → After file transfer
+  → Before important use
+  → Periodically for long-term preservation
+  → Anytime you suspect corruption
+
+How to verify:
+  $ python3 verify_integrity.py \
+      met_inventory_standardized.tsv \
+      met_inventory_manifest.json
+
+Checksums used:
+  → MD5:    32-character fingerprint (legacy, quick)
+  → SHA256: 64-character fingerprint (secure, standard)
+
+INTERPRETING RESULTS
+================================================================================
+
+✓ Verification PASSED
+  All checks successful. File integrity confirmed. Safe to use.
+
+✗ Verification FAILED
+  Checksums don't match. File may be corrupted. Investigate before use.
+
+COMMON SCENARIOS
+================================================================================
+
+Q: I haven't run it yet
+   A: Type: ./run_standardization.sh
+
+Q: Why different file sizes?
+   A: Normal. Standardization may adjust whitespace and formatting.
+      Checksums verify content is correct.
+
+Q: Can I edit the standardized file?
+   A: Yes, but checksums will change. Document changes in a new audit log.
+
+Q: How do I know it worked?
+   A: Run: python3 verify_integrity.py
+      Look for: "✓ VERIFICATION PASSED"
+
+Q: What if verification fails?
+   A: Don't use file. Check for corruption. Re-run standardization.
+
+Q: How often should I verify?
+   A: Annually for important files. Anytime before critical use.
+
+DOCUMENTATION
+================================================================================
+
+README_STANDARDIZATION.md
+  → Complete user guide
+  → All features explained
+  → Troubleshooting section
+
+IMPLEMENTATION_GUIDE.md
+  → Quick start instructions
+  → Before/after examples
+  → Preservation best practices
+
+SUMMARY.md
+  → Overview and features
+  → Technical specifications
+  → Use cases
+
+MANIFEST JSON
+================================================================================
+
+Key fields:
+  - timestamp: When standardization happened
+  - source_file.checksums: Original file fingerprints
+  - output_file.checksums: New file fingerprints
+  - statistics.total_rows: Number of records
+  - statistics.issues_found: Data quality problems
+  - issues: List of problems identified
+
+To read manifest:
+  $ python3 -m json.tool met_inventory_manifest.json
+
+SCRIPTS EXPLAINED
+================================================================================
+
+standardize_tsv.py
+  Purpose:  Main standardization engine
+  Inputs:   Source TSV file
+  Outputs:  Standardized TSV + Manifest + Audit
+  Command:  python3 standardize_tsv.py <input> <output> <manifest>
+
+run_standardization.sh
+  Purpose:  Automated workflow with reporting
+  Inputs:   Source TSV file
+  Outputs:  All standardized files + audit log
+  Command:  ./run_standardization.sh
+
+verify_integrity.py
+  Purpose:  Checksum verification
+  Inputs:   Standardized TSV + Manifest
+  Outputs:  Detailed verification report
+  Command:  python3 verify_integrity.py <file> <manifest>
+
+TROUBLESHOOTING QUICK GUIDE
+================================================================================
+
+Problem: "Command not found" or permission denied
+Fix:     $ chmod +x standardize_tsv.py run_standardization.sh verify_integrity.py
+
+Problem: Python version error
+Fix:     $ python3 --version  (need 3.x)
+
+Problem: File not found errors
+Fix:     $ ls -la /mnt/user-data/uploads/met_inventory.tsv
+
+Problem: Encoding errors on input
+Fix:     File should be readable. Script handles UTF-8, Latin-1, etc.
+
+Problem: Verification checksum mismatch
+Fix:     File may be corrupted. Check manifest not modified. Re-standardize.
+
+Problem: Output files not created
+Fix:     Check write permissions. Check disk space. Review audit log.
+
+BEST PRACTICES
+================================================================================
+
+✓ Keep standardized file and manifest together
+✓ Store with audit log for documentation
+✓ Preserve original file as reference
+✓ Verify annually for important data
+✓ Document any data issues found
+✓ Use standardized file for new work
+✓ Share both file and manifest with others
+
+COMMAND REFERENCE
+================================================================================
+
+Run standardization:
+  $ chmod +x run_standardization.sh && ./run_standardization.sh
+
+Or manually:
+  $ python3 standardize_tsv.py \
+      /mnt/user-data/uploads/met_inventory.tsv \
+      /mnt/user-data/outputs/met_inventory_standardized.tsv \
+      /mnt/user-data/outputs/met_inventory_manifest.json
+
+Verify integrity:
+  $ python3 verify_integrity.py \
+      /mnt/user-data/outputs/met_inventory_standardized.tsv \
+      /mnt/user-data/outputs/met_inventory_manifest.json
+
+View audit log:
+  $ cat /mnt/user-data/outputs/standardization_audit.log
+
+View manifest:
+  $ cat /mnt/user-data/outputs/met_inventory_manifest.json
+
+Count records:
+  $ wc -l /mnt/user-data/outputs/met_inventory_standardized.tsv
+
+Check encoding:
+  $ file -b --mime-encoding /mnt/user-data/outputs/met_inventory_standardized.tsv
+
+Validate TSV:
+  $ python3 -c "import csv; f = open('/mnt/user-data/outputs/met_inventory_standardized.tsv'); r = csv.DictReader(f, delimiter='\t'); rows = list(r); print(f'Rows: {len(rows)}, Cols: {len(r.fieldnames)}')"
+
+CHECKSUM VALUES
+================================================================================
+
+To find checksums:
+
+In manifest:
+  $ python3 -c "import json; m = json.load(open('met_inventory_manifest.json')); print(m['output_file']['checksums'])"
+
+Compute fresh:
+  $ md5sum met_inventory_standardized.tsv
+  $ sha256sum met_inventory_standardized.tsv
+
+Should match manifest values exactly.
+
+KEY POINTS TO REMEMBER
+================================================================================
+
+1. Standardization = Cleaning + Normalizing + Preserving
+2. Checksums = Verification + Trust + Peace of Mind
+3. Manifest = Documentation + Metadata + Provenance
+4. Audit Log = Transparency + Accountability + History
+
+Start here:  ./run_standardization.sh
+Verify with: python3 verify_integrity.py
+Read about:  README_STANDARDIZATION.md
+
+================================================================================
+For detailed help, see: README_STANDARDIZATION.md and IMPLEMENTATION_GUIDE.md
+================================================================================

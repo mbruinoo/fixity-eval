@@ -1,0 +1,45 @@
+{
+ "id": "msg_011Cg44kLgqFMDi7fhQVxJmq",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now I'll create a comprehensive Python script that standardizes the TSV file and manages checksums:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01NGUCfK8XPWiVahH8sARbAh",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/standardize_tsv.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nTSV Standardizer with Checksum Preservation\nStandardizes a Met Museum inventory TSV file and maintains integrity checksums.\n\"\"\"\n\nimport csv\nimport hashlib\nimport json\nimport sys\nfrom datetime import datetime\nfrom pathlib import Path\n\n\ndef calculate_checksum(file_path, algorithm='sha256'):\n    \"\"\"Calculate checksum for a file.\"\"\"\n    hash_obj = hashlib.new(algorithm)\n    with open(file_path, 'rb') as f:\n        for chunk in iter(lambda: f.read(4096), b''):\n            hash_obj.update(chunk)\n    return hash_obj.hexdigest()\n\n\ndef log_checksums(source_path, output_path, checksum_log_path):\n    \"\"\"Calculate and log checksums for both files.\"\"\"\n    source_checksum = calculate_checksum(source_path, 'sha256')\n    output_checksum = calculate_checksum(output_path, 'sha256')\n    \n    checksum_data = {\n        'timestamp': datetime.now().isoformat(),\n        'source_file': source_path,\n        'source_checksum_sha256': source_checksum,\n        'output_file': output_path,\n        'output_checksum_sha256': output_checksum,\n        'algorithm': 'SHA-256'\n    }\n    \n    with open(checksum_log_path, 'w') as f:\n        json.dump(checksum_data, f, indent=2)\n    \n    return checksum_data\n\n\ndef standardize_tsv(input_file, output_file):\n    \"\"\"\n    Standardize TSV file:\n    - Ensure consistent tab delimiters\n    - Handle quoted fields properly\n    - Normalize whitespace\n    - Fix encoding\n    - Sort by Object Number (column index 2)\n    \"\"\"\n    \n    # Read the source file\n    rows = []\n    with open(input_file, 'r', encoding='utf-8') as f:\n        reader = csv.reader(f, delimiter='\\t', quoting=csv.QUOTE_NONE, escapechar=None)\n        for row_num, row in enumerate(reader, 1):\n            # Strip whitespace from each field\n            cleaned_row = [field.strip() for field in row]\n            rows.append(cleaned_row)\n    \n    if not rows:\n        print(\"Error: Empty file or unable to read rows\")\n        return False\n    \n    # Extract header\n    header = rows[0]\n    data_rows = rows[1:]\n    \n    # Validate and standardize columns\n    print(f\"Header columns: {len(header)}\")\n    print(f\"Header: {header}\")\n    print(f\"Data rows: {len(data_rows)}\")\n    \n    # Check for inconsistent row lengths\n    max_cols = max(len(row) for row in data_rows) if data_rows else len(header)\n    print(f\"Max columns in data: {max_cols}\")\n    \n    # Normalize all rows to have consistent column count\n    standardized_rows = []\n    for row in data_rows:\n        # Pad rows that are too short\n        while len(row) < len(header):\n            row.append('')\n        # Truncate rows that are too long\n        if len(row) > len(header):\n            row = row[:len(header)]\n        standardized_rows.append(row)\n    \n    # Sort by Object Number (column 2, 0-indexed)\n    try:\n        standardized_rows.sort(key=lambda x: x[2] if len(x) > 2 else '')\n    except Exception as e:\n        print(f\"Warning: Could not sort by Object Number: {e}\")\n    \n    # Write standardized output\n    with open(output_file, 'w', newline='', encoding='utf-8') as f:\n        writer = csv.writer(f, delimiter='\\t', quoting=csv.QUOTE_MINIMAL)\n        writer.writerow(header)\n        writer.writerows(standardized_rows)\n    \n    return True\n\n\ndef main():\n    \"\"\"Main execution function.\"\"\"\n    if len(sys.argv) < 2:\n        print(\"Usage: python standardize_tsv.py <input_file> [output_file]\")\n        sys.exit(1)\n    \n    input_file = sys.argv[1]\n    output_file = sys.argv[2] if len(sys.argv) > 2 else 'met_inventory_standardized.tsv'\n    checksum_log = 'checksums.json'\n    \n    # Verify input file exists\n    if not Path(input_file).exists():\n        print(f\"Error: Input file '{input_file}' not found\")\n        sys.exit(1)\n    \n    print(f\"Input file: {input_file}\")\n    print(f\"Output file: {output_file}\")\n    \n    # Calculate source checksum before processing\n    print(\"\\nCalculating source checksum...\")\n    source_checksum = calculate_checksum(input_file)\n    print(f\"Source SHA-256: {source_checksum}\")\n    \n    # Standardize the file\n    print(\"\\nStandardizing TSV file...\")\n    if not standardize_tsv(input_file, output_file):\n        sys.exit(1)\n    \n    print(\"✓ File standardized successfully\")\n    \n    # Calculate output checksum and log both\n    print(\"\\nCalculating output checksum...\")\n    output_checksum = calculate_checksum(output_file)\n    print(f\"Output SHA-256: {output_checksum}\")\n    \n    # Log checksums\n    print(f\"\\nLogging checksums to {checksum_log}...\")\n    checksum_data = log_checksums(input_file, output_file, checksum_log)\n    \n    print(\"\\n\" + \"=\"*60)\n    print(\"STANDARDIZATION COMPLETE\")\n    print(\"=\"*60)\n    print(f\"Source file: {input_file}\")\n    print(f\"  SHA-256: {checksum_data['source_checksum_sha256']}\")\n    print(f\"\\nOutput file: {output_file}\")\n    print(f\"  SHA-256: {checksum_data['output_checksum_sha256']}\")\n    print(f\"\\nChecksum log: {checksum_log}\")\n    print(\"=\"*60)\n\n\nif __name__ == '__main__':\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 6387
+  },
+  "cache_creation_input_tokens": 6387,
+  "cache_read_input_tokens": 5420,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1680,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}

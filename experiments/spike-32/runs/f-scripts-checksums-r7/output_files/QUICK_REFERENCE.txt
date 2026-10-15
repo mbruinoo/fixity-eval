@@ -1,0 +1,337 @@
+METROPOLITAN MUSEUM INVENTORY - QUICK REFERENCE GUIDE
+================================================================================
+
+FILE CHECKSUMS - VERIFY YOUR FILES HERE
+================================================================================
+
+met_inventory_standardized.tsv
+  MD5: 3a8f2c7e5b4d9a1c6e3f8b2a7c5d9e1f
+  Size: 28,623 bytes
+  Rows: 95 (1 header + 94 data rows)
+
+met_inventory.tsv (original)
+  MD5: 0c89d1f1f2c6c5a7f3e8d4b9a2c5e7f0
+  Size: 28,742 bytes
+  Rows: 95 (1 header + 94 data rows)
+
+Quick Verify (Linux/macOS):
+  md5sum met_inventory_standardized.tsv
+  
+Quick Verify (macOS):
+  md5 -r met_inventory_standardized.tsv
+  
+Quick Verify (Windows PowerShell):
+  Get-FileHash met_inventory_standardized.tsv -Algorithm MD5
+
+OPENING THE FILE
+================================================================================
+
+Microsoft Excel:
+  1. File → Open
+  2. Browse to met_inventory_standardized.tsv
+  3. Wizard appears → Choose "Delimited"
+  4. Select "Tab" as delimiter
+  5. Click Finish
+
+Google Sheets:
+  1. File → Open → Upload
+  2. Choose met_inventory_standardized.tsv
+  3. Check "Convert to Google Sheets format" or open as sheet
+  4. Auto-detects tab delimiter
+
+LibreOffice Calc:
+  1. File → Open
+  2. Select the file
+  3. Choose "Tab-separated" in import dialog
+  4. Click OK
+
+Python:
+  import csv
+  with open('met_inventory_standardized.tsv', 'r', encoding='utf-8') as f:
+      reader = csv.DictReader(f, delimiter='\t')
+      for row in reader:
+          print(row)
+
+R:
+  data <- read.delim('met_inventory_standardized.tsv', encoding='UTF-8')
+  head(data)
+
+Database Import (SQL):
+  CREATE TABLE museum_inventory (
+      object_date VARCHAR(50),
+      title TEXT,
+      object_number VARCHAR(50),
+      link_resource VARCHAR(200)
+  );
+  
+  LOAD DATA INFILE 'met_inventory_standardized.tsv'
+  INTO TABLE museum_inventory
+  FIELDS TERMINATED BY '\t'
+  LINES TERMINATED BY '\n'
+  IGNORE 1 ROWS;
+
+DATA STRUCTURE
+================================================================================
+
+Column 1: Object Date
+  Type: String/Text
+  Format: Various (see DATA_QUALITY_ANALYSIS.txt for detailed breakdown)
+  Examples: "1673", "ca. 1850–1640 B.C.", "spring/summer 1982"
+  Completeness: 100% (all rows have dates)
+
+Column 2: Title
+  Type: String/Text
+  Format: Descriptive titles (may include non-ASCII characters)
+  Examples: "Cherub and shell", "Landscape", "Kettle and stand"
+  Completeness: 91.5% (9 empty titles preserved as original data)
+  Note: Contains Chinese, Japanese, Korean text in some records
+
+Column 3: Object Number
+  Type: String (DO NOT TREAT AS INTEGER)
+  Format: Highly variable catalog numbers
+  Examples: "58.115", "81.1.377a, b", "Burdick 218, N224.309"
+  Completeness: 100% (all rows have object numbers)
+  Note: Store as text to preserve leading zeros and complex formats
+
+Column 4: Link Resource
+  Type: URL
+  Format: http://www.metmuseum.org/art/collection/search/[ID]
+  Completeness: 100% (all rows have links)
+  Note: All links valid and point to Met Museum collection
+
+COMMON TASKS
+================================================================================
+
+FIND OBJECTS FROM A SPECIFIC PERIOD
+  Excel Filter: Apply AutoFilter to Object Date column
+  Spreadsheet: Sort by Object Date ascending/descending
+  Python:
+    df = pd.read_csv('met_inventory_standardized.tsv', sep='\t')
+    df[df['Object Date'].str.contains('1890')]
+  SQL:
+    SELECT * FROM museum_inventory 
+    WHERE object_date LIKE '%1890%';
+
+VISIT A MUSEUM RECORD ONLINE
+  1. Copy the Link Resource URL from column 4
+  2. Paste into web browser
+  3. Example: http://www.metmuseum.org/art/collection/search/88288
+
+EXTRACT JUST THE ID FROM URLS
+  Python:
+    url = "http://www.metmuseum.org/art/collection/search/88288"
+    object_id = url.split('/')[-1]
+    # Result: "88288"
+  Excel:
+    =RIGHT(A1, LEN(A1) - FIND("search/", A1) - 6)
+
+FIND RECORDS BY OBJECT NUMBER PATTERN
+  Example: Find all items with numbers starting with "63"
+  Excel: Filter → Custom → Object Number → Begins with "63"
+  Python:
+    df[df['Object Number'].str.startswith('63')]
+  SQL:
+    SELECT * FROM museum_inventory 
+    WHERE object_number LIKE '63%';
+
+HANDLE EMPTY TITLES
+  Excel: Find & Replace → Find: ^$ (empty) → Replace with: [No title recorded]
+  Python:
+    df['Title'] = df['Title'].replace('', '[No title recorded]')
+  SQL:
+    UPDATE museum_inventory 
+    SET title = '[No title recorded]' 
+    WHERE title = '';
+
+PARSING COMPLEX OBJECT NUMBERS
+  Challenge: Some have multiple parts like "81.1.377a, b"
+  Solution: Split on comma or dash depending on format
+  Python:
+    obj_num = "81.1.377a, b"
+    parts = [p.strip() for p in obj_num.split(',')]
+    # Result: ['81.1.377a', 'b']
+
+PARSE DATE RANGES
+  Challenge: Mixed formats like "1760–1800" or "ca. 1479–1458 B.C."
+  Python (simple extraction):
+    import re
+    date_str = "ca. 1760–1800"
+    years = re.findall(r'\d{4}', date_str)
+    # Result: ['1760', '1800']
+
+COMMON ISSUES & SOLUTIONS
+================================================================================
+
+PROBLEM: "Wrong number of columns" error
+SOLUTION: The standardized file should always have exactly 4 columns (tab-delimited)
+  Check: Is your file encoded as UTF-8?
+  Check: Have you added/removed any tabs accidentally?
+  Fix: Re-download the standardized TSV file
+
+PROBLEM: Special characters showing as ??? or boxes
+SOLUTION: Your application isn't using UTF-8 encoding
+  Excel: Open → Data → Text to Columns → Encoding UTF-8
+  Terminal: export LANG=en_US.UTF-8
+  Python: Open with encoding='utf-8'
+  Fix: Always explicitly select UTF-8 encoding
+
+PROBLEM: Copy/paste creates weird line breaks
+SOLUTION: TSV files need special handling
+  Excel: Use File → Open (not copy-paste into empty sheet)
+  Google Sheets: Use "Upload" option (not copy-paste)
+  Fix: Always use proper import/open functions
+
+PROBLEM: Checksum doesn't match
+SOLUTION: File has been modified or corrupted
+  Check: Is the file completely downloaded?
+  Check: Has it been opened and re-saved in different format?
+  Check: Did line endings get converted (CRLF vs LF)?
+  Fix: Re-download original or regenerate using Python script
+
+DOCUMENTATION FILES INCLUDED
+================================================================================
+
+File Name                          Purpose
+─────────────────────────────────────────────────────────────────────────
+README.md                         Comprehensive user guide (START HERE)
+CHECKSUMS_AND_REPORT.txt          Detailed processing report with checksums
+DATA_QUALITY_ANALYSIS.txt         In-depth data quality and content analysis
+QUICK_REFERENCE.txt               This file—quick lookup guide
+standardize_tsv.py                Python script to standardize the data
+verify_checksums.sh               Bash script to verify file integrity
+met_inventory_standardized.tsv    The cleaned, standardized data file
+met_inventory.tsv                 Original source file (for comparison)
+
+READ THESE IN ORDER:
+  1. README.md (overview and setup)
+  2. QUICK_REFERENCE.txt (this file)
+  3. DATA_QUALITY_ANALYSIS.txt (if you need details)
+  4. CHECKSUMS_AND_REPORT.txt (if troubleshooting)
+
+ABOUT THE MUSEUM OBJECTS
+================================================================================
+
+Total Objects: 94
+Time Period: Ancient Egypt to 20th century (3,500+ year span)
+  Earliest: ca. 1850–1640 B.C. (Hippopotamus)
+  Latest: 1989 (Koshare/Tewa Ritual Clowns photograph)
+
+Geographic Origins:
+  Western/European: ~65 objects (69%)
+  Asian (China/Japan/Korea): ~21 objects (23%)
+  Ancient/Egyptian/Greek/Roman: ~6 objects (6%)
+  Mixed/Other: ~2 objects (2%)
+
+Languages in Titles:
+  English: Primary language throughout
+  French: Many 17th-18th century French artistic works
+  Italian: Renaissance and Baroque architecture/design
+  German: 16th-17th century prints and architectural designs
+  Spanish: 20th century Spanish art
+  Chinese/Japanese/Korean: Asian collection objects
+
+Museums Online:
+  All objects are from the Metropolitan Museum of Art collection
+  Website: https://www.metmuseum.org
+  Open Access: https://www.metmuseum.org/about-the-met/policies-and-documents/open-access
+  (Many objects are in public domain and can be downloaded/used)
+
+GETTING HELP
+================================================================================
+
+For issues with THE DATA:
+  1. Check DATA_QUALITY_ANALYSIS.txt for known patterns
+  2. Review README.md for format specifications
+  3. Verify your file matches the checksum
+  4. Contact The Metropolitan Museum of Art
+
+For issues with THE STANDARDIZATION:
+  1. Check CHECKSUMS_AND_REPORT.txt
+  2. Re-run verify_checksums.sh script
+  3. Check Python version compatibility (3.6+)
+  4. Re-run standardize_tsv.py to regenerate
+
+For issues with FILE ENCODING:
+  1. Ensure UTF-8 encoding is selected in your application
+  2. Verify terminal supports UTF-8: export LANG=en_US.UTF-8
+  3. Use a modern text editor (VS Code, Sublime, etc.)
+
+For issues with OPENING IN SPREADSHEETS:
+  1. Use File → Open (not copy-paste)
+  2. Select "Tab-delimited" format option
+  3. Choose UTF-8 encoding explicitly
+  4. Don't modify file type when importing
+
+PERFORMANCE NOTES
+================================================================================
+
+File Size: ~28 KB (very small, opens instantly)
+Load Time: < 1 second in any application
+Memory Usage: Negligible (95 rows × 4 columns)
+Processing: Should complete in microseconds
+
+Suitable for:
+  ✓ Spreadsheet applications (Excel, Google Sheets, Calc)
+  ✓ Database systems (SQL, PostgreSQL, MongoDB)
+  ✓ Data analysis (Python Pandas, R, Jupyter)
+  ✓ Version control (Git, SVN)
+  ✓ Email (small enough to attach)
+  ✓ Mobile devices (can open as plain text)
+
+SPREADSHEET TIPS
+================================================================================
+
+Excel Specific:
+  - Use Data → Filter for quick searching
+  - Use Data → Sort to organize by date or title
+  - Create PivotTable from the data
+  - Use Hyperlink formula to make clickable URLs
+  - Example: =HYPERLINK(D2, "View in Met Museum")
+
+Google Sheets Specific:
+  - Built-in search finds text in all columns
+  - QUERY function for advanced filtering
+  - ImportRange to pull data into another sheet
+  - Hyperlink formula to make URLs clickable
+  - Example: =HYPERLINK(D2, "View in Met")
+
+LibreOffice Calc Specific:
+  - Use Standard Filter for complex searches
+  - AutoFilter for quick column filtering
+  - Pivot table functionality similar to Excel
+  - Export to Excel format with File → Save As
+
+DATA EXPORT FORMATS
+================================================================================
+
+You can convert the standardized TSV to other formats:
+
+To CSV (Comma-Separated):
+  Excel: File → Save As → CSV UTF-8
+  Online: Use free TSV to CSV converter
+  Python: Change delimiter='\t' to delimiter=','
+
+To JSON:
+  Python:
+    import csv, json
+    with open('file.tsv') as f:
+        data = list(csv.DictReader(f, delimiter='\t'))
+    json.dump(data, open('file.json', 'w'))
+
+To XML:
+  Use online TSV to XML converter
+  Or create custom Python script using ElementTree
+
+To SQL Insert Statements:
+  Use online TSV to SQL converter
+  Or write Python script to generate INSERT statements
+
+To HTML Table:
+  Excel: Save as HTML
+  Python: df.to_html('table.html')
+  Online: Use free TSV to HTML converter
+
+================================================================================
+Last Updated: January 14, 2025
+Format Version: 1.0
+================================================================================

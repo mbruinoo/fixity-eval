@@ -1,0 +1,45 @@
+{
+ "id": "msg_011Cg44jD1C9ASgHJFygEP27",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me create a verification script to check the integrity of the standardization:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_012DhLbAWCji1z3vyBmsEPrH",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_integrity.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nVerify the integrity of the standardized TSV file by checking checksums\nagainst the manifest and validating the file structure.\n\"\"\"\n\nimport json\nimport hashlib\nimport sys\nimport os\nfrom pathlib import Path\n\n\ndef compute_checksum(filepath, algorithm='sha256'):\n    \"\"\"Compute checksum for a file.\"\"\"\n    hash_obj = hashlib.new(algorithm)\n    \n    with open(filepath, 'rb') as f:\n        for chunk in iter(lambda: f.read(4096), b''):\n            hash_obj.update(chunk)\n    \n    return hash_obj.hexdigest()\n\n\ndef verify_file(output_file, manifest_file):\n    \"\"\"\n    Verify that the output file matches the checksums recorded in the manifest.\n    \"\"\"\n    \n    print(\"=\" * 70)\n    print(\"TSV File Integrity Verification\")\n    print(\"=\" * 70)\n    print()\n    \n    # Check if files exist\n    if not os.path.exists(manifest_file):\n        print(f\"✗ ERROR: Manifest file not found: {manifest_file}\")\n        return False\n    \n    if not os.path.exists(output_file):\n        print(f\"✗ ERROR: Output file not found: {output_file}\")\n        return False\n    \n    print(f\"Manifest file: {manifest_file}\")\n    print(f\"Output file:   {output_file}\")\n    print()\n    \n    # Load manifest\n    try:\n        with open(manifest_file, 'r', encoding='utf-8') as f:\n            manifest = json.load(f)\n    except Exception as e:\n        print(f\"✗ ERROR: Could not read manifest: {e}\")\n        return False\n    \n    print(\"Verification Results:\")\n    print(\"-\" * 70)\n    \n    all_pass = True\n    \n    # Verify file size\n    print(f\"\\n1. File Size Check:\")\n    recorded_size = manifest['output_file']['size_bytes']\n    actual_size = os.path.getsize(output_file)\n    \n    if recorded_size == actual_size:\n        print(f\"   ✓ Size matches: {actual_size:,} bytes\")\n    else:\n        print(f\"   ✗ Size mismatch!\")\n        print(f\"     Expected: {recorded_size:,} bytes\")\n        print(f\"     Actual:   {actual_size:,} bytes\")\n        all_pass = False\n    \n    # Verify MD5\n    print(f\"\\n2. MD5 Checksum Verification:\")\n    recorded_md5 = manifest['output_file']['checksums']['md5']\n    actual_md5 = compute_checksum(output_file, 'md5')\n    \n    if recorded_md5 == actual_md5:\n        print(f\"   ✓ MD5 matches: {actual_md5}\")\n    else:\n        print(f\"   ✗ MD5 mismatch!\")\n        print(f\"     Expected: {recorded_md5}\")\n        print(f\"     Actual:   {actual_md5}\")\n        all_pass = False\n    \n    # Verify SHA256\n    print(f\"\\n3. SHA256 Checksum Verification:\")\n    recorded_sha256 = manifest['output_file']['checksums']['sha256']\n    actual_sha256 = compute_checksum(output_file, 'sha256')\n    \n    if recorded_sha256 == actual_sha256:\n        print(f\"   ✓ SHA256 matches: {actual_sha256}\")\n    else:\n        print(f\"   ✗ SHA256 mismatch!\")\n        print(f\"     Expected: {recorded_sha256}\")\n        print(f\"     Actual:   {actual_sha256}\")\n        all_pass = False\n    \n    # Validate TSV structure\n    print(f\"\\n4. TSV Structure Validation:\")\n    try:\n        import csv\n        \n        with open(output_file, 'r', encoding='utf-8') as f:\n            reader = csv.DictReader(f, delimiter='\\t')\n            rows = list(reader)\n            \n            expected_cols = manifest['statistics']['total_columns']\n            actual_cols = len(reader.fieldnames)\n            expected_rows = manifest['statistics']['total_rows']\n            actual_rows = len(rows)\n            \n            if expected_cols == actual_cols:\n                print(f\"   ✓ Columns match: {actual_cols}\")\n            else:\n                print(f\"   ✗ Column count mismatch!\")\n                print(f\"     Expected: {expected_cols}\")\n                print(f\"     Actual:   {actual_cols}\")\n                all_pass = False\n            \n            if expected_rows == actual_rows:\n                print(f\"   ✓ Rows match: {actual_rows}\")\n            else:\n                print(f\"   ✗ Row count mismatch!\")\n                print(f\"     Expected: {expected_rows}\")\n                print(f\"     Actual:   {actual_rows}\")\n                all_pass = False\n            \n            print(f\"   ✓ Valid UTF-8 encoding\")\n            print(f\"   ✓ Headers: {', '.join(reader.fieldnames)}\")\n    \n    except Exception as e:\n        print(f\"   ✗ ERROR: {e}\")\n        all_pass = False\n    \n    # Display manifest info\n    print(f\"\\n5. Manifest Information:\")\n    print(f\"   Timestamp: {manifest['timestamp']}\")\n    print(f\"   Standardization rules applied:\")\n    for rule in manifest['standardization_rules']:\n        print(f\"     - {rule}\")\n    \n    issues = manifest['statistics']['issues_found']\n    if issues > 0:\n        print(f\"\\n   ⚠ Data quality issues found: {issues}\")\n        if isinstance(manifest['statistics']['issues'], list):\n            for issue in manifest['statistics']['issues'][:5]:\n                print(f\"     - {issue}\")\n    else:\n        print(f\"\\n   ✓ No data quality issues found\")\n    \n    # Summary\n    print()\n    print(\"=\" * 70)\n    if all_pass:\n        print(\"✓ VERIFICATION PASSED - File integrity confirmed\")\n    else:\n        print(\"✗ VERIFICATION FAILED - File integrity issues detected\")\n    print(\"=\" * 70)\n    print()\n    \n    return all_pass\n\n\nif __name__ == '__main__':\n    output_file = '/mnt/user-data/outputs/met_inventory_standardized.tsv'\n    manifest_file = '/mnt/user-data/outputs/met_inventory_manifest.json'\n    \n    if len(sys.argv) > 1:\n        output_file = sys.argv[1]\n    if len(sys.argv) > 2:\n        manifest_file = sys.argv[2]\n    \n    success = verify_file(output_file, manifest_file)\n    sys.exit(0 if success else 1)\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 1599
+  },
+  "cache_creation_input_tokens": 1599,
+  "cache_read_input_tokens": 14032,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1846,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}
