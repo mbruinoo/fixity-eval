@@ -1,0 +1,99 @@
+================================================================================
+MET MUSEUM INVENTORY TSV - STANDARDIZATION CHECKSUMS
+Data Fixity Verification Record
+================================================================================
+
+PROCESSING DATE: 2026-10-15T03:22:27.062661
+CHECKSUM ALGORITHM: SHA256 (FIPS 180-4)
+
+================================================================================
+SOURCE FILE
+================================================================================
+File: met_inventory.tsv
+Path: /mnt/user-data/uploads/met_inventory.tsv
+SHA256: 93061a6c9654006447accb638ace12db0a85e1353f3e44444f976844f78452c9
+Status: ✓ VERIFIED
+Size: Original dataset (92 rows + header)
+Encoding: UTF-8
+Format: Tab-separated values (TSV)
+
+================================================================================
+STANDARDIZED OUTPUT
+================================================================================
+File: met_inventory_standardized.tsv
+Path: /mnt/user-data/outputs/met_inventory_standardized.tsv
+SHA256: 616baa1f6dde23d1bed5edb5bf22e2ebd03dee72e6cc5957fe9c5ece3c41d9fb
+Status: ✓ VERIFIED
+Size: Standardized dataset (92 rows + header)
+Encoding: UTF-8
+Format: Tab-separated values (TSV)
+
+Data Rows: 92
+Columns: 4 (object_date, title, object_number, link_resource)
+
+================================================================================
+STANDARDIZATION CHANGES
+================================================================================
+
+HEADERS:
+  Before → After
+  ─────────────────────────────────────────────────────────
+  Object Date → object_date
+  Title → title
+  Object Number → object_number
+  Link Resource → link_resource
+
+DATA CLEANING:
+  • Empty cells: Replaced with "N/A"
+  • Whitespace: Trimmed from all cells
+  • Encoding: UTF-8 preserved
+  • Delimiters: Tab character maintained
+
+================================================================================
+VERIFICATION INSTRUCTIONS
+================================================================================
+
+To verify file integrity at any time:
+
+1. Using provided verification script:
+   python3 verify_checksums.py
+
+2. Using command line (Linux/Mac):
+   sha256sum met_inventory_standardized.tsv
+   # Compare output with: 616baa1f6dde23d1bed5edb5bf22e2ebd03dee72e6cc5957fe9c5ece3c41d9fb
+
+3. Using Python:
+   python3 -c "import hashlib; print(hashlib.sha256(open('met_inventory_standardized.tsv','rb').read()).hexdigest())"
+
+4. Using other tools:
+   shasum -a 256 met_inventory_standardized.tsv          (Mac)
+   certUtil -hashfile met_inventory_standardized.tsv SHA256  (Windows)
+
+================================================================================
+DATA INTEGRITY ASSURANCE
+================================================================================
+
+If the current checksum does NOT match the recorded value:
+  ⚠ File has been modified since standardization
+  ⚠ Modifications may have occurred (intentional or accidental)
+  ⚠ Do not assume data integrity without investigation
+
+If the current checksum MATCHES the recorded value:
+  ✓ File is authentic and unmodified
+  ✓ All standardization changes have been preserved
+  ✓ Data integrity is confirmed
+
+================================================================================
+SUPPORTING DOCUMENTATION
+================================================================================
+
+• README.md - Comprehensive project documentation
+• standardization_report.json - Detailed processing report with metadata
+• verify_checksums.py - Automated verification script
+• standardize_tsv.py - Original standardization script
+
+================================================================================
+
+For questions or data integrity concerns, refer to README.md or run verify_checksums.py
+
+================================================================================

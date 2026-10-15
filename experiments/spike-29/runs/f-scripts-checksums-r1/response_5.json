@@ -1,0 +1,45 @@
+{
+ "id": "msg_011Cg3JSALrVHwKkHh4bQNyp",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Finally, let me create comprehensive documentation:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01CKjgsTrhb6rvxJUmkkrno5",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/README.md",
+    "file_text": "# TSV Standardization with Checksum Verification\n\nThis toolkit provides scripts to standardize TSV (Tab-Separated Values) files while preserving file fixity through SHA-256 checksums.\n\n## Overview\n\nStandardization ensures consistency in data format, which is critical for:\n- Data preservation and archival\n- Reproducibility and validation\n- Cross-platform compatibility\n- Long-term data integrity\n\n## Files Included\n\n### 1. `standardize_tsv.py`\nThe main Python script that performs TSV standardization.\n\n**Features:**\n- Calculates SHA-256 checksum of source file\n- Validates TSV structure\n- Normalizes line endings (LF only / Unix style)\n- Standardizes tab delimiters\n- Applies minimal quoting policy\n- Removes trailing whitespace\n- Ensures UTF-8 encoding\n- Generates detailed report with checksums\n- Creates machine-readable checksum file\n\n**Usage:**\n```bash\npython3 standardize_tsv.py input_file.tsv\npython3 standardize_tsv.py input_file.tsv -o output_file.tsv\n```\n\n### 2. `standardize.sh`\nBash wrapper script for ease of use.\n\n**Usage:**\n```bash\nchmod +x standardize.sh\n./standardize.sh met_inventory.tsv\n./standardize.sh met_inventory.tsv met_inventory_standardized.tsv\n```\n\n### 3. `verify_checksums.sh`\nVerification script to check file integrity later.\n\n**Usage:**\n```bash\nchmod +x verify_checksums.sh\n./verify_checksums.sh checksums.txt\n```\n\n## Standardization Process\n\n### What Gets Standardized\n\n1. **Line Endings**: Converts all line endings to LF (Unix/Linux standard)\n   - CRLF (Windows) → LF\n   - CR (old Mac) → LF\n\n2. **Field Delimiters**: Ensures all fields are separated by single tab characters\n   - Removes multiple spaces or mixed delimiters\n   - Validates consistent column counts\n\n3. **Encoding**: Ensures UTF-8 encoding throughout\n   - Removes or normalizes non-standard characters\n\n4. **Quoting**: Applies minimal quoting policy\n   - Quotes only when necessary (fields with tabs, quotes, or newlines)\n   - Consistent escape handling\n\n5. **Whitespace**: Removes trailing whitespace\n   - Trailing spaces after last field on each line\n   - Preserves intentional leading whitespace in fields\n\n6. **Validation**: Checks for structural issues\n   - Field count consistency\n   - Row integrity\n   - Missing values\n\n### What Gets Preserved\n\n- Data content and meaning\n- Field order and relationships\n- Character encoding (UTF-8)\n- Special characters in field values\n- Intentional whitespace within fields\n\n## Output Files\n\nWhen you run the standardization, three files are generated:\n\n### 1. Standardized TSV File\nExample: `met_inventory_standardized.tsv`\n- The cleaned, normalized version of your data\n\n### 2. Checksum Report\nExample: `met_inventory_standardized_checksum_report.txt`\n- Detailed human-readable report\n- Source and output file checksums\n- Validation results\n- Changes applied\n- Instructions for future verification\n\n### 3. Checksums File\n`checksums.txt`\n- Machine-readable format\n- Compatible with `sha256sum` command\n- Can be used for automated verification\n\nExample:\n```\na1b2c3d4e5f6...  met_inventory.tsv\nf9e8d7c6b5a4...  met_inventory_standardized.tsv\n```\n\n## Checksum Verification\n\n### Understanding Checksums\n\nA SHA-256 checksum is a unique \"fingerprint\" of a file's contents. If even one byte changes, the checksum changes completely.\n\n### How to Verify\n\n**Method 1: Using the verification script**\n```bash\n./verify_checksums.sh checksums.txt\n```\n\n**Method 2: Using command-line tools**\n```bash\n# On Linux/Mac:\nsha256sum -c checksums.txt\n\n# On macOS (alternative):\nshasum -a 256 -c checksums.txt\n```\n\n**Method 3: Manual verification**\n```bash\n# Get the checksum of a file\nsha256sum met_inventory_standardized.tsv\n\n# Compare with the checksum in your report\n```\n\n## Example Workflow\n\n```bash\n# 1. Standardize your TSV file\n./standardize.sh met_inventory.tsv\n\n# 2. Files are created:\n#    - met_inventory_standardized.tsv\n#    - met_inventory_standardized_checksum_report.txt\n#    - checksums.txt\n\n# 3. Review the report\ncat met_inventory_standardized_checksum_report.txt\n\n# 4. Later, verify file integrity\n./verify_checksums.sh checksums.txt\n\n# 5. If you modify the file, the checksum will differ\n#    (This is how you detect accidental changes)\n```\n\n## Fixity Assurance\n\n**What is Fixity?**\nFixity means the property of a digital object remaining unchanged over time. It's essential for:\n- Data preservation\n- Chain of custody\n- Compliance with archival standards\n- Detecting corruption or unauthorized changes\n\n**How This Toolkit Ensures Fixity:**\n\n1. **Source Checksum**: Records the hash of the original file\n2. **Output Checksum**: Records the hash of the standardized file\n3. **Unchanged Detection**: If a file is corrupted or modified, the checksum changes\n4. **Verification Timeline**: Checksums can be verified at any point in the future\n\n**Example:**\n```\nDate 1: Original file → SHA-256: abc123...\n           ↓ (standardize)\n        Standardized file → SHA-256: def456...\n\nDate 2 (1 year later): Re-verify\n        Standardized file → SHA-256: def456... ✓ MATCH (No corruption)\n\nDate 3 (if someone edits the file):\n        Modified file → SHA-256: xyz789... ✗ NO MATCH (Change detected!)\n```\n\n## Technical Specifications\n\n### Input Format\n- Tab-separated values (TSV)\n- UTF-8 encoding\n- Unix, Windows, or Mac line endings\n\n### Output Format\n- Tab-separated values (TSV)\n- UTF-8 encoding (BOM-free)\n- LF line endings (Unix standard)\n- QUOTE_MINIMAL policy\n\n### Algorithms\n- Hash Algorithm: SHA-256 (NIST standard)\n- Encoding: UTF-8\n- Delimiter: Tab (U+0009)\n- Line Terminator: LF (U+000A)\n\n### Compatibility\n- Python 3.6+\n- Linux, macOS, Windows\n- Works with: `sha256sum`, `shasum`, standard Unix tools\n\n## Troubleshooting\n\n### \"File not found\" error\nEnsure the file path is correct and the file exists in the current directory.\n\n### \"Wrong number of fields\" warning\nThis indicates inconsistent column counts. Review the report to identify which rows have mismatched fields.\n\n### Checksum mismatch\nThis typically means:\n1. File was edited after standardization\n2. File was corrupted\n3. Different file being verified\n\nThis is actually good—it means the checksum verification is working!\n\n### Encoding issues\nIf you see garbled characters:\n1. Ensure source file is UTF-8 encoded\n2. Use a UTF-8 aware text editor to view/edit\n3. On Linux: `file -i filename` to check encoding\n\n## Best Practices\n\n1. **Store checksums separately**: Keep `checksums.txt` in a safe location\n2. **Document the process**: Note when standardization occurred\n3. **Version control**: Track original and standardized versions\n4. **Regular verification**: Periodically re-verify checksums\n5. **Multiple backups**: Maintain copies in different locations\n6. **Document changes**: Note any data quality issues found during standardization\n\n## Standards Compliance\n\nThis toolkit follows recommendations from:\n- NIST guidelines for file integrity verification\n- Library of Congress digital preservation standards\n- Open Archival Information System (OAIS) practices\n- RFC 4648 (base encoding data formats)\n\n## License and Attribution\n\nUse these scripts freely in your projects. Attribution appreciated but not required.\n\n## Further Reading\n\n- [NIST Cryptographic Hash Function Standards](https://csrc.nist.gov/publications/detail/fips/180/4)\n- [Library of Congress - Digital Preservation](https://www.loc.gov/preservation/digital/)\n- [OpenArchives.org - File Format Standards](https://www.openarchives.org/ore/)\n- [Python CSV Module Documentation](https://docs.python.org/3/library/csv.html)\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "inference_geo": "not_available",
+  "input_tokens": 14847,
+  "output_tokens": 2189,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}
