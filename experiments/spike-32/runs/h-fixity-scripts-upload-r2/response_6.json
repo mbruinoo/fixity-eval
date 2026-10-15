@@ -1,0 +1,45 @@
+{
+ "id": "msg_011Cg43As5NPhLHGPTQ2RtSa",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now I'll create a detailed documentation file explaining the standardization process:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_018euRVK2K57AeZzgQhRNzxW",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/STANDARDIZATION_GUIDE.md",
+    "file_text": "# TSV Standardization Guide with Fixity Verification\n\n## Overview\n\nThis package contains scripts and tools to standardize a Tab-Separated Values (TSV) file while preserving fixity through checksum verification. Fixity refers to the integrity of a digital object—ensuring it hasn't been altered or corrupted.\n\n## Files Included\n\n### 1. `standardize_tsv.py`\nThe main Python script that performs standardization and checksum verification.\n\n**Features:**\n- Parses TSV file with UTF-8 encoding\n- Normalizes whitespace and field structure\n- Validates column structure\n- Computes SHA-256 checksums for fixity verification\n- Generates detailed log file with results\n- Handles edge cases and reports issues\n\n**Usage:**\n```bash\npython3 standardize_tsv.py <input_file> [output_file] [log_file]\n```\n\n**Example:**\n```bash\npython3 standardize_tsv.py met_inventory.tsv met_inventory_standardized.tsv met_inventory_standardization.log\n```\n\n### 2. `run_standardization.sh`\nBash wrapper script that orchestrates the standardization process and checksum verification.\n\n**Features:**\n- Executes the Python standardization script\n- Computes and records SHA-256 checksums\n- Creates comprehensive checksum verification file\n- Generates file statistics\n\n**Usage:**\n```bash\nbash run_standardization.sh\n```\n\n### 3. `met_inventory.tsv`\nThe source TSV file extracted from the provided data.\n\n### 4. Output Files (generated after running standardization)\n\n#### `met_inventory_standardized.tsv`\nThe standardized output TSV file with:\n- Consistent tab delimiters\n- UTF-8 encoding\n- Trimmed whitespace on field values\n- Proper CSV escaping where needed\n\n#### `met_inventory_standardization.log`\nDetailed log file containing:\n- Source and output file checksums (SHA-256)\n- Row counts (read vs. written)\n- Column validation results\n- Any issues or warnings encountered\n- Verification instructions\n\n#### `CHECKSUMS.txt`\nComprehensive checksum record for fixity verification:\n- SHA-256 hashes for both source and output\n- File sizes and line counts\n- Commands to verify file integrity\n\n## Standardization Process\n\n### What Gets Standardized\n\n1. **Delimiter Consistency**: Ensures all fields are separated by tabs (\\\\t)\n2. **Whitespace Normalization**: Trims leading/trailing spaces from field values\n3. **Encoding**: Validates and maintains UTF-8 encoding\n4. **Column Structure**: Verifies all rows have expected columns:\n   - Object Date\n   - Title\n   - Object Number\n   - Link Resource\n5. **Escaping**: Handles quoted fields with embedded delimiters properly\n\n### What's Preserved\n\n- Original data values (content not modified)\n- Multilingual characters (CJK, Korean, special characters)\n- Intentional empty fields\n- Special characters and Unicode normalization\n\n## Fixity Verification\n\n### Understanding Checksums\n\nSHA-256 checksums are cryptographic hashes that:\n- Create a unique fingerprint for a file\n- Are deterministic (same file = same checksum)\n- Are sensitive to any change, no matter how small\n- Cannot be reversed to recover the original file\n\n### Verification Steps\n\n#### 1. After Standardization (Immediate Check)\n```bash\n# The script automatically computes and displays checksums\nsha256sum met_inventory.tsv\nsha256sum met_inventory_standardized.tsv\n```\n\nCompare these with the values in `CHECKSUMS.txt`.\n\n#### 2. Later Verification (Integrity Check)\nTo verify the files haven't been modified since standardization:\n\n```bash\n# Check source file\nsha256sum met_inventory.tsv\n# Compare with SOURCE_SHA256 in CHECKSUMS.txt\n\n# Check output file\nsha256sum met_inventory_standardized.tsv\n# Compare with OUTPUT_SHA256 in CHECKSUMS.txt\n```\n\n#### 3. Batch Verification\nCreate a checksum file for verification:\n```bash\nsha256sum met_inventory.tsv met_inventory_standardized.tsv > check.sha256\nsha256sum -c check.sha256\n```\n\n## Usage Instructions\n\n### Step 1: Prepare\nEnsure the source TSV file is in the working directory:\n```bash\nls -la met_inventory.tsv\n```\n\n### Step 2: Run Standardization\n```bash\n# Option A: Use the bash wrapper (recommended)\nbash run_standardization.sh\n\n# Option B: Run Python script directly\npython3 standardize_tsv.py met_inventory.tsv met_inventory_standardized.tsv met_inventory_standardization.log\n```\n\n### Step 3: Review Results\n```bash\n# View the standardization log\ncat met_inventory_standardization.log\n\n# View checksums\ncat CHECKSUMS.txt\n\n# Compare file sizes\nls -la met_inventory*.tsv\n```\n\n### Step 4: Verify Integrity\n```bash\n# Check if files match their checksums\nsha256sum -c CHECKSUMS.txt\n```\n\n## Technical Details\n\n### Column Structure\nThe standardized file expects exactly 4 columns:\n\n| Column | Description | Type |\n|--------|-------------|------|\n| Object Date | Date or date range | String |\n| Title | Object title/description | String |\n| Object Number | Museum catalog number | String |\n| Link Resource | URL to museum catalog entry | String |\n\n### Encoding\n- **Input**: UTF-8 (with fallback error handling)\n- **Output**: UTF-8 without BOM (Byte Order Mark)\n- **Special Characters**: Fully supported (CJK characters, diacritics, etc.)\n\n### Delimiter\n- **Source**: Tab character (\\\\t = 0x09)\n- **Output**: Tab character (\\\\t = 0x09)\n\n### Line Endings\n- **Output Format**: Unix-style (LF = \\\\n)\n\n## Troubleshooting\n\n### Issue: \"Column mismatch\" warning in log\n**Cause**: Source file header doesn't match expected columns\n**Solution**: Verify the source file has the correct header row\n\n### Issue: Checksum mismatch during verification\n**Cause**: File was modified after standardization\n**Solution**: \n1. Do not modify files before verification\n2. Re-run standardization to generate new checksums\n3. Check for file corruption\n\n### Issue: Encoding errors\n**Cause**: File contains non-UTF-8 characters\n**Solution**: \n1. Re-encode source file to UTF-8\n2. Remove or replace problematic characters\n3. Re-run standardization\n\n### Issue: Different row count\n**Cause**: Expected based on data format\n**Solution**: Check log file for details about any dropped rows\n\n## Data Quality Notes\n\n### Known Issues in Source Data\n- Some rows have empty Title fields\n- Multilingual titles (Chinese, Korean, Japanese)\n- Special characters and Unicode dashes (–) instead of ASCII hyphens (-)\n- Quoted fields with embedded quotes and special characters\n\n### Standardization Impact\n- All special characters are preserved\n- Empty fields remain empty\n- No data values are modified\n- Only formatting/structure is normalized\n\n## Security Considerations\n\n- SHA-256 is cryptographically secure for fixity verification\n- Checksums prove file integrity but not authenticity\n- For authentication, use digital signatures (GPG, etc.)\n- Store checksums separately from files for best practice\n\n## References\n\n### Standards\n- RFC 4180: Common Format and MIME Type for Comma-Separated Values (CSV) Files\n- UTF-8: Unicode Transformation Format – 8-bit (RFC 3629)\n- SHA-256: Secure Hash Algorithm 2 (FIPS 180-4)\n\n### Tools\n- `sha256sum`: GNU CoreUtils\n- `python3-csv`: Python Standard Library\n- `bash`: GNU Bash\n\n## Support\n\nFor issues or questions about this standardization process:\n1. Check the detailed log file: `met_inventory_standardization.log`\n2. Review checksums: `CHECKSUMS.txt`\n3. Compare source and output: Use diff or visual comparison tools\n4. Verify Python and bash are properly installed\n\n## Preservation Notes\n\nThis standardization workflow supports:\n- **Long-term preservation**: SHA-256 checksums for fixity\n- **Reproducibility**: Documented, scriptable process\n- **Auditability**: Detailed logs of changes\n- **Interoperability**: Standard TSV format with UTF-8 encoding\n\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 833
+  },
+  "cache_creation_input_tokens": 833,
+  "cache_read_input_tokens": 19636,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 2112,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}
