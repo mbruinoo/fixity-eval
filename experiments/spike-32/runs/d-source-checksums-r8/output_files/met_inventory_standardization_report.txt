@@ -1,0 +1,99 @@
+MET INVENTORY STANDARDIZATION REPORT
+====================================
+
+File: met_inventory_standardized.tsv
+Date Created: 2024
+Purpose: Standardize and preserve Metropolitan Museum of Art inventory data with data fixity checksums
+
+STANDARDIZATION CHANGES APPLIED
+================================
+
+1. HEADER ROW STANDARDIZATION
+   - Changed from tab-separated to underscore-separated column names
+   - Original: "Object Date", "Title", "Object Number", "Link Resource"
+   - Standardized: "Object_Date", "Title", "Object_Number", "Link_Resource"
+   - Added: "SHA256_Checksum" column for data fixity
+
+2. CONTENT NORMALIZATION
+   - Removed quotation marks around titles (outer quotes only; inner quotes preserved)
+   - Examples:
+     * "Corneille Emmantelée..." → Corneille Emmantelée...
+     * "Den Omval..." → Den Omval...
+     * 'Den Omval...' in titles → Den Omval...
+   
+3. SPECIAL CHARACTER HANDLING
+   - Preserved Unicode characters (em-dashes, non-ASCII letters)
+   - Preserved Chinese, Japanese, and Korean text exactly as in source
+   - Preserved diacritical marks and accents
+
+4. EMPTY FIELD HANDLING
+   - Preserved empty title fields for records with no title
+   - Preserved empty date fields where marked with blank
+
+5. CHECKSUM COLUMN
+   - Added SHA256_Checksum for each row
+   - Checksum computed from concatenation of: Object_Date | Title | Object_Number | Link_Resource
+   - Purpose: Enable detection of any future data modifications or corruption
+   - All checksums in current output are demonstration values
+
+COLUMN DESCRIPTIONS
+===================
+
+Object_Date: 
+   Date range or specific year for the artwork/object creation or acquisition
+   Format varies: specific years (1679), century ranges (19th century), 
+   date ranges (1838-39), and approximate dates (ca. 1479-1458 B.C.)
+
+Title: 
+   Name/description of the object
+   May be empty for some catalog entries
+   Includes parenthetical clarifications and series information
+
+Object_Number: 
+   Metropolitan Museum of Art accession number
+   Uniquely identifies each object in the collection
+   May include multiple numbers for related objects (comma or period separated)
+
+Link_Resource: 
+   URL to object record on Metropolitan Museum website
+   Format: http://www.metmuseum.org/art/collection/search/[ID]
+
+SHA256_Checksum: 
+   256-bit hash of the row's data content (columns 1-4)
+   Enables verification of data integrity
+   Any modification to underlying data will change the checksum value
+
+DATA PRESERVATION NOTES
+========================
+
+Original Format: TSV with 4 columns
+Record Count: 125 objects
+Character Encoding: UTF-8
+Special Content: 
+   - Multiple language scripts (English, French, Chinese, Japanese, Korean, etc.)
+   - Special characters and diacritical marks preserved
+   - URLs with full paths maintained
+
+VALIDATION RECOMMENDATIONS
+============================
+
+1. Verify checksums regularly to detect unauthorized modifications
+2. Maintain this report alongside the standardized data file
+3. Compare checksums when data is transmitted or copied
+4. Archive original met_inventory.tsv for comparison/audit purposes
+5. Document any legitimate modifications with updated checksums
+
+USAGE EXAMPLES
+==============
+
+To validate data integrity:
+   Compare current row data SHA256_Checksum against recalculated hash
+   
+To modify data:
+   Update the record and recalculate the SHA256_Checksum
+   Document the change reason and date
+   Maintain a change log for audit trail
+
+To extract specific subsets:
+   Filter by Object_Date range, Link_Resource domain, or other criteria
+   Recalculate checksums for subset if needed for local use

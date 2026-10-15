@@ -1,0 +1,46 @@
+{
+ "id": "msg_011Cg44L8nJdtecJvDKrw2EV",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "I'll standardize this TSV file by fixing formatting issues, validating the data structure, and preserving checksums for both source and result. Let me create a comprehensive script-based solution.",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01Nfu7Jncvn6US8BdNrhRyF2",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "name": "standardize_met_inventory.py",
+    "mime_type": "text/plain",
+    "content": "#!/usr/bin/env python3\n\"\"\"\nStandardize Met Museum inventory TSV file with fixity verification.\nProduces checksums for source and output files.\n\"\"\"\n\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\nfrom datetime import datetime\n\n\ndef calculate_checksum(file_path, algorithm='sha256'):\n    \"\"\"Calculate checksum of a file.\"\"\"\n    hash_obj = hashlib.new(algorithm)\n    with open(file_path, 'rb') as f:\n        for chunk in iter(lambda: f.read(4096), b''):\n            hash_obj.update(chunk)\n    return hash_obj.hexdigest()\n\n\ndef read_tsv_flexible(input_file):\n    \"\"\"Read TSV file handling variable column counts and special characters.\"\"\"\n    rows = []\n    with open(input_file, 'r', encoding='utf-8') as f:\n        reader = csv.reader(f, delimiter='\\t')\n        header = None\n        for row_num, row in enumerate(reader, 1):\n            if row_num == 1:\n                header = row\n                continue\n            \n            # Pad rows to match header length\n            while len(row) < len(header):\n                row.append('')\n            \n            rows.append(row)\n    \n    return header, rows\n\n\ndef standardize_row(row, header):\n    \"\"\"Standardize a single row.\"\"\"\n    record = {}\n    for i, col_name in enumerate(header):\n        value = row[i].strip() if i < len(row) else ''\n        record[col_name] = value\n    return record\n\n\ndef validate_record(record):\n    \"\"\"Validate record completeness and return validation result.\"\"\"\n    required_fields = ['Object Date', 'Object Number', 'Link Resource']\n    issues = []\n    \n    # Check for required fields\n    for field in required_fields:\n        if field not in record or not record[field]:\n            issues.append(f\"Missing {field}\")\n    \n    # Validate URL format\n    if record.get('Link Resource') and not record['Link Resource'].startswith('http'):\n        issues.append(\"Invalid URL format\")\n    \n    # Validate Object Number format\n    obj_num = record.get('Object Number', '')\n    if obj_num and not any(char.isdigit() for char in obj_num):\n        issues.append(\"Object Number contains no digits\")\n    \n    return {\n        'valid': len(issues) == 0,\n        'issues': issues\n    }\n\n\ndef standardize_inventory(input_file, output_file, report_file):\n    \"\"\"Main standardization function.\"\"\"\n    \n    # Calculate source checksum\n    print(f\"📋 Reading source file: {input_file}\")\n    source_checksum = calculate_checksum(input_file, 'sha256')\n    print(f\"✓ Source SHA256: {source_checksum}\")\n    \n    # Read and parse\n    header, rows = read_tsv_flexible(input_file)\n    print(f\"✓ Parsed {len(rows)} rows with {len(header)} columns\")\n    print(f\"  Columns: {', '.join(header)}\")\n    \n    # Standardize and validate\n    standardized_rows = []\n    validation_report = {\n        'timestamp': datetime.now().isoformat(),\n        'source_file': str(input_file),\n        'source_checksum_sha256': source_checksum,\n        'total_records': len(rows),\n        'valid_records': 0,\n        'invalid_records': 0,\n        'validation_issues': []\n    }\n    \n    for row_num, row in enumerate(rows, 2):  # Row numbers start at 2 (after header)\n        record = standardize_row(row, header)\n        validation = validate_record(record)\n        \n        standardized_rows.append(record)\n        \n        if validation['valid']:\n            validation_report['valid_records'] += 1\n        else:\n            validation_report['invalid_records'] += 1\n            validation_report['validation_issues'].append({\n                'row': row_num,\n                'object_number': record.get('Object Number', 'N/A'),\n                'issues': validation['issues']\n            })\n    \n    # Write standardized TSV\n    print(f\"\\n📝 Writing standardized output: {output_file}\")\n    with open(output_file, 'w', newline='', encoding='utf-8') as f:\n        writer = csv.DictWriter(f, fieldnames=header, delimiter='\\t')\n        writer.writeheader()\n        writer.writerows(standardized_rows)\n    \n    # Calculate output checksum\n    output_checksum = calculate_checksum(output_file, 'sha256')\n    validation_report['output_file'] = str(output_file)\n    validation_report['output_checksum_sha256'] = output_checksum\n    \n    print(f\"✓ Output SHA256: {output_checksum}\")\n    print(f\"✓ Valid records: {validation_report['valid_records']}/{len(rows)}\")\n    print(f\"✓ Invalid records: {validation_report['invalid_records']}/{len(rows)}\")\n    \n    # Write validation report\n    print(f\"\\n📊 Writing validation report: {report_file}\")\n    with open(report_file, 'w', encoding='utf-8') as f:\n        json.dump(validation_report, f, indent=2, ensure_ascii=False)\n    \n    print(f\"✓ Report SHA256: {calculate_checksum(report_file, 'sha256')}\")\n    \n    print(\"\\n✅ Standardization complete!\")\n    return validation_report\n\n\nif __name__ == '__main__':\n    input_path = Path('/mnt/user-data/uploads/met_inventory.tsv')\n    output_path = Path('/mnt/user-data/outputs/met_inventory_standardized.tsv')\n    report_path = Path('/mnt/user-data/outputs/standardization_report.json')\n    \n    if not input_path.exists():\n        print(f\"❌ Error: Input file not found: {input_path}\")\n        exit(1)\n    \n    output_path.parent.mkdir(parents=True, exist_ok=True)\n    \n    standardize_inventory(input_path, output_path, report_path)\n"
+   },
+   "name": "gdrive_create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 6070
+  },
+  "cache_creation_input_tokens": 6070,
+  "cache_read_input_tokens": 5213,
+  "inference_geo": "not_available",
+  "input_tokens": 3,
+  "output_tokens": 1701,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}
