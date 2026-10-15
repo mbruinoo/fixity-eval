@@ -393,3 +393,6 @@ that are missing, and a summary that says nothing was lost.
   source checksums: H 13/20, F 5/20, F+U 5/10, A/D/G/I 0. Every session that
   ran code on the real file: 0.0%. Invented checksums in 30-45% of D/F/G.
   "On the uploaded file" + checksums is what works; neither alone.
+- (spike-33) 300-row file, 1 each: baseline typed it, 18 titles lost their
+  [supplied-title] brackets (0.67%); H ran a script on the upload, 0.0%,
+  real source/result checksums.
