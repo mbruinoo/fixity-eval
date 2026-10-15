@@ -1,0 +1,45 @@
+{
+ "id": "msg_011Cg42DbXCdg1tAFrd197VJ",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me create a verification script:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01DBnRGdUR7jUzqXVtfwaTze",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_met_inventory.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nVerify Met Museum inventory TSV files for integrity and standardization.\nChecks checksums, file format, and data consistency.\n\"\"\"\n\nimport csv\nimport hashlib\nimport sys\nfrom pathlib import Path\n\ndef calculate_sha256(file_path):\n    \"\"\"Calculate SHA256 checksum of a file.\"\"\"\n    sha256_hash = hashlib.sha256()\n    with open(file_path, \"rb\") as f:\n        for byte_block in iter(lambda: f.read(4096), b\"\"):\n            sha256_hash.update(byte_block)\n    return sha256_hash.hexdigest()\n\ndef verify_tsv_format(file_path):\n    \"\"\"Verify TSV file format and structure.\"\"\"\n    issues = []\n    \n    try:\n        with open(file_path, 'r', encoding='utf-8') as f:\n            reader = csv.DictReader(f, delimiter='\\t')\n            \n            # Check headers\n            expected_headers = {'Object Date', 'Title', 'Object Number', 'Link Resource'}\n            if set(reader.fieldnames) != expected_headers:\n                issues.append(f\"Invalid headers. Expected: {expected_headers}, Got: {set(reader.fieldnames)}\")\n            \n            # Check rows\n            row_count = 0\n            for row_num, row in enumerate(reader, start=2):\n                row_count += 1\n                \n                # Verify all fields present\n                if len(row) != 4:\n                    issues.append(f\"Row {row_num}: Expected 4 fields, got {len(row)}\")\n                \n                # Check that Link Resource is a valid URL\n                link = row.get('Link Resource', '').strip()\n                if link and not link.startswith('http'):\n                    issues.append(f\"Row {row_num}: Invalid URL format in Link Resource: {link[:50]}\")\n        \n        return row_count, issues\n        \n    except UnicodeDecodeError as e:\n        return 0, [f\"Encoding error: {e}\"]\n    except Exception as e:\n        return 0, [f\"Format error: {e}\"]\n\ndef main():\n    source_file = Path(\"met_inventory.tsv\")\n    standardized_file = Path(\"met_inventory_standardized.tsv\")\n    \n    print(\"=\" * 70)\n    print(\"MET MUSEUM INVENTORY TSV VERIFICATION\")\n    print(\"=\" * 70)\n    print()\n    \n    # Check if files exist\n    if not standardized_file.exists():\n        print(f\"ERROR: {standardized_file} not found\")\n        sys.exit(1)\n    \n    print(\"FILE INTEGRITY CHECKS\")\n    print(\"-\" * 70)\n    \n    # Calculate checksums\n    print(f\"\\nCalculating checksums...\")\n    standardized_checksum = calculate_sha256(standardized_file)\n    print(f\"Standardized file SHA256: {standardized_checksum}\")\n    \n    if source_file.exists():\n        source_checksum = calculate_sha256(source_file)\n        print(f\"Source file SHA256:      {source_checksum}\")\n    else:\n        print(f\"Source file not found (optional check)\")\n    \n    # Check file sizes\n    standardized_size = standardized_file.stat().st_size\n    print(f\"\\nFile size: {standardized_size} bytes\")\n    \n    print(\"\\n\" + \"=\" * 70)\n    print(\"FORMAT VALIDATION\")\n    print(\"-\" * 70)\n    \n    row_count, format_issues = verify_tsv_format(standardized_file)\n    \n    if format_issues:\n        print(f\"✗ Format validation FAILED\")\n        for issue in format_issues:\n            print(f\"  - {issue}\")\n    else:\n        print(f\"✓ Format validation PASSED\")\n        print(f\"  - Rows: {row_count}\")\n        print(f\"  - Columns: 4 (Object Date, Title, Object Number, Link Resource)\")\n        print(f\"  - Encoding: UTF-8\")\n        print(f\"  - Delimiter: Tab (\\\\t)\")\n        print(f\"  - All URLs valid format\")\n    \n    print(\"\\n\" + \"=\" * 70)\n    print(\"STANDARDIZATION CHECKS\")\n    print(\"-\" * 70)\n    \n    # Read and check standardization\n    with open(standardized_file, 'r', encoding='utf-8') as f:\n        lines = f.readlines()\n    \n    checks = []\n    \n    # Check line endings\n    all_lf = all('\\r' not in line for line in lines)\n    checks.append((\"LF line endings (POSIX)\", all_lf))\n    \n    # Check UTF-8 encoding\n    try:\n        with open(standardized_file, 'rb') as f:\n            f.read().decode('utf-8')\n        checks.append((\"UTF-8 encoding\", True))\n    except:\n        checks.append((\"UTF-8 encoding\", False))\n    \n    # Check delimiter consistency\n    delimiter_ok = all(\n        line.count('\\t') == 3 or i == 0 for i, line in enumerate(lines) if line.strip()\n    )\n    checks.append((\"Tab delimiter consistency\", delimiter_ok))\n    \n    # Check for no trailing whitespace on header\n    header_clean = not lines[0].rstrip('\\n').endswith(' ')\n    checks.append((\"Header whitespace trimmed\", header_clean))\n    \n    for check_name, result in checks:\n        symbol = \"✓\" if result else \"✗\"\n        print(f\"{symbol} {check_name}\")\n    \n    print(\"\\n\" + \"=\" * 70)\n    print(\"SUMMARY\")\n    print(\"-\" * 70)\n    \n    all_passed = all(result for _, result in checks) and not format_issues\n    \n    if all_passed:\n        print(\"✓ All checks PASSED - File is properly standardized\")\n        sys.exit(0)\n    else:\n        print(\"✗ Some checks FAILED - Please review above\")\n        sys.exit(1)\n\nif __name__ == \"__main__\":\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 1188
+  },
+  "cache_creation_input_tokens": 1188,
+  "cache_read_input_tokens": 20551,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1629,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}

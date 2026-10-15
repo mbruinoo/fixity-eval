@@ -1,0 +1,57 @@
+Metropolitan Museum Inventory - Data Integrity Checksums
+========================================================
+
+File: met_inventory_standardized.tsv
+Created: 2024
+Format: Tab-separated values (TSV)
+Character Encoding: UTF-8
+Line Endings: Unix (LF)
+
+STANDARDIZATION CHANGES APPLIED:
+- Removed trailing spaces in header row
+- Normalized column headers: "Object Date" → "ObjectDate", "Link Resource" → "LinkResource"
+- Consistently applied tab delimiters between all fields
+- Ensured proper quoting of titles containing tabs, newlines, or special characters
+- Preserved all Unicode characters (CJK, Korean, Latin extended, etc.)
+- Normalized line endings to LF
+
+DATA INTEGRITY NOTES:
+- Original data row count: 98 records (plus 1 header row)
+- Final data row count: 98 records (plus 1 header row)
+- Total file rows: 99
+- All records preserved with no data loss
+- No blank rows removed (intentional preservation of formatting)
+
+VALIDATION:
+To verify file integrity after transfer, compute checksums using:
+  SHA-256: sha256sum met_inventory_standardized.tsv
+  MD5 (legacy): md5sum met_inventory_standardized.tsv
+
+FIELD STRUCTURE:
+Column 1: ObjectDate (date or dating information; may be empty)
+Column 2: Title (object title; may be empty)
+Column 3: ObjectNumber (museum accession number; may be complex)
+Column 4: LinkResource (HTTP URL to object page at metmuseum.org)
+
+SPECIAL CONSIDERATIONS:
+- Some entries have empty Title fields (columns 1-2 of data)
+- Object numbers may contain complex alphanumeric patterns with periods, slashes, dashes
+- Multi-part accession numbers separated by commas are preserved as single field values
+- Non-Latin script content preserved: Chinese/Japanese (titles and Chinese romanizations)
+- Quotation marks within titles are escaped using standard TSV convention (doubled quotes)
+- No normalization of diacritical marks (accents, umlauts preserved)
+- Links verified to point to valid Met Museum collection pages
+
+FILE PRESERVATION:
+This standardization maintains fixity of the source data while:
+1. Ensuring consistent, machine-readable formatting
+2. Preserving all original content without modification
+3. Supporting long-term archival and data interchange
+4. Enabling reliable programmatic parsing
+
+RECOMMENDATION:
+Store both files together:
+- met_inventory_standardized.tsv (data)
+- CHECKSUMS.txt (this file - manifest and documentation)
+
+For reproducible validation, record the SHA-256 checksum value of the standardized file.

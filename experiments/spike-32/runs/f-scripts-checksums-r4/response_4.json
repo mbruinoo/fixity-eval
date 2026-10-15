@@ -1,0 +1,45 @@
+{
+ "id": "msg_011Cg42F5sos1tJjK83qYAJL",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me create a verification script:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_0127jVw26f9Yb1BFyv8kA3Mj",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_integrity.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nIntegrity Verification Script\n- Validates checksums against report\n- Compares source and standardized files\n- Generates detailed comparison report\n\"\"\"\n\nimport hashlib\nimport json\nimport csv\nfrom pathlib import Path\nfrom typing import Dict, List\n\n\ndef calculate_sha256(filepath: str) -> str:\n    \"\"\"Calculate SHA-256 checksum.\"\"\"\n    sha256_hash = hashlib.sha256()\n    with open(filepath, \"rb\") as f:\n        for byte_block in iter(lambda: f.read(4096), b\"\"):\n            sha256_hash.update(byte_block)\n    return sha256_hash.hexdigest()\n\n\ndef read_tsv(filepath: str) -> List[Dict]:\n    \"\"\"Read TSV file.\"\"\"\n    records = []\n    with open(filepath, 'r', encoding='utf-8') as f:\n        reader = csv.DictReader(f, delimiter='\\t')\n        for row in reader:\n            records.append(row)\n    return records\n\n\ndef verify_checksums():\n    \"\"\"Verify file checksums against report.\"\"\"\n    report_path = '/mnt/user-data/outputs/standardization_report.json'\n    \n    with open(report_path, 'r') as f:\n        report = json.load(f)\n    \n    source_file = report['source_file']['path']\n    output_file = report['output_file']['path']\n    \n    print(\"CHECKSUM VERIFICATION\")\n    print(\"=\" * 70)\n    print()\n    \n    # Verify source\n    print(\"Source File Verification:\")\n    reported_source_sha = report['source_file']['sha256_checksum']\n    actual_source_sha = calculate_sha256(source_file)\n    match = \"✓ MATCH\" if reported_source_sha == actual_source_sha else \"✗ MISMATCH\"\n    print(f\"  Reported: {reported_source_sha}\")\n    print(f\"  Actual:   {actual_source_sha}\")\n    print(f\"  {match}\")\n    print()\n    \n    # Verify output\n    print(\"Output File Verification:\")\n    reported_output_sha = report['output_file']['sha256_checksum']\n    actual_output_sha = calculate_sha256(output_file)\n    match = \"✓ MATCH\" if reported_output_sha == actual_output_sha else \"✗ MISMATCH\"\n    print(f\"  Reported: {reported_output_sha}\")\n    print(f\"  Actual:   {actual_output_sha}\")\n    print(f\"  {match}\")\n    print()\n\n\ndef compare_files():\n    \"\"\"Compare source and standardized files.\"\"\"\n    source_file = '/mnt/user-data/outputs/met_inventory_source.tsv'\n    output_file = '/mnt/user-data/outputs/met_inventory_standardized.tsv'\n    \n    source_records = read_tsv(source_file)\n    output_records = read_tsv(output_file)\n    \n    print(\"RECORD COUNT COMPARISON\")\n    print(\"=\" * 70)\n    print(f\"  Source records: {len(source_records)}\")\n    print(f\"  Output records: {len(output_records)}\")\n    print(f\"  Match: {'✓ YES' if len(source_records) == len(output_records) else '✗ NO'}\")\n    print()\n    \n    print(\"FIELD STRUCTURE COMPARISON\")\n    print(\"=\" * 70)\n    \n    source_fields = set(source_records[0].keys()) if source_records else set()\n    output_fields = set(output_records[0].keys()) if output_records else set()\n    \n    print(f\"  Source fields: {sorted(source_fields)}\")\n    print(f\"  Output fields: {sorted(output_fields)}\")\n    print()\n    \n    # Check for data preservation\n    print(\"DATA PRESERVATION CHECK\")\n    print(\"=\" * 70)\n    \n    object_numbers_source = {r.get('Object Number', '').strip() for r in source_records}\n    object_numbers_output = {r.get('object_number', '').strip() for r in output_records}\n    \n    missing_in_output = object_numbers_source - object_numbers_output\n    added_in_output = object_numbers_output - object_numbers_source\n    \n    if missing_in_output:\n        print(f\"  ✗ Missing in output: {len(missing_in_output)} objects\")\n        for obj_num in sorted(list(missing_in_output))[:5]:\n            print(f\"    - {obj_num}\")\n        if len(missing_in_output) > 5:\n            print(f\"    ... and {len(missing_in_output) - 5} more\")\n    else:\n        print(f\"  ✓ All source objects preserved in output\")\n    \n    if added_in_output:\n        print(f\"  ✗ Added in output: {len(added_in_output)} objects\")\n    else:\n        print(f\"  ✓ No spurious objects added\")\n    \n    print()\n\n\ndef main():\n    print()\n    print(\"▓\" * 70)\n    print(\"MET MUSEUM INVENTORY INTEGRITY VERIFICATION\")\n    print(\"▓\" * 70)\n    print()\n    \n    verify_checksums()\n    compare_files()\n    \n    print(\"=\" * 70)\n    print(\"VERIFICATION COMPLETE\")\n    print(\"=\" * 70)\n\n\nif __name__ == \"__main__\":\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 1205
+  },
+  "cache_creation_input_tokens": 1205,
+  "cache_read_input_tokens": 13790,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1474,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}

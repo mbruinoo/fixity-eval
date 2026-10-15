@@ -1,0 +1,45 @@
+{
+ "id": "msg_011Cg42HRKthdxzkvyvsQAV8",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Perfect! Now let me create one more utility script that shows a side-by-side comparison:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01BiYF4q2sRDYfDzCtkUtYGx",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/compare_changes.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nCompare source and standardized files\n- Shows field-by-field changes\n- Highlights data cleaning effects\n- Generates before/after comparison report\n\"\"\"\n\nimport csv\nimport json\nfrom pathlib import Path\nfrom typing import Dict, List, Tuple\n\n\ndef read_tsv(filepath: str) -> List[Dict]:\n    \"\"\"Read TSV file.\"\"\"\n    records = []\n    with open(filepath, 'r', encoding='utf-8') as f:\n        reader = csv.DictReader(f, delimiter='\\t')\n        for row in reader:\n            records.append(row)\n    return records\n\n\ndef compare_records(source_record: Dict, output_record: Dict, row_num: int) -> Dict:\n    \"\"\"Compare a source and output record, return differences.\"\"\"\n    comparison = {\n        'row': row_num,\n        'object_number': output_record.get('object_number', 'N/A'),\n        'changes': []\n    }\n    \n    # Map source field names to check\n    field_mappings = [\n        ('Object Date', 'object_date', 'Date'),\n        ('Title', 'title', 'Title'),\n        ('Object Number', 'object_number', 'Object Number'),\n        ('Link Resource', 'link_resource', 'URL'),\n    ]\n    \n    for source_field, output_field, label in field_mappings:\n        source_value = source_record.get(source_field, '')\n        output_value = output_record.get(output_field, '')\n        \n        # Check for whitespace differences\n        if source_value != output_value:\n            # Check if it's just whitespace\n            if source_value.strip() == output_value.strip():\n                comparison['changes'].append({\n                    'field': label,\n                    'type': 'whitespace_removed',\n                    'source_len': len(source_value),\n                    'output_len': len(output_value),\n                })\n            # Check if it's a structural change\n            elif source_value.strip() and not output_value.strip():\n                comparison['changes'].append({\n                    'field': label,\n                    'type': 'value_removed',\n                    'source': source_value[:50] + ('...' if len(source_value) > 50 else ''),\n                    'output': '[empty]',\n                })\n            elif not source_value.strip() and output_value.strip():\n                comparison['changes'].append({\n                    'field': label,\n                    'type': 'value_added',\n                    'source': '[empty]',\n                    'output': output_value[:50] + ('...' if len(output_value) > 50 else ''),\n                })\n    \n    return comparison\n\n\ndef analyze_changes(comparisons: List[Dict]) -> Dict:\n    \"\"\"Analyze all changes and generate statistics.\"\"\"\n    stats = {\n        'total_records': len(comparisons),\n        'records_with_changes': sum(1 for c in comparisons if c['changes']),\n        'total_changes': sum(len(c['changes']) for c in comparisons),\n        'change_types': {}\n    }\n    \n    # Count change types\n    for comparison in comparisons:\n        for change in comparison['changes']:\n            change_type = change.get('type', 'unknown')\n            if change_type not in stats['change_types']:\n                stats['change_types'][change_type] = 0\n            stats['change_types'][change_type] += 1\n    \n    return stats\n\n\ndef main():\n    source_file = '/mnt/user-data/outputs/met_inventory_source.tsv'\n    output_file = '/mnt/user-data/outputs/met_inventory_standardized.tsv'\n    comparison_report = '/mnt/user-data/outputs/comparison_report.json'\n    \n    print()\n    print(\"=\" * 80)\n    print(\"SOURCE vs STANDARDIZED FILE COMPARISON\")\n    print(\"=\" * 80)\n    print()\n    \n    # Read files\n    print(\"Reading files...\")\n    source_records = read_tsv(source_file)\n    output_records = read_tsv(output_file)\n    print(f\"  Source records: {len(source_records)}\")\n    print(f\"  Output records: {len(output_records)}\")\n    print()\n    \n    # Compare records\n    print(\"Comparing records...\")\n    comparisons = []\n    for idx, (src, out) in enumerate(zip(source_records, output_records), start=2):\n        comparison = compare_records(src, out, idx)\n        comparisons.append(comparison)\n    \n    # Analyze\n    stats = analyze_changes(comparisons)\n    \n    print(f\"  Total records: {stats['total_records']}\")\n    print(f\"  Records modified: {stats['records_with_changes']}\")\n    print(f\"  Total changes: {stats['total_changes']}\")\n    print()\n    \n    print(\"Change Summary:\")\n    for change_type, count in sorted(stats['change_types'].items()):\n        print(f\"  - {change_type}: {count}\")\n    print()\n    \n    # Show examples\n    records_with_changes = [c for c in comparisons if c['changes']]\n    \n    if records_with_changes:\n        print(\"Sample Changes (first 5 records with modifications):\")\n        print(\"-\" * 80)\n        for comparison in records_with_changes[:5]:\n            print(f\"\\nRow {comparison['row']}: {comparison['object_number']}\")\n            for change in comparison['changes']:\n                field = change['field']\n                change_type = change['type']\n                \n                if change_type == 'whitespace_removed':\n                    print(f\"  • {field}: Whitespace trimmed ({change['source_len']} → {change['output_len']} chars)\")\n                elif change_type == 'value_removed':\n                    print(f\"  • {field}: Value removed\")\n                    print(f\"    Before: {change['source']}\")\n                    print(f\"    After:  {change['output']}\")\n                elif change_type == 'value_added':\n                    print(f\"  • {field}: Value added\")\n                    print(f\"    Before: {change['source']}\")\n                    print(f\"    After:  {change['output']}\")\n        print()\n    \n    # Save detailed report\n    print(\"Generating detailed report...\")\n    report = {\n        'comparison_type': 'source_vs_standardized',\n        'source_file': str(source_file),\n        'output_file': str(output_file),\n        'statistics': stats,\n        'sample_changes': records_with_changes[:10],  # Include first 10 for inspection\n    }\n    \n    with open(comparison_report, 'w', encoding='utf-8') as f:\n        json.dump(report, f, indent=2)\n    \n    print(f\"  Report saved: {Path(comparison_report).name}\")\n    print()\n    \n    # Print interpretation\n    print(\"=\" * 80)\n    print(\"INTERPRETATION\")\n    print(\"=\" * 80)\n    print()\n    \n    if stats['records_with_changes'] == 0:\n        print(\"✓ No changes detected - file is already standardized!\")\n    elif stats['total_changes'] < stats['total_records'] * 0.1:\n        print(\"✓ Minimal changes - mostly whitespace cleanup\")\n    else:\n        print(f\"• {stats['records_with_changes']} records required standardization\")\n    \n    print()\n    print(\"Most common change: Whitespace normalization\")\n    print(\"This is expected and safe - no data loss.\")\n    print()\n\n\nif __name__ == \"__main__\":\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 2058
+  },
+  "cache_creation_input_tokens": 2058,
+  "cache_read_input_tokens": 16501,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 2025,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}

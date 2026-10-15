@@ -1,0 +1,45 @@
+{
+ "id": "msg_011Cg42CyWWYArt1aaVpY5FH",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me create a detailed verification script that demonstrates the checksum process:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01YWZCANBphBScHHbjbB9zP6",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_integrity.sh",
+    "file_text": "#!/bin/bash\n\n################################################################################\n# TSV File Integrity Verification Script\n# \n# Usage: ./verify_integrity.sh [source_file] [standardized_file]\n# Example: ./verify_integrity.sh met_inventory.tsv met_inventory_standardized.tsv\n#\n# This script calculates SHA256 checksums for both files and generates\n# an integrity verification report.\n################################################################################\n\nset -e  # Exit on error\n\n# Color codes for output\nGREEN='\\033[0;32m'\nRED='\\033[0;31m'\nYELLOW='\\033[1;33m'\nBLUE='\\033[0;34m'\nNC='\\033[0m' # No Color\n\n# Default file names\nSOURCE_FILE=\"${1:-met_inventory.tsv}\"\nSTANDARDIZED_FILE=\"${2:-met_inventory_standardized.tsv}\"\nREPORT_FILE=\"integrity_checksums.txt\"\n\necho \"\"\necho -e \"${BLUE}=================================================================================${NC}\"\necho -e \"${BLUE}TSV FILE INTEGRITY VERIFICATION${NC}\"\necho -e \"${BLUE}=================================================================================${NC}\"\necho \"\"\n\n# Check if source file exists\nif [ ! -f \"$SOURCE_FILE\" ]; then\n    echo -e \"${RED}Error: Source file '$SOURCE_FILE' not found${NC}\"\n    exit 1\nfi\n\n# Check if standardized file exists\nif [ ! -f \"$STANDARDIZED_FILE\" ]; then\n    echo -e \"${RED}Error: Standardized file '$STANDARDIZED_FILE' not found${NC}\"\n    exit 1\nfi\n\necho -e \"${YELLOW}Processing files...${NC}\"\necho \"\"\n\n# Calculate checksums\necho \"Calculating SHA256 checksums...\"\n\nSOURCE_CHECKSUM=$(sha256sum \"$SOURCE_FILE\" | awk '{print $1}')\nSTANDARDIZED_CHECKSUM=$(sha256sum \"$STANDARDIZED_FILE\" | awk '{print $1}')\n\n# Get file sizes\nSOURCE_SIZE=$(wc -c < \"$SOURCE_FILE\")\nSTANDARDIZED_SIZE=$(wc -c < \"$STANDARDIZED_FILE\")\n\n# Get line counts\nSOURCE_LINES=$(wc -l < \"$SOURCE_FILE\")\nSTANDARDIZED_LINES=$(wc -l < \"$STANDARDIZED_FILE\")\n\n# Get creation dates (if available)\nSOURCE_DATE=$(stat -f %Sm -t \"%Y-%m-%d %H:%M:%S\" \"$SOURCE_FILE\" 2>/dev/null || date)\nSTANDARDIZED_DATE=$(stat -f %Sm -t \"%Y-%m-%d %H:%M:%S\" \"$STANDARDIZED_FILE\" 2>/dev/null || date)\n\n# Generate report\ncat > \"$REPORT_FILE\" << EOF\n================================================================================\nTSV INTEGRITY VERIFICATION REPORT\nGenerated: $(date)\n================================================================================\n\nSOURCE FILE\n-----------\nName:          $SOURCE_FILE\nSize:          $SOURCE_SIZE bytes\nLines:         $SOURCE_LINES\nModified:      $SOURCE_DATE\nChecksum:      $SOURCE_CHECKSUM\nAlgorithm:     SHA256\n\nSTANDARDIZED FILE\n-----------------\nName:          $STANDARDIZED_FILE\nSize:          $STANDARDIZED_SIZE bytes\nLines:         $STANDARDIZED_LINES\nModified:      $STANDARDIZED_DATE\nChecksum:      $STANDARDIZED_CHECKSUM\nAlgorithm:     SHA256\n\nFILE COMPARISON\n---------------\nSize Difference:  $((STANDARDIZED_SIZE - SOURCE_SIZE)) bytes\nLine Difference:  $((STANDARDIZED_LINES - SOURCE_LINES)) lines\n\nCHECKSUM VERIFICATION\n---------------------\n\nTo verify these files in the future, use:\n  sha256sum -c << EOF\n$SOURCE_CHECKSUM  $SOURCE_FILE\n$STANDARDIZED_CHECKSUM  $STANDARDIZED_FILE\nEOF\n\nOr verify individual files:\n  sha256sum $SOURCE_FILE\n  sha256sum $STANDARDIZED_FILE\n\nINTEGRITY STATUS\n----------------\nSource File:       ✓ Checksummed\nStandardized File: ✓ Checksummed\nVerification Ready: ✓ Yes\n\nIf these checksums are stored in a secure location, they can be used to:\n  - Detect accidental data corruption\n  - Verify successful file transfer\n  - Confirm file authenticity\n  - Track version changes over time\n\n================================================================================\nEOF\n\n# Display results\necho \"\"\necho -e \"${GREEN}✓ Checksum Calculation Complete${NC}\"\necho \"\"\necho -e \"${BLUE}SOURCE FILE: $SOURCE_FILE${NC}\"\necho \"  Size:  $SOURCE_SIZE bytes\"\necho \"  Lines: $SOURCE_LINES\"\necho -e \"  SHA256: ${YELLOW}$SOURCE_CHECKSUM${NC}\"\necho \"\"\necho -e \"${BLUE}STANDARDIZED FILE: $STANDARDIZED_FILE${NC}\"\necho \"  Size:  $STANDARDIZED_SIZE bytes\"\necho \"  Lines: $STANDARDIZED_LINES\"\necho -e \"  SHA256: ${YELLOW}$STANDARDIZED_CHECKSUM${NC}\"\necho \"\"\necho -e \"${GREEN}✓ Report saved to: $REPORT_FILE${NC}\"\necho \"\"\n\n# Show if files are identical\nif [ \"$SOURCE_CHECKSUM\" = \"$STANDARDIZED_CHECKSUM\" ]; then\n    echo -e \"${GREEN}✓ CHECKSUMS MATCH - Files are identical${NC}\"\nelse\n    echo -e \"${YELLOW}⚠ CHECKSUMS DIFFER - Files have differences${NC}\"\n    echo \"  This is expected if standardization made changes\"\n    echo \"\"\n    echo \"  To see differences, use:\"\n    echo \"    diff $SOURCE_FILE $STANDARDIZED_FILE\"\n    echo \"    wc -l $SOURCE_FILE $STANDARDIZED_FILE\"\nfi\n\necho \"\"\necho -e \"${BLUE}=================================================================================${NC}\"\necho \"\"\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 1626
+  },
+  "cache_creation_input_tokens": 1626,
+  "cache_read_input_tokens": 22344,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1496,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}
