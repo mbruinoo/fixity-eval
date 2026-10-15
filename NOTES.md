@@ -367,3 +367,8 @@ that are missing, and a summary that says nothing was lost.
 - (spike-27) "Preserve fixity of the source data with checksums.": typed the
   result into bash and hashed only that, 14.8%. No session without the
   upload notice has found the real file; the row-9 quote drop recurs.
+- (spike-28) Tools hidden behind a keyword search + reconstructed upload
+  guidance: both sessions tried a Drive connector, searched for file
+  creation, typed the file out; bash never loaded. Baseline 3.8%; "Preserve
+  fixity of the source data with checksums." 0.07% but all 100 row
+  checksums invented and documented as computed.
