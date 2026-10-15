@@ -4,10 +4,8 @@ TSV Standardization Script with Fixity Checking
 Standardizes a TSV file and calculates checksums for both source and result
 """
 
-import csv
 import hashlib
 import os
-from pathlib import Path
 
 
 def calculate_checksums(file_path):
@@ -27,7 +25,7 @@ def standardize_tsv(input_path, output_path):
     """
     Standardize a TSV file:
     - Ensures proper tab delimiters
-    - Normalizes empty fields
+    - Normalizes line endings (LF)
     - Preserves all data
     - Uses UTF-8 encoding
     """
@@ -51,24 +49,24 @@ def standardize_tsv(input_path, output_path):
     row_count = 0
     
     with open(input_path, 'r', encoding='utf-8') as infile:
-        # Read with tab delimiter, allowing empty fields
-        reader = csv.reader(infile, delimiter='\t', quoting=csv.QUOTE_NONE, 
-                           escapechar=None, doublequote=False)
-        for row in reader:
+        for line in infile:
+            # Remove line ending and split by tabs
+            line = line.rstrip('\r\n')
+            fields = line.split('\t')
+            
             # Ensure 4 columns (pad with empty strings if needed)
-            while len(row) < 4:
-                row.append('')
+            while len(fields) < 4:
+                fields.append('')
             # Trim to 4 columns if extra
-            row = row[:4]
-            rows.append(row)
+            fields = fields[:4]
+            rows.append(fields)
             row_count += 1
     
     # Write standardized version
     print(f"Writing standardized file to: {output_path}")
     with open(output_path, 'w', encoding='utf-8', newline='') as outfile:
-        writer = csv.writer(outfile, delimiter='\t', quoting=csv.QUOTE_NONE,
-                           escapechar='', doublequote=False, lineterminator='\n')
-        writer.writerows(rows)
+        for fields in rows:
+            outfile.write('\t'.join(fields) + '\n')
     
     # Calculate result checksums
     print("\nCalculating output file checksums...")
@@ -85,7 +83,8 @@ def standardize_tsv(input_path, output_path):
     print("FIXITY REPORT")
     print("=" * 70)
     print(f"Rows processed: {row_count}")
-    print(f"Columns per row: 4 (Object Date, Title, Object Number, Link Resource)")
+    print(f"Columns per row: 4")
+    print(f"Column headers: Object Date | Title | Object Number | Link Resource")
     print(f"\nSource file:   {input_path}")
     print(f"  Size:   {source_size} bytes")
     print(f"  MD5:    {source_md5}")

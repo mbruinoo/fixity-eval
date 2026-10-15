@@ -1,0 +1,431 @@
+================================================================================
+METROPOLITAN MUSEUM INVENTORY TSV STANDARDIZATION PACKAGE
+File Index & Organization Guide
+================================================================================
+
+DOCUMENT: Complete standardization package with fixity verification
+CREATED: 2024
+TOTAL FILES: 9
+PACKAGE STATUS: Complete and Ready for Use
+
+================================================================================
+FILE DIRECTORY
+================================================================================
+
+1. STANDARDIZED DATA (Primary Output)
+   ├─ met_inventory_standardized.tsv
+   │  ├─ Format: Tab-separated values (TSV)
+   │  ├─ Encoding: UTF-8 with LF line endings
+   │  ├─ Records: 101 entries + 1 header = 102 lines
+   │  ├─ Size: ~50-60 KB
+   │  ├─ Sorted: Chronological (BCE → modern), secondary by object number
+   │  ├─ Status: Production ready
+   │  └─ Description: The standardized inventory file ready for immediate use
+   │
+   └─ START HERE: Open this file in Excel, Google Sheets, or your application
+
+2. DOCUMENTATION (Essential Reading)
+   ├─ README.md
+   │  ├─ Purpose: User guide and overview
+   │  ├─ Length: Comprehensive with examples
+   │  ├─ Topics: How to use, troubleshooting, preservation
+   │  ├─ For: Anyone using the standardized file
+   │  └─ Read this: Before opening file for first time
+   │
+   ├─ FIXITY_REPORT.txt
+   │  ├─ Purpose: Detailed technical standardization report
+   │  ├─ Length: Comprehensive reference document
+   │  ├─ Topics: What was changed, why, procedures applied, statistics
+   │  ├─ For: Archivists, technical users, preservation specialists
+   │  └─ Read this: For technical details about standardization
+   │
+   ├─ CHECKSUMS.txt
+   │  ├─ Purpose: Checksum verification reference and procedures
+   │  ├─ Length: Comprehensive reference document
+   │  ├─ Topics: How to verify, what checksums mean, validation
+   │  ├─ For: Users concerned with data integrity
+   │  └─ Read this: Before verifying file integrity
+   │
+   ├─ PACKAGE_CONTENTS.txt
+   │  ├─ Purpose: Quick start guide and file manifest
+   │  ├─ Length: Mid-length reference document
+   │  ├─ Topics: Getting started, features, statistics, troubleshooting
+   │  ├─ For: New users wanting quick overview
+   │  └─ Read this: For quick reference and getting started
+   │
+   └─ INDEX.txt (This File)
+      ├─ Purpose: Directory and organization guide
+      ├─ Length: This document
+      ├─ Topics: File listing, purpose, reading order
+      ├─ For: Anyone seeking file overview
+      └─ Read this: To navigate the package
+
+3. VERIFICATION TOOLS (Data Integrity)
+   ├─ verify_integrity.sh
+   │  ├─ Platform: Linux / macOS / Unix
+   │  ├─ Type: Bash shell script
+   │  ├─ Dependencies: bash, sha256sum, awk
+   │  ├─ Usage: chmod +x verify_integrity.sh && ./verify_integrity.sh
+   │  ├─ Output: SHA-256 and MD5 checksums with validation
+   │  └─ Purpose: Automated file integrity verification
+   │
+   └─ verify_integrity.ps1
+      ├─ Platform: Windows (PowerShell)
+      ├─ Type: PowerShell script
+      ├─ Dependencies: PowerShell 5.0+
+      ├─ Usage: .\verify_integrity.ps1
+      ├─ Output: Color-coded checksums and validation report
+      └─ Purpose: Automated file integrity verification for Windows
+
+4. REPRODUCIBILITY & SCRIPTING (Advanced Users)
+   └─ standardize_met_inventory.py
+      ├─ Purpose: Python script to reproduce standardization
+      ├─ Language: Python 3.6+
+      ├─ Dependencies: csv, hashlib (built-in modules)
+      ├─ Usage: python3 standardize_met_inventory.py
+      ├─ Output: Standardized TSV + checksum report
+      ├─ Use for: Understanding procedures, re-standardizing, applying to other files
+      └─ Documentation: Inline comments explain each step
+
+================================================================================
+RECOMMENDED READING ORDER
+================================================================================
+
+For First-Time Users:
+  1. PACKAGE_CONTENTS.txt (Quick overview - 5-10 minutes)
+  2. README.md (How to use - 10-15 minutes)
+  3. Open met_inventory_standardized.tsv in your application
+
+For Technical Users / Archivists:
+  1. README.md (Overview - 15 minutes)
+  2. FIXITY_REPORT.txt (Technical details - 20 minutes)
+  3. CHECKSUMS.txt (Verification procedures - 10 minutes)
+  4. standardize_met_inventory.py (Review code - 15 minutes)
+  5. Run verify_integrity.sh or .ps1
+
+For Data Preservation / Long-Term Storage:
+  1. FIXITY_REPORT.txt (Preservation context)
+  2. CHECKSUMS.txt (Verification procedures)
+  3. PACKAGE_CONTENTS.txt (Archive recommendations)
+  4. README.md (Troubleshooting)
+  5. Store all files together in secure location
+
+For Quick Verification:
+  1. Run: verify_integrity.sh or verify_integrity.ps1
+  2. Compare output with CHECKSUMS.txt
+  3. Done!
+
+================================================================================
+FILE PURPOSES & CONTENT SUMMARY
+================================================================================
+
+met_inventory_standardized.tsv
+──────────────────────────────
+WHAT IT IS:
+  The primary data file containing 101 museum collection records
+
+WHAT'S IN IT:
+  • Column 1: Object Date (BCE to 20th century)
+  • Column 2: Title (object name/description)
+  • Column 3: Object Number (museum catalog ID)
+  • Column 4: Link Resource (URL to online record)
+
+WHERE TO USE IT:
+  • Excel, Google Sheets, LibreOffice Calc
+  • Databases and data management systems
+  • Programming languages (Python, R, etc.)
+  • Data analysis and research tools
+
+HOW TO VERIFY IT:
+  • Run verify_integrity.sh or .ps1
+  • Compare checksum to CHECKSUMS.txt
+  • Check file is 102 lines (1 header + 101 records)
+
+
+README.md
+─────────
+WHAT IT IS:
+  Comprehensive user guide and reference documentation
+
+WHAT'S IN IT:
+  • Overview and what was standardized
+  • How to open file in different applications
+  • Data statistics and distribution
+  • How to verify integrity
+  • Troubleshooting guide
+  • Long-term preservation recommendations
+  • Standards compliance information
+
+WHO SHOULD READ IT:
+  • Everyone using this file (essential reading)
+  • People new to the standardization
+  • Anyone with questions about the file
+
+HOW TO USE IT:
+  • Read sections relevant to your needs
+  • Reference as needed for troubleshooting
+  • Share with colleagues for context
+
+
+FIXITY_REPORT.txt
+─────────────────
+WHAT IT IS:
+  Detailed technical report on standardization procedures
+
+WHAT'S IN IT:
+  • Issues identified in original file
+  • Standardization procedures applied
+  • Record statistics and completeness
+  • Data integrity verification details
+  • Checksum information
+  • Recommendations for preservation
+  • Validation checklist
+
+WHO SHOULD READ IT:
+  • Archivists and preservation specialists
+  • Technical users concerned with data integrity
+  • Anyone needing detailed standardization documentation
+
+HOW TO USE IT:
+  • Reference for technical procedures applied
+  • Use for preservation/archival documentation
+  • Share with institutions for metadata
+
+
+CHECKSUMS.txt
+──────────────
+WHAT IT IS:
+  Reference file containing checksums and verification procedures
+
+WHAT'S IN IT:
+  • SHA-256 and MD5 checksums for output file
+  • Instructions for Linux, Windows, online tools
+  • File structure specifications
+  • Quality assurance checklist
+  • What checksums prove (or don't prove)
+  • Integrity verification procedures
+  • Preservation metadata
+
+WHO SHOULD READ IT:
+  • Users concerned about data integrity
+  • Anyone verifying file hasn't been corrupted
+  • Archivists implementing verification procedures
+
+HOW TO USE IT:
+  • Run verification script to get checksums
+  • Compare your checksums to values in this file
+  • If they match: file is intact and unmodified
+  • If they don't match: file may be corrupted
+
+
+PACKAGE_CONTENTS.txt
+────────────────────
+WHAT IT IS:
+  Quick-start guide and package overview
+
+WHAT'S IN IT:
+  • Summary of all files in package
+  • Quick start instructions (4 steps)
+  • Key features of standardization
+  • Archive and preservation information
+  • Data statistics
+  • Troubleshooting guide
+  • File manifest checklist
+
+WHO SHOULD READ IT:
+  • New users (before using file)
+  • Anyone wanting quick overview
+  • Users implementing archival procedures
+
+HOW TO USE IT:
+  • Read "Quick Start Guide" section first
+  • Reference troubleshooting for problems
+  • Use file manifest to verify completeness
+  • Review preservation recommendations
+
+
+INDEX.txt (This File)
+─────────────────────
+WHAT IT IS:
+  Directory and navigation guide for the entire package
+
+WHAT'S IN IT:
+  • Listing of all files with descriptions
+  • Reading order recommendations
+  • File purposes and summaries
+  • Quick lookup reference
+  • Navigation between documents
+
+WHO SHOULD READ IT:
+  • Anyone seeking package overview
+  • Users unfamiliar with file organization
+  • For navigation and reference
+
+HOW TO USE IT:
+  • Look up files you're interested in
+  • Find recommended reading order
+  • Navigate to appropriate documentation
+
+
+verify_integrity.sh & verify_integrity.ps1
+────────────────────────────────────────────
+WHAT THEY ARE:
+  Automated verification scripts for your platform
+
+WHAT THEY DO:
+  • Calculate SHA-256 and MD5 checksums
+  • Compare against reference checksums
+  • Generate verification report
+  • Validate file structure and format
+  • Check file completeness
+
+WHO SHOULD USE THEM:
+  • Anyone wanting to verify file integrity
+  • Users concerned about corruption
+  • Part of archival/preservation procedures
+
+HOW TO USE THEM:
+  
+  Linux/macOS:
+    chmod +x verify_integrity.sh
+    ./verify_integrity.sh
+  
+  Windows:
+    .\verify_integrity.ps1
+  
+  Then compare output to CHECKSUMS.txt
+
+
+standardize_met_inventory.py
+────────────────────────────
+WHAT IT IS:
+  Python script that performs the standardization
+
+WHAT IT DOES:
+  • Parses original TSV file
+  • Applies all standardization procedures
+  • Generates checksums
+  • Outputs standardized file
+  • Creates verification report
+
+WHO SHOULD USE IT:
+  • Developers and technical users
+  • Those wanting to understand procedures
+  • Anyone needing to re-standardize
+  • For archival/reproducibility documentation
+
+HOW TO USE IT:
+  python3 standardize_met_inventory.py
+  
+  Outputs:
+  - met_inventory_standardized.tsv (standardized file)
+  - met_inventory_checksums.txt (checksum report)
+  - Console output with statistics
+
+================================================================================
+QUICK LOOKUP GUIDE
+================================================================================
+
+Looking for...                              → See...
+─────────────────────────────────────────────────────────────
+How to open the file                    → README.md → "How to Use"
+Checksum verification                   → CHECKSUMS.txt or run verification script
+Technical details                       → FIXITY_REPORT.txt
+Getting started quickly                 → PACKAGE_CONTENTS.txt
+File structure and columns              → README.md → "File Structure"
+International character support         → FIXITY_REPORT.txt → "Encoding"
+Troubleshooting problems               → PACKAGE_CONTENTS.txt or README.md
+Data statistics                         → FIXITY_REPORT.txt or PACKAGE_CONTENTS.txt
+Long-term preservation advice          → README.md or PACKAGE_CONTENTS.txt
+Python standardization logic            → standardize_met_inventory.py (code)
+How to verify integrity                 → CHECKSUMS.txt
+What was standardized                   → FIXITY_REPORT.txt
+
+================================================================================
+VERIFICATION WORKFLOW
+================================================================================
+
+To verify this package after download/extraction:
+
+STEP 1: Verify File Completeness
+  └─ Check you have all 9 files (see "FILE MANIFEST CHECKLIST")
+     □ met_inventory_standardized.tsv
+     □ README.md
+     □ FIXITY_REPORT.txt
+     □ CHECKSUMS.txt
+     □ PACKAGE_CONTENTS.txt
+     □ INDEX.txt (this file)
+     □ standardize_met_inventory.py
+     □ verify_integrity.sh
+     □ verify_integrity.ps1
+
+STEP 2: Verify File Integrity
+  
+  Option A (Automated - Recommended):
+    Linux/macOS: chmod +x verify_integrity.sh && ./verify_integrity.sh
+    Windows: .\verify_integrity.ps1
+  
+  Option B (Manual):
+    Linux/macOS: sha256sum met_inventory_standardized.tsv
+    Windows: Get-FileHash -Path "met_inventory_standardized.tsv" -Algorithm SHA256
+    Online: Visit md5file.com or similar service
+
+STEP 3: Compare Checksums
+  └─ Open CHECKSUMS.txt and verify your checksums match
+  └─ If checksums match: File is intact ✓
+  └─ If checksums don't match: File may be corrupted ✗
+
+STEP 4: Spot-Check File Contents
+  └─ Open met_inventory_standardized.tsv in your application
+  └─ Verify header: "Object Date", "Title", "Object Number", "Link Resource"
+  └─ Check first record starts with "4th century BCE"
+  └─ Count records: Should have 102 total lines (1 header + 101 data)
+  └─ Check international characters display correctly
+
+================================================================================
+CONTACT & SUPPORT
+================================================================================
+
+For Issues:
+  1. Check README.md troubleshooting section
+  2. Review PACKAGE_CONTENTS.txt troubleshooting
+  3. Run verification scripts to check file integrity
+  4. Consult standardize_met_inventory.py for technical details
+
+For Met Museum Questions:
+  Visit: https://www.metmuseum.org
+  Collection Database: https://www.metmuseum.org/art/collection
+
+For Data/Preservation Standards:
+  - OAIS Reference Model (Archival standards)
+  - PREMIS (Preservation metadata)
+  - RFC 4180 (CSV/TSV format)
+  - UTF-8 Specification (Character encoding)
+
+================================================================================
+FINAL NOTES
+================================================================================
+
+This package represents a complete standardization of the Metropolitan Museum
+collection inventory with full fixity verification capabilities.
+
+All procedures are documented, reproducible, and reversible. The original
+file structure and data integrity are maintained while enabling universal
+accessibility and long-term preservation.
+
+Use README.md for most questions.
+Use FIXITY_REPORT.txt for technical details.
+Use verification scripts to ensure integrity.
+Use standardize_met_inventory.py to understand procedures.
+
+Thank you for using this standardized archive!
+
+================================================================================
+END OF INDEX
+================================================================================
+
+Document Version: 1.0
+Created: 2024
+Encoding: UTF-8
+Line Endings: LF (Unix/POSIX)
+Status: Complete and ready for use

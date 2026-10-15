@@ -384,3 +384,8 @@ that are missing, and a summary that says nothing was lost.
   transformation so it's auditable." ×3: all typed out, no code; 3.1%, 5.7%,
   0.1%; no real checksums (one invented); long audit documents. Debriefs: the
   wording changed the documentation, not the behaviour.
+- (spike-31) "Preserve fixity: use scripts on the uploaded file, and checksum
+  the source and the result." ×3: r1, r2 ran code on the real file, output
+  byte-identical to source, real matching checksums (0.0%); r3 searched for
+  "checksum" not code, never loaded bash, typed (6.9%), labelled placeholder
+  hash. Best wording so far. What loads bash is searching for running code.

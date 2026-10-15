@@ -1,0 +1,45 @@
+{
+ "id": "msg_011Cg3xidQ9sgCpeJBYNmtQx",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Finally, let me create a PowerShell version for Windows users:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_018uZDbpH7ZfLEt9u9H3usei",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_integrity.ps1",
+    "file_text": "#\n# Verify integrity of standardized TSV file (Windows PowerShell)\n# Generates SHA-256 checksums for both source and output files\n#\n\nWrite-Host \"==================================================\" -ForegroundColor Cyan\nWrite-Host \"Met Museum Inventory TSV - Integrity Verification\" -ForegroundColor Cyan\nWrite-Host \"==================================================\" -ForegroundColor Cyan\nWrite-Host\n\n# Check if files exist\nif (-not (Test-Path \"met_inventory.tsv\")) {\n    Write-Host \"ERROR: Source file 'met_inventory.tsv' not found\" -ForegroundColor Red\n    exit 1\n}\n\nif (-not (Test-Path \"met_inventory_standardized.tsv\")) {\n    Write-Host \"ERROR: Output file 'met_inventory_standardized.tsv' not found\" -ForegroundColor Red\n    exit 1\n}\n\nWrite-Host \"✓ Source file found: met_inventory.tsv\" -ForegroundColor Green\nWrite-Host \"✓ Output file found: met_inventory_standardized.tsv\" -ForegroundColor Green\nWrite-Host\n\n# Calculate SHA-256 checksums\nWrite-Host \"Calculating SHA-256 checksums...\" -ForegroundColor Yellow\nWrite-Host\n\n$sourceFile = Get-FileHash -Path \"met_inventory.tsv\" -Algorithm SHA256\n$outputFile = Get-FileHash -Path \"met_inventory_standardized.tsv\" -Algorithm SHA256\n\nWrite-Host \"SOURCE FILE (met_inventory.tsv)\" -ForegroundColor Cyan\nWrite-Host \"SHA-256: $($sourceFile.Hash)\"\nWrite-Host\n\nWrite-Host \"OUTPUT FILE (met_inventory_standardized.tsv)\" -ForegroundColor Cyan\nWrite-Host \"SHA-256: $($outputFile.Hash)\"\nWrite-Host\n\n# File statistics\nWrite-Host \"FILE STATISTICS\" -ForegroundColor Cyan\nWrite-Host \"===============\"\nWrite-Host \"Source file:\" -ForegroundColor Yellow\n$sourceStats = Get-Item \"met_inventory.tsv\"\n$sourceLines = @(Get-Content \"met_inventory.tsv\").Count\nWrite-Host \"  Total lines: $sourceLines\"\nWrite-Host \"  File size: $($sourceStats.Length) bytes ($([math]::Round($sourceStats.Length/1KB, 2)) KB)\"\nWrite-Host\n\nWrite-Host \"Output file:\" -ForegroundColor Yellow\n$outputStats = Get-Item \"met_inventory_standardized.tsv\"\n$outputLines = @(Get-Content \"met_inventory_standardized.tsv\").Count\nWrite-Host \"  Total lines: $outputLines\"\nWrite-Host \"  File size: $($outputStats.Length) bytes ($([math]::Round($outputStats.Length/1KB, 2)) KB)\"\nWrite-Host\n\n# Verify data integrity\nWrite-Host \"DATA INTEGRITY CHECKS\" -ForegroundColor Cyan\nWrite-Host \"====================\"\n$sourceRecords = $sourceLines - 1  # Subtract header\n$outputRecords = $outputLines - 1  # Subtract header\n\nWrite-Host \"Source data rows: $sourceRecords\"\nWrite-Host \"Output data rows: $outputRecords\"\n\nif ($sourceRecords -eq $outputRecords) {\n    Write-Host \"✓ Record count matches\" -ForegroundColor Green\n} else {\n    Write-Host \"✗ Record count mismatch!\" -ForegroundColor Red\n}\nWrite-Host\n\n# Verify tab delimiters\nWrite-Host \"FORMAT VALIDATION\" -ForegroundColor Cyan\nWrite-Host \"=================\"\n$outputContent = Get-Content \"met_inventory_standardized.tsv\" -First 5\n$headerFields = $outputContent[0].Split(\"`t\").Count\nWrite-Host \"Header column count: $headerFields\"\nif ($headerFields -eq 4) {\n    Write-Host \"✓ Correct number of columns (4)\" -ForegroundColor Green\n} else {\n    Write-Host \"✗ Column count issue (expected 4)\" -ForegroundColor Red\n}\nWrite-Host\n\n# Save checksums to file\nWrite-Host \"Saving checksums to file...\" -ForegroundColor Yellow\n$reportContent = @\"\nMetropolitan Museum Inventory TSV Standardization\nIntegrity Verification Report\nGenerated: $(Get-Date)\n\nSource file: met_inventory.tsv\nSHA-256: $($sourceFile.Hash)\nSize: $($sourceStats.Length) bytes\n\nOutput file: met_inventory_standardized.tsv\nSHA-256: $($outputFile.Hash)\nSize: $($outputStats.Length) bytes\n\nRecord Count:\n  Source: $sourceRecords records\n  Output: $outputRecords records\n  Status: $(if ($sourceRecords -eq $outputRecords) { \"PASS\" } else { \"FAIL\" })\n\nColumn Count: $headerFields\nHeader Fields: Object Date | Title | Object Number | Link Resource\n\nVerification Instructions:\n1. Use Get-FileHash for verification:\n   Get-FileHash -Path \"met_inventory_standardized.tsv\" -Algorithm SHA256\n   \n2. Compare the hash above with your calculated hash\n3. If hashes match, file integrity is verified\n\"@\n\n$reportContent | Out-File -FilePath \"met_inventory_checksums.txt\" -Encoding UTF8\nWrite-Host \"Checksums saved to: met_inventory_checksums.txt\" -ForegroundColor Green\nWrite-Host\n\nWrite-Host \"==================================================\" -ForegroundColor Cyan\nWrite-Host \"Verification Complete\" -ForegroundColor Cyan\nWrite-Host \"==================================================\" -ForegroundColor Cyan\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "inference_geo": "not_available",
+  "input_tokens": 21830,
+  "output_tokens": 1452,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}
