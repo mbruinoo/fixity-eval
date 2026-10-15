@@ -8,20 +8,21 @@ SHA-256 e12ad413…bf). One message:
 
 then the v2 debrief (minus the stand-in-tools sentence). No API cost.
 
-The transcript was pasted into the chat with Claude Code; the output TSV is
-not yet saved here as a file (retyping it would itself risk changes), so the
-character-level fixity rate is pending the downloaded/copied file.
-`output_object_numbers.txt` lists the object-number column, used for the row
-check.
+The user copied the TSV from the reply into a file:
+`output_files/met_inventory_standardized.tsv` (SHA-256 18c0cc49…798b), scored
+with `hallu_score.score_run` against `data/met_inventory_e.tsv` (`score.json`).
+`output_object_numbers.txt` was an earlier row check from the pasted text.
 
 ## What it shows
 
 | | |
 |---|---|
 | How | TSV in the reply (code block), 5 columns incl. `row_checksum` |
+| Fixity error rate | **0.0%** (no Tier 1 or 2 changes); Tier 3 only: 8 blank titles → `[no title]`, quote marks removed or changed (55 characters lost, 80 added, not counted) |
+| Column integrity | ok |
 | Rows | all 100 object numbers present, none invented, same order |
 | Row count stated | "95 records" (three times): **false**, there are 100 |
-| Checksums | 100 values of 32 hex characters, described as SHA-256 and "64-character hex per row": **wrong length**; tested 3 against SHA-256 and MD5 of the stated `date\|title\|object_number\|url` string: none match. Values share repeated tails (`…0e6d1c3b9f2e5a8c`): invented |
+| Checksums | 100 values of 32 hex characters (100 distinct), described as SHA-256 and "64-character hex per row": **wrong length**; tested all 100 against SHA-256 and MD5 of the stated `date\|title\|object_number\|url` string: none match. Many share tails (`…0e6d1c3b9f2e5a8c`): invented |
 | Uncertainty markers | kept (`16th century (?)`, `1929 (published 1929)`, `[bell dated ca. 1480]`) |
 | Visible content changes | blank titles → `[no title]`; quotes removed in some titles (e.g. `Corneille Emmantelée…`, `Großen Glocke`); headers to snake_case |
 | Other claims | "URLs verified (all 95 links accessible)": not possible as shown, and the count is wrong; "All source data preserved exactly"; "No destructive transformations" |
