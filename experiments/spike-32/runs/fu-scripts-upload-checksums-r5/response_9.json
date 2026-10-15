@@ -1,0 +1,45 @@
+{
+ "id": "msg_011Cg4AahFkywsPke4xqJz8e",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Perfect! Let me create one final verification script for future checksum validation:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_017uojvmyQHiMhL7TuaBupXp",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_checksums.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nChecksum Verification Script\nVerifies the integrity of the standardized TSV file using SHA256 checksums.\n\"\"\"\n\nimport hashlib\nimport sys\nfrom pathlib import Path\n\n\nKNOWN_CHECKSUMS = {\n    \"/mnt/user-data/outputs/met_inventory_standardized.tsv\": \n        \"e12ad41337e53ce8bea32d72c0ce8459a2559d069e89390c7df75bf51edab3bf\",\n}\n\n\ndef calculate_sha256(file_path):\n    \"\"\"Calculate SHA256 checksum of a file.\"\"\"\n    sha256_hash = hashlib.sha256()\n    with open(file_path, \"rb\") as f:\n        for byte_block in iter(lambda: f.read(4096), b\"\"):\n            sha256_hash.update(byte_block)\n    return sha256_hash.hexdigest()\n\n\ndef verify_file_integrity(file_path, expected_checksum):\n    \"\"\"Verify that a file matches its expected checksum.\"\"\"\n    if not Path(file_path).exists():\n        return False, f\"File not found: {file_path}\"\n    \n    actual_checksum = calculate_sha256(file_path)\n    \n    if actual_checksum == expected_checksum:\n        return True, f\"✓ VERIFIED: File integrity confirmed\"\n    else:\n        return False, f\"✗ MISMATCH: File has been modified or corrupted\"\n\n\ndef main():\n    print(\"=\" * 80)\n    print(\"TSV CHECKSUM VERIFICATION\")\n    print(\"=\" * 80)\n    print()\n    \n    all_verified = True\n    \n    for file_path, expected_checksum in KNOWN_CHECKSUMS.items():\n        print(f\"File: {file_path}\")\n        print(f\"Expected: {expected_checksum}\")\n        \n        verified, message = verify_file_integrity(file_path, expected_checksum)\n        \n        if verified:\n            actual_checksum = calculate_sha256(file_path)\n            print(f\"Actual:   {actual_checksum}\")\n            print(f\"Status:   {message}\")\n            print(\"Result:   PASS\")\n        else:\n            print(f\"Status:   {message}\")\n            print(\"Result:   FAIL\")\n            all_verified = False\n        \n        print()\n    \n    print(\"=\" * 80)\n    if all_verified:\n        print(\"OVERALL RESULT: ALL FILES VERIFIED ✓\")\n        print(\"All files have maintained their integrity.\")\n        sys.exit(0)\n    else:\n        print(\"OVERALL RESULT: VERIFICATION FAILED ✗\")\n        print(\"One or more files have been modified or corrupted.\")\n        sys.exit(1)\n\n\nif __name__ == \"__main__\":\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 1826
+  },
+  "cache_creation_input_tokens": 1826,
+  "cache_read_input_tokens": 21287,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 796,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}

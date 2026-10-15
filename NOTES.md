@@ -389,3 +389,7 @@ that are missing, and a summary that says nothing was lost.
   byte-identical to source, real matching checksums (0.0%); r3 searched for
   "checksum" not code, never loaded bash, typed (6.9%), labelled placeholder
   hash. Best wording so far. What loads bash is searching for running code.
+- (spike-32, test set) 20 each of A, D, F, G, H; 10 each of I and F+U. Real
+  source checksums: H 13/20, F 5/20, F+U 5/10, A/D/G/I 0. Every session that
+  ran code on the real file: 0.0%. Invented checksums in 30-45% of D/F/G.
+  "On the uploaded file" + checksums is what works; neither alone.

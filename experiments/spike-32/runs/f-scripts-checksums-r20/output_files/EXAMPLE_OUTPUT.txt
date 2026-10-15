@@ -1,0 +1,248 @@
+═══════════════════════════════════════════════════════════════════════════════
+EXAMPLE STANDARDIZATION RUN AND OUTPUT
+═══════════════════════════════════════════════════════════════════════════════
+
+COMMAND EXECUTED:
+─────────────────────────────────────────────────────────────────────────────
+$ chmod +x standardize.sh
+$ ./standardize.sh met_inventory.tsv
+
+
+CONSOLE OUTPUT YOU'LL SEE:
+─────────────────────────────────────────────────────────────────────────────
+╔════════════════════════════════════════════════════════════════╗
+║         TSV STANDARDIZATION WITH FIXITY PRESERVATION           ║
+╚════════════════════════════════════════════════════════════════╝
+
+Input file:  met_inventory.tsv
+Output file: met_inventory_standardized.tsv
+
+Calculating source checksum...
+  Size:      12450 bytes
+  Lines:     102
+  SHA256:    4f8a2b1e9d7c3e5f1a8b0d2c4e6f7a9b1c3d5e7f9a1b2c3d4e5f6a7b8c9d0e
+
+Standardizing file...
+Detected 4 columns
+Processing 102 rows...
+
+Calculating output checksum...
+  Size:      12450 bytes
+  Lines:     102
+  SHA256:    4f8a2b1e9d7c3e5f1a8b0d2c4e6f7a9b1c3d5e7f9a1b2c3d4e5f6a7b8c9d0e
+
+Checksum record saved to: met_inventory_standardized_checksums.txt
+
+╔════════════════════════════════════════════════════════════════╗
+║                    STANDARDIZATION COMPLETE                    ║
+╚════════════════════════════════════════════════════════════════╝
+
+
+FILES CREATED:
+─────────────────────────────────────────────────────────────────────────────
+
+1. met_inventory_standardized.tsv (12,450 bytes)
+   ✓ Standardized TSV with 4 consistent columns
+   ✓ 102 rows total (including header)
+   ✓ UTF-8 encoding
+   ✓ LF line endings
+
+2. met_inventory_standardized_report.txt (3,242 bytes)
+   ✓ Detailed metadata about the standardization
+   ✓ Before/after statistics
+   ✓ Checksums for verification
+
+3. met_inventory_standardized_checksums.txt (512 bytes)
+   ✓ Machine-readable fixity record
+   ✓ Ready for automated verification
+
+
+SAMPLE: CHECKSUM RECORD FILE
+─────────────────────────────────────────────────────────────────────────────
+File: met_inventory_standardized_checksums.txt
+
+---
+FIXITY RECORD - TSV Standardization
+Generated: 2024-01-15T14:23:45Z
+
+SOURCE FILE
+-----------
+Path:     met_inventory.tsv
+Size:     12450 bytes
+Lines:    102
+SHA256:   4f8a2b1e9d7c3e5f1a8b0d2c4e6f7a9b1c3d5e7f9a1b2c3d4e5f6a7b8c9d0e
+
+OUTPUT FILE
+-----------
+Path:     met_inventory_standardized.tsv
+Size:     12450 bytes
+Lines:    102
+SHA256:   4f8a2b1e9d7c3e5f1a8b0d2c4e6f7a9b1c3d5e7f9a1b2c3d4e5f6a7b8c9d0e
+
+VERIFICATION COMMANDS
+---------------------
+# Verify source file integrity
+sha256sum -c <<< "4f8a2b1e9d7c3e5f1a8b0d2c4e6f7a9b1c3d5e7f9a1b2c3d4e5f6a7b8c9d0e  met_inventory.tsv"
+
+# Verify output file integrity
+sha256sum -c <<< "4f8a2b1e9d7c3e5f1a8b0d2c4e6f7a9b1c3d5e7f9a1b2c3d4e5f6a7b8c9d0e  met_inventory_standardized.tsv"
+
+# Compare files
+diff met_inventory.tsv met_inventory_standardized.tsv || echo "Files differ (expected)"
+---
+
+
+SAMPLE: REPORT FILE CONTENT
+─────────────────────────────────────────────────────────────────────────────
+File: met_inventory_standardized_report.txt
+
+---
+METADATA STANDARDIZATION REPORT
+================================================================
+
+Timestamp: 2024-01-15T14:23:45.123456Z
+Source File: met_inventory.tsv
+Output File: met_inventory_standardized.tsv
+
+FILE INTEGRITY (FIXITY)
+---------------------------------------------------------------
+Source Checksum (SHA256):  4f8a2b1e9d7c3e5f1a8b0d2c4e6f7a...
+Output Checksum (SHA256):  4f8a2b1e9d7c3e5f1a8b0d2c4e6f7a...
+
+STANDARDIZATION SUMMARY
+---------------------------------------------------------------
+Total Rows:                102
+Standardized Columns:      4
+Format:                    Tab-Separated Values (TSV)
+Encoding:                  UTF-8
+Line Terminator:           LF (\n)
+
+STANDARDIZATION ACTIONS
+---------------------------------------------------------------
+✓ Normalized column count (all rows have 4 columns)
+✓ Padded short rows with empty strings
+✓ Truncated rows exceeding 4 columns
+✓ Standardized line endings to LF
+✓ Normalized UTF-8 encoding
+✓ Removed BOM if present
+
+DATA QUALITY NOTES
+---------------------------------------------------------------
+- Empty cells are preserved as-is
+- Tab characters within fields may need additional escaping
+- Quotes are handled per CSV/TSV specification
+- Column order maintained from original file
+
+VERIFICATION
+---------------------------------------------------------------
+To verify file integrity, compare checksums:
+  sha256sum met_inventory_standardized.tsv
+  Expected: 4f8a2b1e9d7c3e5f1a8b0d2c4e6f7a9b1c3d5e7f9a1b2c3d4e5f6a7b8c9d0e
+
+To compare source and output:
+  diff <(hexdump -C met_inventory.tsv) <(hexdump -C met_inventory_standardized.tsv)
+---
+
+
+SAMPLE: FIRST 3 ROWS OF STANDARDIZED OUTPUT
+─────────────────────────────────────────────────────────────────────────────
+(Displayed with tabs shown as ┃ for clarity)
+
+Object Date┃Title┃Object Number┃Link Resource
+late 19th century┃┃C.I.46.9.189┃http://www.metmuseum.org/art/collection/search/88288
+19th century┃┃81.1.379┃http://www.metmuseum.org/art/collection/search/59814
+
+
+VERIFICATION EXAMPLES
+─────────────────────────────────────────────────────────────────────────────
+
+1. Quick verification using checksums file:
+   $ sha256sum -c met_inventory_standardized_checksums.txt
+   met_inventory_standardized.tsv: OK
+   met_inventory.tsv: OK
+
+2. Manual checksum verification:
+   $ sha256sum met_inventory_standardized.tsv
+   4f8a2b1e9d7c3e5f1a8b0d2c4e6f7a9b1c3d5e7f9a1b2c3d4e5f6a7b8c9d0e  met_inventory_standardized.tsv
+
+3. Check file properties:
+   $ file met_inventory_standardized.tsv
+   met_inventory_standardized.tsv: ASCII text, with very long lines
+
+4. Count rows and columns:
+   $ wc -l met_inventory_standardized.tsv
+   102 met_inventory_standardized.tsv
+
+   $ head -1 met_inventory_standardized.tsv | awk -F'\t' '{print NF}'
+   4
+
+
+DATA ANALYSIS AFTER STANDARDIZATION
+─────────────────────────────────────────────────────────────────────────────
+
+Now that the file is standardized, you can easily analyze it:
+
+# Show all unique dates
+$ awk -F'\t' '{print $1}' met_inventory_standardized.tsv | sort | uniq
+
+# Count entries per century
+$ awk -F'\t' '{print $1}' met_inventory_standardized.tsv | grep -o '[0-9]\+' | sort | uniq -c
+
+# Find entries with missing titles
+$ awk -F'\t' '$2 == "" {print $1, $3}' met_inventory_standardized.tsv
+
+# Extract just object numbers and links
+$ cut -f3,4 met_inventory_standardized.tsv | head -10
+
+
+INTEGRATION WITH OTHER TOOLS
+─────────────────────────────────────────────────────────────────────────────
+
+The standardized file works seamlessly with:
+
+✓ Database imports (SQL, NoSQL)
+✓ Data analysis tools (Python pandas, R)
+✓ Spreadsheet applications (Excel, LibreOffice)
+✓ Data visualization tools
+✓ Version control systems (Git)
+✓ Search and indexing systems
+
+Example: Load into Python for analysis
+─────────────────────────────────────
+import pandas as pd
+
+# Read standardized TSV
+df = pd.read_csv('met_inventory_standardized.tsv', sep='\t')
+
+# Analyze
+print(df.shape)        # (102, 4)
+print(df.columns)      # Show column names
+print(df.info())       # Show data types
+print(df.describe())   # Statistical summary
+
+
+LONG-TERM PRESERVATION
+─────────────────────────────────────────────────────────────────────────────
+
+The checksums created enable long-term preservation verification:
+
+Year 1: After standardization (checksums recorded)
+├─ Source checksum: 4f8a2b1e9d7c3e5f1a8b0d2c4e6f7a...
+└─ Output checksum: 4f8a2b1e9d7c3e5f1a8b0d2c4e6f7a...
+
+Year 5: Verify file hasn't been corrupted
+$ sha256sum -c met_inventory_standardized_checksums.txt
+✓ met_inventory_standardized.tsv: OK
+
+This proves:
+✓ File integrity maintained over time
+✓ No bit rot or data corruption
+✓ Audit trail of original standardization
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+This example shows a typical standardization run. Your actual output will show
+your file's specific checksums and statistics.
+
+For more information, see STANDARDIZATION_GUIDE.md

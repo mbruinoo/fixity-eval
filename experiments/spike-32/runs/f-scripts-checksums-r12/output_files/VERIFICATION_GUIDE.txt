@@ -1,0 +1,296 @@
+================================================================================
+MET MUSEUM INVENTORY TSV - FIXITY VERIFICATION GUIDE
+================================================================================
+
+This guide explains how to verify the integrity of the standardized file using 
+cryptographic checksums.
+
+================================================================================
+WHAT IS FIXITY VERIFICATION?
+================================================================================
+
+Fixity verification is a digital preservation technique that uses cryptographic 
+hash functions to detect any changes or corruption in a file. Each hash function 
+creates a unique "fingerprint" of your file. If the file changes even by a 
+single byte, the hash will be completely different.
+
+================================================================================
+CHECKSUM VALUES FOR VERIFICATION
+================================================================================
+
+SOURCE FILE: met_inventory.tsv
+  MD5:    023b98478ba290420a5194cca87b8a8a
+  SHA1:   19e90cb1572fbbb1b782a1ebaf8eae1b2e143412
+  SHA256: e12ad41337e53ce8bea32d72c0ce8459a2559d069e89390c7df75bf51edab3bf
+  SHA512: e3c240d7bf8042bd0e61894d34747a071e4dda58eec1406424a2ef81f9c61c0e2821d15b710e436313000cd223613e1222f91323476aedca41a0aab5233a63e4
+
+STANDARDIZED FILE: met_inventory_standardized.tsv
+  MD5:    023b98478ba290420a5194cca87b8a8a
+  SHA1:   19e90cb1572fbbb1b782a1ebaf8eae1b2e143412
+  SHA256: e12ad41337e53ce8bea32d72c0ce8459a2559d069e89390c7df75bf51edab3bf
+  SHA512: e3c240d7bf8042bd0e61894d34747a071e4dda58eec1406424a2ef81f9c61c0e2821d15b710e436313000cd223613e1222f91323476aedca41a0aab5233a63e4
+
+FILE SIZE: 15,295 bytes
+
+FILES ARE BYTE-FOR-BYTE IDENTICAL ✓
+
+================================================================================
+HOW TO VERIFY ON DIFFERENT PLATFORMS
+================================================================================
+
+--- LINUX / macOS ---
+
+Open Terminal and run:
+
+  # SHA256 (recommended)
+  sha256sum met_inventory_standardized.tsv
+
+  # MD5 (quick check)
+  md5sum met_inventory_standardized.tsv
+
+  # SHA512 (maximum security)
+  sha512sum met_inventory_standardized.tsv
+
+The output should match exactly one of the checksums listed above.
+
+Example output:
+  e12ad41337e53ce8bea32d72c0ce8459a2559d069e89390c7df75bf51edab3bf met_inventory_standardized.tsv
+
+--- WINDOWS (PowerShell) ---
+
+Open PowerShell and run:
+
+  # SHA256
+  (Get-FileHash -Algorithm SHA256 "met_inventory_standardized.tsv").Hash
+
+  # MD5
+  (Get-FileHash -Algorithm MD5 "met_inventory_standardized.tsv").Hash
+
+  # SHA512
+  (Get-FileHash -Algorithm SHA512 "met_inventory_standardized.tsv").Hash
+
+--- WINDOWS (Command Prompt) ---
+
+Open Command Prompt and run:
+
+  # SHA256
+  certutil -hashfile met_inventory_standardized.tsv SHA256
+
+  # MD5
+  certutil -hashfile met_inventory_standardized.tsv MD5
+
+--- macOS Finder ---
+
+1. Right-click the file
+2. Select "Get Info"
+3. The size should be 15,295 bytes
+
+For checksum, use Terminal (see Linux/macOS section above)
+
+================================================================================
+WHICH CHECKSUM TO USE?
+================================================================================
+
+SHA256:
+  ✓ Recommended for most uses
+  ✓ Good balance of security and speed
+  ✓ Widely supported
+  ✓ Standard for modern digital archiving
+  Use this unless you have a specific reason to use another
+
+MD5:
+  ✗ Cryptographically broken (collision vulnerabilities)
+  ✓ Fast, good for quick checks
+  ! Only use for non-security-critical applications
+  Use only if SHA256 unavailable
+
+SHA1:
+  ⚠ Deprecated but still functional
+  ✓ Useful for compatibility with older systems
+  ! Not recommended for new implementations
+
+SHA512:
+  ✓ Maximum security
+  ✓ Good for long-term archival (100+ years)
+  ✗ Slightly slower than SHA256
+  Use for highest-security archival applications
+
+================================================================================
+INTERPRETATION GUIDE
+================================================================================
+
+HASH MATCHES (File is intact):
+  
+  Expected: e12ad41337e53ce8bea32d72c0ce8459a2559d069e89390c7df75bf51edab3bf
+  Got:      e12ad41337e53ce8bea32d72c0ce8459a2559d069e89390c7df75bf51edab3bf
+  
+  ✓ File verified successfully
+  ✓ No corruption detected
+  ✓ Safe to use
+
+HASH MISMATCH (File has changed):
+
+  Expected: e12ad41337e53ce8bea32d72c0ce8459a2559d069e89390c7df75bf51edab3bf
+  Got:      f23bd41337e53ce8bea32d72c0ce8459a2559d069e89390c7df75bf51edab3bf
+  
+  ✗ File has been altered
+  ✗ Do not use this file
+  ✗ Obtain a fresh copy from trusted source
+  
+  (Note: Even 1 bit change creates a completely different hash)
+
+================================================================================
+WHEN TO VERIFY
+================================================================================
+
+You should verify checksums:
+
+1. Immediately after download/transfer
+   - Check for transmission errors
+
+2. Before using in production
+   - Ensure data integrity before processing
+
+3. Before long-term storage
+   - Establish baseline for future comparisons
+
+4. During regular preservation checks
+   - Quarterly or annually for archival files
+
+5. After file migration/transfer between systems
+   - Verify no corruption during system transfer
+
+6. If file behavior seems unusual
+   - Unexpected format changes or read errors
+
+================================================================================
+LONG-TERM PRESERVATION STRATEGY
+================================================================================
+
+Step 1: Store Checksums Safely
+  - Save checksums in multiple locations
+  - Consider printing checksums on paper for ultimate durability
+  - Store in version control system (Git, SVN, etc.)
+
+Step 2: Create Redundant Copies
+  - Keep at least 2 independent copies of the file
+  - Store in different physical locations
+  - Use different storage media (disk, tape, cloud)
+
+Step 3: Regular Monitoring
+  - Quarterly: Run verification script
+  - Document any results in preservation log
+  - Alert if any hash mismatches occur
+
+Step 4: Metadata Documentation
+  - Keep STANDARDIZATION_REPORT.md with file
+  - Document storage locations and copy dates
+  - Record any format migrations or transformations
+
+Step 5: Update Verification
+  - If format changes, generate new checksums
+  - Document the transformation process
+  - Maintain audit trail of all changes
+
+================================================================================
+AUTOMATION EXAMPLE (Bash script)
+================================================================================
+
+Create a file called "verify_met_inventory.sh":
+
+#!/bin/bash
+FILE="met_inventory_standardized.tsv"
+EXPECTED_SHA256="e12ad41337e53ce8bea32d72c0ce8459a2559d069e89390c7df75bf51edab3bf"
+
+ACTUAL_SHA256=$(sha256sum "$FILE" | awk '{print $1}')
+
+if [ "$ACTUAL_SHA256" = "$EXPECTED_SHA256" ]; then
+  echo "✓ File integrity verified: $FILE"
+  exit 0
+else
+  echo "✗ File integrity check FAILED!"
+  echo "  Expected: $EXPECTED_SHA256"
+  echo "  Got:      $ACTUAL_SHA256"
+  exit 1
+fi
+
+Usage:
+  chmod +x verify_met_inventory.sh
+  ./verify_met_inventory.sh
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: I'm getting a different hash value
+
+Possible causes:
+  1. File was modified (intentionally or by accident)
+  2. File was corrupted during transfer
+  3. Different line ending format (CRLF vs LF)
+  4. BOM added or removed
+  5. Using wrong file (not met_inventory_standardized.tsv)
+
+Solution:
+  - Obtain a fresh copy of the file
+  - Check file size matches (15,295 bytes)
+  - Verify using a different hash algorithm
+  - Check your tools are working (test with known file)
+
+Problem: Command not found (sha256sum, md5sum, etc.)
+
+Solution by OS:
+  
+  Linux: Most distributions include these tools by default
+    sudo apt-get install coreutils  (Debian/Ubuntu)
+    sudo yum install coreutils      (RHEL/CentOS)
+  
+  macOS: Use built-in tools
+    shasum -a 256 filename          (SHA256)
+    shasum -a 1 filename            (SHA1)
+    md5sum filename                 (MD5)
+  
+  Windows: PowerShell method shown above works on Windows 7+
+    Or install third-party tool like HashTab
+
+Problem: Different hash from file I got elsewhere
+
+Possible reasons:
+  1. Different version/source of file
+  2. Line ending conversion (Windows vs Unix)
+  3. Character encoding changes (UTF-8 vs UTF-16)
+  4. Accidental modifications during transmission
+  5. Using different hash algorithm
+
+Solution:
+  - Verify with the original sender
+  - Use all 4 provided hashes (MD5, SHA1, SHA256, SHA512)
+  - Check file modification dates
+  - Verify from fixity_checksums.json
+
+================================================================================
+RESOURCES & FURTHER READING
+================================================================================
+
+- NIST Cryptographic Standards: https://csrc.nist.gov/
+- Library of Congress Digital Preservation: https://www.loc.gov/preservation/
+- PREMIS (Preservation Metadata): https://www.loc.gov/standards/premis/
+- Digital Preservation Network: https://www.dpn.org/
+- Archive-It Preservation Policy: https://archive-it.org/
+
+================================================================================
+SUPPORT & DOCUMENTATION
+================================================================================
+
+This verification guide is part of the Met Museum Inventory standardization 
+project. Additional documentation files:
+
+  - README.md - Quick start guide
+  - STANDARDIZATION_REPORT.md - Detailed technical report
+  - fixity_checksums.json - Machine-readable checksums
+  - met_inventory_standardized.tsv - The standardized data file
+
+For questions, refer to STANDARDIZATION_REPORT.md Section "Verification 
+Instructions" and "Archival Recommendations".
+
+================================================================================

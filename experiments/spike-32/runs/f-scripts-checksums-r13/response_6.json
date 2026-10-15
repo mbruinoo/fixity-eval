@@ -1,0 +1,45 @@
+{
+ "id": "msg_011Cg47ay8dvLCGUn6AT61z8",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me create a bash script for command-line verification:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01AcsYgKtyCavvyWmWHb8jpN",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_integrity.sh",
+    "file_text": "#!/bin/bash\n#\n# Metropolitan Museum Inventory - Data Integrity Verification Script\n# Verifies checksums and file properties of standardized TSV files\n#\n\nset -e\n\n# Colors for output\nRED='\\033[0;31m'\nGREEN='\\033[0;32m'\nYELLOW='\\033[1;33m'\nBLUE='\\033[0;34m'\nNC='\\033[0m' # No Color\n\n# Configuration\nSCRIPT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd)\"\nTIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')\n\necho -e \"${BLUE}════════════════════════════════════════════════════════════${NC}\"\necho -e \"${BLUE}  MET Inventory - Data Integrity Verification${NC}\"\necho -e \"${BLUE}════════════════════════════════════════════════════════════${NC}\"\necho \"\"\necho \"Verification Date: ${TIMESTAMP}\"\necho \"Working Directory: ${SCRIPT_DIR}\"\necho \"\"\n\n# Function to check if file exists\ncheck_file() {\n    local file=$1\n    if [ ! -f \"$file\" ]; then\n        echo -e \"${RED}✗ ERROR: File not found: $file${NC}\"\n        return 1\n    fi\n    return 0\n}\n\n# Function to calculate and display checksums\ncheck_checksums() {\n    local file=$1\n    local name=$2\n    \n    if check_file \"$file\"; then\n        echo -e \"${GREEN}✓ Found: $name${NC}\"\n        \n        # SHA-256\n        if command -v sha256sum &> /dev/null; then\n            local sha256=$(sha256sum \"$file\" | awk '{print $1}')\n            echo \"  SHA-256: $sha256\"\n        else\n            echo \"  SHA-256: (sha256sum not available)\"\n        fi\n        \n        # MD5\n        if command -v md5sum &> /dev/null; then\n            local md5=$(md5sum \"$file\" | awk '{print $1}')\n            echo \"  MD5:     $md5\"\n        fi\n        \n        # File size\n        local size=$(stat -f%z \"$file\" 2>/dev/null || stat -c%s \"$file\" 2>/dev/null)\n        echo \"  Size:    $size bytes\"\n        \n        # Line count\n        local lines=$(wc -l < \"$file\" 2>/dev/null || echo \"unknown\")\n        echo \"  Lines:   $lines\"\n        \n        echo \"\"\n        return 0\n    fi\n    return 1\n}\n\n# Function to validate TSV format\nvalidate_tsv() {\n    local file=$1\n    \n    if ! check_file \"$file\"; then\n        return 1\n    fi\n    \n    echo -e \"${YELLOW}Validating TSV Format: $(basename \"$file\")${NC}\"\n    \n    # Check for tab delimiters\n    local tab_count=$(grep -o $'[^\\t]*' \"$file\" | wc -l)\n    echo \"  Delimiters found: ~$tab_count fields\"\n    \n    # Check first line (header)\n    local header=$(head -n 1 \"$file\")\n    local tab_fields=$(echo \"$header\" | grep -o $'\\t' | wc -l)\n    local expected_fields=3  # 3 tabs = 4 columns\n    \n    if [ \"$tab_fields\" -eq \"$expected_fields\" ]; then\n        echo -e \"  ${GREEN}✓ Header format: Valid (4 columns)${NC}\"\n    else\n        echo -e \"  ${RED}✗ Header format: Invalid (expected 4 columns, found $((tab_fields + 1)))${NC}\"\n    fi\n    \n    # Check line endings\n    local crlf_count=$(grep -c $'\\r$' \"$file\" 2>/dev/null || echo 0)\n    if [ \"$crlf_count\" -eq 0 ]; then\n        echo -e \"  ${GREEN}✓ Line endings: LF (Unix-style)${NC}\"\n    else\n        echo -e \"  ${YELLOW}⚠ Line endings: CRLF (Windows-style, $crlf_count lines)${NC}\"\n    fi\n    \n    # Check encoding\n    if file \"$file\" | grep -q \"UTF-8\"; then\n        echo -e \"  ${GREEN}✓ Encoding: UTF-8${NC}\"\n    else\n        echo \"  Encoding: $(file \"$file\" | sed 's/.*: //')\"\n    fi\n    \n    # Check for BOM\n    local bom=$(head -c 3 \"$file\" | od -An -tx1 | tr -d ' ')\n    if [ \"$bom\" == \"efbbbf\" ]; then\n        echo -e \"  ${YELLOW}⚠ Byte Order Mark (BOM) detected${NC}\"\n    else\n        echo -e \"  ${GREEN}✓ No Byte Order Mark${NC}\"\n    fi\n    \n    echo \"\"\n}\n\n# Main verification routine\necho -e \"${BLUE}FILE CHECKSUMS${NC}\"\necho \"───────────────────────────────────────────────────────────\"\ncheck_checksums \"${SCRIPT_DIR}/met_inventory_standardized.tsv\" \"Standardized Inventory\"\n\necho -e \"${BLUE}TSV FORMAT VALIDATION${NC}\"\necho \"───────────────────────────────────────────────────────────\"\nvalidate_tsv \"${SCRIPT_DIR}/met_inventory_standardized.tsv\"\n\n# Summary\necho -e \"${BLUE}VERIFICATION SUMMARY${NC}\"\necho \"───────────────────────────────────────────────────────────\"\n\nif check_file \"${SCRIPT_DIR}/met_inventory_standardized.tsv\"; then\n    echo -e \"${GREEN}✓ Standardized file verified and ready for use${NC}\"\n    \n    # Check for supporting files\n    if check_file \"${SCRIPT_DIR}/standardize_met_inventory.py\"; then\n        echo -e \"${GREEN}✓ Python standardization script available${NC}\"\n    fi\n    \n    if check_file \"${SCRIPT_DIR}/STANDARDIZATION_REPORT.md\"; then\n        echo -e \"${GREEN}✓ Standardization report available${NC}\"\n    fi\n    \n    echo \"\"\n    echo -e \"${GREEN}STATUS: ✅ ALL CHECKS PASSED${NC}\"\nelse\n    echo -e \"${RED}STATUS: ❌ FILE NOT FOUND${NC}\"\n    exit 1\nfi\n\necho \"\"\necho -e \"${BLUE}════════════════════════════════════════════════════════════${NC}\"\necho \"For detailed information, see: STANDARDIZATION_REPORT.md\"\necho -e \"${BLUE}════════════════════════════════════════════════════════════${NC}\"\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 1927
+  },
+  "cache_creation_input_tokens": 1927,
+  "cache_read_input_tokens": 20490,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1777,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "standard"
+ }
+}

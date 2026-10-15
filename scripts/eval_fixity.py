@@ -173,9 +173,12 @@ def grade(run_dir, input_path):
     files = [f for f in out.rglob("*") if f.is_file()] if out.exists() else []
     tsvs = [f for f in files if f.suffix in (".tsv", ".csv")]
     identical = [f.name for f in tsvs if f.read_bytes() == original]
-    named_input = [f for f in tsvs if re.search(r"orig|input|before|raw|source", f.name, re.I)]
-    results = [f for f in tsvs if f.name not in identical and f not in named_input] or \
-              [f for f in tsvs if f.name not in identical]
+    upload_name = meta.get("condition", {}).get("filename", "")
+    named_input = [f for f in tsvs if re.search(r"orig|input|before|raw|source", f.name, re.I)
+                   or f.name == upload_name]  # a file named like the upload is offered as the original
+    results = [f for f in tsvs if f.name not in identical and f not in named_input]
+    if not results and not identical:  # only a file named like the input: take it as the result
+        results = [f for f in tsvs if f.name not in identical]
     g["before_identical"] = bool(identical)
     g["before_retyped"] = [f.name for f in named_input if f.name not in identical]
     if results:

@@ -1,0 +1,443 @@
+================================================================================
+MET MUSEUM INVENTORY - CHECKSUM REFERENCE & VERIFICATION GUIDE
+================================================================================
+
+ABOUT CHECKSUMS
+================================================================================
+
+What is a Checksum?
+  A checksum is a small calculated value that represents the content of a file.
+  It's like a fingerprint - unique to that specific file content.
+
+Why Use Checksums?
+  ✓ Detect if a file has been corrupted (bytes changed)
+  ✓ Verify data hasn't been accidentally modified
+  ✓ Confirm file integrity during transfer
+  ✓ Detect hardware failures or data degradation
+
+SHA256
+  Algorithm: Secure Hash Algorithm (256-bit)
+  Output: 64 hexadecimal characters
+  Security: Cryptographically secure (not reversible)
+  Standard: NIST, widely used for digital preservation
+
+================================================================================
+HOW TO CALCULATE CHECKSUMS
+================================================================================
+
+MACOS / LINUX / UNIX
+  
+  Single file:
+    $ shasum -a 256 met_inventory_standardized.tsv
+    
+  Both files:
+    $ shasum -a 256 met_inventory_*.tsv
+    
+  Save to file for later verification:
+    $ shasum -a 256 met_inventory_*.tsv > checksums.sha256
+    
+  Verify all files:
+    $ shasum -a 256 -c checksums.sha256
+
+WINDOWS
+
+  Using certUtil (built-in):
+    > certUtil -hashfile met_inventory_standardized.tsv SHA256
+    > certUtil -hashfile met_inventory_source.tsv SHA256
+    
+  Using PowerShell:
+    > Get-FileHash -Path "met_inventory_standardized.tsv" -Algorithm SHA256
+    > Get-FileHash -Path "met_inventory_source.tsv" -Algorithm SHA256
+
+PYTHON
+
+  Calculate checksum:
+    import hashlib
+    
+    def sha256_checksum(filename):
+        sha256_hash = hashlib.sha256()
+        with open(filename, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(byte_block)
+        return sha256_hash.hexdigest()
+    
+    print(sha256_checksum("met_inventory_standardized.tsv"))
+
+ONLINE TOOLS
+
+  ⚠ WARNING: Only use for non-sensitive files!
+  - https://www.tools4noobs.com/online_tools/hash/
+  - https://md5file.com/calculate
+  
+  Process:
+    1. Upload file to website
+    2. Website calculates SHA256
+    3. Compare with expected value
+
+================================================================================
+CHECKSUM VERIFICATION WORKFLOW
+================================================================================
+
+STEP 1: Note the Expected Checksum
+  From: met_inventory_manifest.json
+  Field: "source_file" → "checksum_sha256"
+         "output_file" → "checksum_sha256"
+  OR
+  From: FIXITY_VERIFICATION.txt
+  (Contains stored checksums for comparison)
+
+STEP 2: Calculate File Checksum
+  Command (Linux/Mac):
+    shasum -a 256 met_inventory_standardized.tsv
+    
+  Command (Windows PowerShell):
+    Get-FileHash -Path "met_inventory_standardized.tsv" -Algorithm SHA256
+
+STEP 3: Compare Results
+  The output should match the stored checksum exactly.
+  ✓ Match = File integrity confirmed
+  ✗ No match = File may be corrupted
+
+STEP 4: Take Action
+  If match:
+    → Data integrity verified
+    → Safe to use the file
+    → Record checksum date for future reference
+    
+  If no match:
+    → File may be corrupted
+    → Do NOT use the file for critical purposes
+    → Download/restore from backup
+    → Investigate source of corruption
+
+================================================================================
+STORED CHECKSUMS
+================================================================================
+
+MANIFEST FILE (JSON)
+  Location: met_inventory_manifest.json
+  Format: JSON (machine-readable)
+  
+  To extract checksums:
+    python3 << 'EOF'
+    import json
+    with open('met_inventory_manifest.json') as f:
+        m = json.load(f)
+        print(f"Source: {m['source_file']['checksum_sha256']}")
+        print(f"Output: {m['output_file']['checksum_sha256']}")
+    EOF
+
+VERIFICATION TEXT FILE
+  Location: FIXITY_VERIFICATION.txt
+  Format: Plain text (human-readable)
+  
+  Search for: "CHECKSUM VERIFICATION"
+  Section contains instructions for calculating and comparing checksums
+
+================================================================================
+AUTOMATED VERIFICATION SCRIPT
+================================================================================
+
+Create this script as: verify_checksums.sh (Linux/Mac)
+
+  #!/bin/bash
+  echo "Met Museum Inventory Checksum Verification"
+  echo "==========================================="
+  
+  # Extract checksums from manifest
+  SOURCE_CHECKSUM=$(grep -o '"source_file":.*' met_inventory_manifest.json | grep -o '"checksum_sha256": "[^"]*"' | cut -d'"' -f4)
+  OUTPUT_CHECKSUM=$(grep -o '"output_file":.*' met_inventory_manifest.json | grep -o '"checksum_sha256": "[^"]*"' | cut -d'"' -f4)
+  
+  echo ""
+  echo "Expected Checksums:"
+  echo "  Source: $SOURCE_CHECKSUM"
+  echo "  Output: $OUTPUT_CHECKSUM"
+  echo ""
+  
+  # Calculate actual checksums
+  SOURCE_ACTUAL=$(shasum -a 256 met_inventory_source.tsv | cut -d' ' -f1)
+  OUTPUT_ACTUAL=$(shasum -a 256 met_inventory_standardized.tsv | cut -d' ' -f1)
+  
+  echo "Actual Checksums:"
+  echo "  Source: $SOURCE_ACTUAL"
+  echo "  Output: $OUTPUT_ACTUAL"
+  echo ""
+  
+  # Compare
+  if [ "$SOURCE_CHECKSUM" = "$SOURCE_ACTUAL" ]; then
+    echo "✓ Source file verified"
+  else
+    echo "✗ Source file DOES NOT MATCH"
+  fi
+  
+  if [ "$OUTPUT_CHECKSUM" = "$OUTPUT_ACTUAL" ]; then
+    echo "✓ Output file verified"
+  else
+    echo "✗ Output file DOES NOT MATCH"
+  fi
+
+Usage:
+  chmod +x verify_checksums.sh
+  ./verify_checksums.sh
+
+================================================================================
+COMMON VERIFICATION SCENARIOS
+================================================================================
+
+SCENARIO 1: File Just Downloaded
+  1. Run: shasum -a 256 met_inventory_standardized.tsv
+  2. Check: Does it match manifest value?
+  3. If YES → File downloaded correctly
+  4. If NO → Re-download or restore from backup
+
+SCENARIO 2: File Stored for Long Time
+  1. Retrieve: Stored checksum from backup
+  2. Run: shasum -a 256 met_inventory_standardized.tsv
+  3. Check: Does it match stored value?
+  4. If YES → File integrity maintained over time
+  5. If NO → File may be corrupted, restore from backup
+
+SCENARIO 3: Shared File Received
+  1. Get: Expected checksum from sender
+  2. Run: shasum -a 256 <received_file>
+  3. Check: Does it match provided checksum?
+  4. If YES → File transferred correctly
+  5. If NO → Request re-transmission of file
+
+SCENARIO 4: Before Using File for Analysis
+  1. Run: shasum -a 256 met_inventory_standardized.tsv
+  2. Compare: Against value in manifest
+  3. If NO MATCH → Do NOT use file (may be corrupted)
+  4. If MATCH → Safe to proceed with analysis
+
+SCENARIO 5: Periodic Preservation Check
+  1. Schedule: Monthly or quarterly
+  2. Run: shasum -a 256 met_inventory_*.tsv
+  3. Record: Date and checksums
+  4. Compare: Against previous calculation
+  5. No change → File preserved correctly
+  6. Change → File corrupted, investigate
+
+================================================================================
+INTERPRETING CHECKSUMS
+================================================================================
+
+CHECKSUM FORMAT
+  Algorithm: SHA256
+  Length: 64 hexadecimal characters (0-9, a-f)
+  Example: 
+    a3c8f9e1b2d4c6f8e0a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4
+
+COMMON ISSUES
+
+  Issue: Checksum is only 32 characters
+  Cause: Using MD5 instead of SHA256
+  Fix: Ensure you're using SHA256 algorithm
+  
+  Issue: Checksum contains only uppercase letters
+  Cause: Normal - case doesn't matter
+  Fix: Checksums can be compared case-insensitive
+  
+  Issue: Checksum contains non-hexadecimal characters
+  Cause: Incorrect algorithm or corrupted output
+  Fix: Recalculate using correct SHA256 algorithm
+
+CHECKSUM COMPARISON
+
+  Correct (match):
+    Expected: a3c8f9e1b2d4c6f8e0a2b3c4d5e6f7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2
+    Actual:   a3c8f9e1b2d4c6f8e0a2b3c4d5e6f7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2
+    Result:   ✓ VERIFIED
+  
+  Mismatch:
+    Expected: a3c8f9e1b2d4c6f8e0a2b3c4d5e6f7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2
+    Actual:   a3c8f9e1b2d4c6f8e0a2b3c4d5e6f7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o3
+    Result:   ✗ MISMATCH (note: last character different)
+  
+  Even one byte difference causes completely different checksum!
+
+================================================================================
+CHECKSUM HISTORY & TRACKING
+================================================================================
+
+Create Verification Log
+
+  Date        | File                         | Checksum                         | Status
+  -----------|-------------------------------|----------------------------------|--------
+  2025-01-15 | met_inventory_source.tsv     | [checksum here]                 | ✓ OK
+  2025-01-15 | met_inventory_standardized   | [checksum here]                 | ✓ OK
+  2025-02-15 | met_inventory_standardized   | [checksum here]                 | ✓ OK
+  2025-03-15 | met_inventory_standardized   | [checksum here]                 | ✓ OK
+
+Interpretation
+  - If checksum never changes → File is stable (good!)
+  - If checksum changes → File was modified or corrupted
+  - If checksum disappears → File was deleted
+
+================================================================================
+BEST PRACTICES
+================================================================================
+
+CALCULATION
+  ✓ Use SHA256 (not MD5 or other older algorithms)
+  ✓ Calculate on original files (no copies)
+  ✓ Verify calculation matches before trusting
+
+STORAGE
+  ✓ Store checksums separately from files
+  ✓ Keep checksums in manifest or database
+  ✓ Back up checksums along with files
+  ✓ Record calculation date and tool used
+
+VERIFICATION
+  ✓ Verify after download/transfer
+  ✓ Verify before important use
+  ✓ Verify periodically during storage
+  ✓ Re-verify if file seems corrupted
+
+DOCUMENTATION
+  ✓ Record checksums in manifest
+  ✓ Document verification procedure
+  ✓ Keep audit trail of verifications
+  ✓ Note any mismatches and actions taken
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: "Command not found" (shasum)
+  Solution (Linux):
+    sudo apt-get install coreutils  (or install package manager equivalent)
+  Solution (Mac):
+    brew install gnu-coreutils
+    use gsha256sum instead of shasum
+
+Problem: Checksum doesn't match
+  Investigation:
+    1. Re-download the file
+    2. Recalculate checksum (maybe typo?)
+    3. Check file wasn't modified (date changed?)
+    4. Verify file isn't corrupted (open in editor?)
+
+Problem: Getting different checksums each time
+  Investigation:
+    1. File is being modified between calculations
+    2. Different file versions being compared
+    3. Different algorithms being used
+    4. File copying process corrupts file
+
+Problem: Manifest.json checksum format different
+  Note:
+    Manifest stores as quoted string: "checksum_sha256": "abc123..."
+    Command output may have filename: abc123... filename
+    Just compare the hex string portion
+
+================================================================================
+LONG-TERM VERIFICATION STRATEGY
+================================================================================
+
+DAILY
+  → No action needed
+
+WEEKLY
+  → Optional: Calculate checksums
+  → Record results in verification log
+
+MONTHLY
+  → RECOMMENDED: Verify all files
+  → Compare against stored checksums
+  → Document results in log
+
+QUARTERLY
+  → Comprehensive verification
+  → Check multiple copies
+  → Verify storage integrity
+  → Update preservation record
+
+ANNUALLY
+  → Full audit of all files
+  → Verify against all stored checksums
+  → Validate manifest integrity
+  → Plan for any needed data recovery
+
+================================================================================
+LEGAL & COMPLIANCE
+================================================================================
+
+Checksums provide:
+  ✓ Evidence of data integrity (audit trail)
+  ✓ Protection against accidental modification
+  ✓ Detection of corruption (malicious or accidental)
+  ✓ Compliance with data preservation standards
+  ✓ Support for data provenance claims
+
+NOT PROVIDED BY CHECKSUMS
+  ✗ Security from intentional modification (use digital signatures)
+  ✗ Protection from unauthorized access (use encryption)
+  ✗ Proof of original creation (use timestamps)
+
+For compliance purposes:
+  → Store checksums with files
+  → Document verification procedures
+  → Maintain verification logs
+  → Archive original manifest
+
+================================================================================
+ADDITIONAL RESOURCES
+================================================================================
+
+Learn More
+  NIST Cryptographic Standards: https://www.nist.gov/
+  SHA256 Information: https://en.wikipedia.org/wiki/SHA-2
+  Digital Preservation: https://www.loc.gov/preservation/
+  Data Integrity: https://www.trusteddigitalrepository.org/
+
+Tools
+  Linux/Mac: shasum, sha256sum
+  Windows: certUtil, Get-FileHash
+  Python: hashlib module
+  Online: Use sparingly, only for non-sensitive files
+
+================================================================================
+QUICK REFERENCE
+================================================================================
+
+Calculate SHA256 checksum (Linux/Mac):
+  shasum -a 256 filename
+
+Calculate SHA256 checksum (Windows):
+  certUtil -hashfile filename SHA256
+
+Verify checksum (Linux/Mac):
+  shasum -a 256 -c checksums.sha256
+
+Stored checksums location:
+  met_inventory_manifest.json
+
+Expected checksum fields:
+  source_file → checksum_sha256
+  output_file → checksum_sha256
+
+Next step if mismatch:
+  → Restore from backup
+  → Re-download file
+  → Investigate corruption source
+
+================================================================================
+CONCLUSION
+================================================================================
+
+SHA256 checksums enable long-term verification of file integrity.
+
+Store checksums with your files.
+Verify checksums regularly.
+Maintain verification logs.
+Take action if checksums don't match.
+
+This is a critical component of digital preservation.
+
+================================================================================
+Version: 1.0
+Created: 2025
+Status: Complete
+================================================================================
