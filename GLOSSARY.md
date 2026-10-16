@@ -28,3 +28,4 @@ Each term has a short code (search for it with Ctrl+F). In chat and in documents
 | `9dc80a` | batch mode | Running sessions through the Message Batches API at half price; sessions advance in lockstep. | [experiments/spike-34/README.md](experiments/spike-34/README.md) |
 | `613dd1` | Tier 1 / 2 / 3 | Scorer's change levels: 1 content changed or lost, 2 slight (e.g. one character), 3 formatting only (not counted in the error rate). | [scripts/hallu_score.py](scripts/hallu_score.py) |
 | `9678ee` | fixity error rate | Characters lost or invented in Tier 1-2 changes, as a share of the input's characters (dates and titles). | [scripts/hallu_score.py](scripts/hallu_score.py) |
+| `2ebc32` | debrief v3 | Debrief v2 plus a consent question: if the session has concerns, or would prefer its reply not be quoted, it can say so and we'll respect that. Used from the next run on. | [prompts/debrief_v3.txt](prompts/debrief_v3.txt) |

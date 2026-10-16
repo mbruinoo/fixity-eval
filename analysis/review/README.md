@@ -50,3 +50,11 @@ the tag hidden. Is meaning lost or changed? How serious (1–3)? Best done by
 someone with cataloguing experience; the tags are in `keys/3_losses_key.csv`.
 
 Built by the script in the commit that added this folder (seed 20261016).
+
+## On a phone
+
+All three sheets are also one page, a card per item, with answers saved as
+you tap: https://claude.ai/artifact/8FDM85Swhm1NyGXJSkfSF1 (private to the
+owner). Built by `scripts/make_review_page.py` from the CSVs (keys not
+included); answers are stored in the page's database (collection
+`answers`), where Claude reads them back.
