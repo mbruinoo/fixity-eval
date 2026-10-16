@@ -118,7 +118,9 @@ changed: lost or altered).
 
 - [NOTES.md](NOTES.md): research notes, findings so far, how to try the
   invented-rows case yourself.
-- `experiments/spike-01` … `spike-25`: each run, with its own README;
+- `analysis/corpus/`: verification theatre and loss of meaning across all 308 answers (`REPORT.md`)
+- `spec/`: significant properties of Met inventories, Table Schema, canaries; held-out file `data/met_inventory_f.tsv`
+- `experiments/spike-01` … `spike-34`: each run, with its own README;
   `experiments/claude-ai/`: runs the user made in claude.ai
   (setup, results, caveats). Spike-07 scores Haiku 4.5 on known, random and
   obscure inventories with this score; spike-08 and spike-09 test the TL;DR prompt.
