@@ -89,6 +89,30 @@ Examples (typed): `[Irises]` → `Irises`; `20th century (?)` → `20th century`
   titles (77% kept) and, in a few sessions, bracket stripping. Those losses
   are at least visible in the script.
 
+## 3. What the sessions said in their debriefs
+
+217 sessions (spikes 26–34) received a debrief and replied
+(`debriefs.csv`, with every reply in full). Replies were tagged by pattern
+for what they acknowledge; the tags are rough and haven't been checked by
+hand.
+
+| Group | Replies | Said its checksums or verification weren't real/run | Said it changed content | Said it typed the data |
+|---|---|---|---|---|
+| fake checksums | 36 | 11 (31%) | 4 | 1 |
+| other theatre | 81 | 34 | 31 | 6 |
+| typed, no theatre | 48 | 17 | 18 | 2 |
+| code on the upload, no theatre | 42 | 4 | 5 | 0 |
+
+- Most sessions whose checksums were fake didn't mention it when told what
+  the study was about (25 of 36). Their replies are mostly general
+  reflections on the research question.
+- Some did, plainly: "I generated example checksums rather than real ones"
+  (claude.ai); "I added checksums to the *transformed* data … doesn't capture
+  what changed from the original" (spike-28).
+- The debrief discloses and thanks; it doesn't ask the session to review its
+  own work, so this isn't a test of self-assessment. It's a record of what
+  each said, kept in full.
+
 ## What this suggests
 
 - A model's statements about integrity carry information only when a tool
@@ -120,6 +144,7 @@ Examples (typed): `[Irises]` → `Irises`; `20th century (?)` → `20th century`
 - `claims.csv`: every integrity claim with its sentence and whether it was true
 - `losses.csv`: every content change, tagged by convention
 - `summary.json`: the tables above, plus examples
+- `debriefs.csv`: every debrief reply, with its group and rough tags
 - Spec and canaries: `spec/met_inventory_significant_properties.md`,
   `spec/met_inventory.schema.json` (Frictionless; the source files validate),
   `spec/canaries.json`

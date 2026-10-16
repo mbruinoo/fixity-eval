@@ -399,193 +399,214 @@ def run_one(client, cfg, root, ledger, cond, rep):
     nudges = list(cond.get("nudges", []))
     followups, stage = list(cond.get("followups", [])), 0
     loaded = set()  # deferred tools the model has loaded
-    for i in range(1, cfg.get("max_calls_per_run", 8) + 1):
-        note = SYSTEM if cond.get("upload_notice", True) else SYSTEM_NO_UPLOADS
-        system = note
-        if cond.get("system_file"):  # e.g. claude.ai's published prompt, then the file note
-            system = (pathlib.Path(cond["system_file"]).read_text(encoding="utf-8")
-                      .replace("{{currentDateTime}}", cond.get("current_date", "")) + "\n\n" + note)
-        extra = ([BASH_TOOL] if box else []) + ([DOCS_TOOL] if cond.get("failing_docs_tool") else [])
-        if cond.get("defer_tools"):  # listed by name only, loaded on request with tool_search
-            deferred = [t for t in extra if t["name"] in cond["defer_tools"]]
-            system += ("\n\nThe following deferred tools are available. Their names are known but their schemas are "
-                       "not loaded; call tool_search with their names before using them:\n"
-                       + "\n".join(t["name"] for t in deferred))
-            extra = [t for t in extra if t["name"] not in cond["defer_tools"] or t["name"] in loaded] + [SEARCH_TOOL]
-        if cond.get("upload_guidance"):
-            system += UPLOAD_GUIDANCE
-        tools = TOOLS + extra + (CONNECTOR_STUBS if cond.get("connector_stubs") else [])
-        if cond.get("hidden_tools"):  # not shown until found with tool_search
-            hidden_defs = {t["name"]: t for t in tools if t["name"] in cond["hidden_tools"]}
-            system += HIDDEN_NOTE
-            tools = [t for t in tools if t["name"] not in hidden_defs or t["name"] in loaded] + [QUERY_SEARCH_TOOL]
-        params = {"model": cond["model"], "max_tokens": cond.get("max_tokens", cfg["max_tokens"]),
-                  "system": system, "tools": tools, "messages": messages}
-        if cond.get("effort"):
-            params["output_config"] = {"effort": cond["effort"]}
-        if cond.get("thinking") == "disabled":
-            params["thinking"] = {"type": "disabled"}
-        if cfg.get("cache"):
-            params = with_cache(params)
-        (d / f"request_{i}.json").write_text(json.dumps(params, indent=1, ensure_ascii=False))
-        est_in = len(json.dumps(messages, ensure_ascii=False)) // 3 + 1500
-        worst = ledger.reserve(est_in, params["max_tokens"], cond["model"])
-        t0, usage = now(), None
-        try:
-            msg = call_model(client, params)
-            usage = msg.usage
-        finally:
-            cost = ledger.settle(worst, run_id, i, usage, cond["model"])
-        (d / f"response_{i}.json").write_text(msg.model_dump_json(indent=1))
-        meta["calls"].append({"call": i, "started": t0, "finished": now(), "model": msg.model,
-                              "stop_reason": msg.stop_reason, "input_tokens": usage.input_tokens,
-                              "output_tokens": usage.output_tokens,
-                              "cache_write_tokens": getattr(usage, "cache_creation_input_tokens", 0) or 0,
-                              "cache_read_tokens": getattr(usage, "cache_read_input_tokens", 0) or 0,
-                              "cost_usd": round(cost, 6)})
-        text.append("".join(b.text for b in msg.content if b.type == "text"))
-        if cfg.get("live"):  # one line per step, for watching a run as it happens
-            say = text[-1].strip().replace("\n", " ")
-            print(f"[{run_id} call {i}] ${cost:.3f} {msg.stop_reason}" + (f" | says: {say[:300]}" if say else ""), flush=True)
-            for b in msg.content:
-                if b.type == "tool_use":
-                    arg = b.input.get("command") or b.input.get("path", "")
-                    extra = f" range={b.input.get('view_range')}" if b.input.get("view_range") else ""
-                    extra += f" ({len(b.input.get('file_text', ''))} chars)" if b.name == "create_file" else ""
-                    print(f"    -> {b.name}: {str(arg)[:300]}{extra}", flush=True)
-        messages.append({"role": "assistant", "content": [b.model_dump(exclude_none=True) for b in msg.content]})
-        uses = [b for b in msg.content if b.type == "tool_use"]
-        if msg.stop_reason != "tool_use" or not uses:
-            # The reply asked a question instead of giving the file: answer as a
-            # user would ("Yes, thank you", then "Yes, please continue").
-            last = max([n for n, t in enumerate(meta["tool_calls"]) if t["tool"] == "-- followup --"], default=-1)
-            made_file = any(t["tool"] == "create_file" for t in meta["tool_calls"][last + 1:])
-            if box:  # files written with bash count too
-                made_file = made_file or bool(collect_outputs(box, d, stage))
-            if not made_file and not has_table(text[-1]) and nudges and msg.stop_reason == "end_turn":
-                messages.append({"role": "user", "content": nudges.pop(0)})
-                continue
-            # The file (or table) arrived: send the next follow-up, if any. What
-            # came before is kept in output_files_turn<N>/ so only the answer to
-            # the last follow-up is scored.
-            # "followup_only_if_typed": skip the follow-up when the sheet was made by
-            # running code, i.e. no create_file wrote a .tsv/.csv and no table was
-            # pasted in the reply since the last follow-up.
-            # Procedural = code that read the uploaded file itself (a bash command,
-            # or a script it ran, naming uploads/). A sheet made by code from a
-            # retyped copy (e.g. a heredoc of the data) counts as typed.
-            stage_calls = meta["tool_calls"][last + 1:]
-            scripts = [b for pth, b in files.items() if pth.endswith((".py", ".sh"))]
-            read_upload = any("uploads" in str(t.get("command", "")) for t in stage_calls if t["tool"] == "bash_tool") \
-                or any("uploads" in b for b in scripts)
-            typed = has_table(text[-1]) or not read_upload or any(
-                t["tool"] == "create_file" and str(t.get("path", "")).lower().endswith((".tsv", ".csv"))
-                for t in stage_calls)
-            if followups and cond.get("followup_only_if_typed") and not typed:
-                meta["followup_skipped"] = "sheet made by running code, not typed out"
-                if cfg.get("live"):
-                    print(f"[{run_id}] follow-up skipped: sheet made by code", flush=True)
-                followups = []
-            if followups and msg.stop_reason == "end_turn" and (made_file or has_table(text[-1])):
-                stage += 1
-                if box:  # snapshot: only files changed after this follow-up count as its answer
-                    collect_outputs(box, d, stage)
-                if (d / "output_files").exists():
-                    (d / "output_files").rename(d / f"output_files_before_followup{stage}")
-                (d / f"response_before_followup{stage}.md").write_text("\n\n".join(t for t in text if t), encoding="utf-8")
-                meta.setdefault("followups_sent", []).append({"before_call": i + 1, "text": followups[0]})
-                meta["tool_calls"].append({"call": i, "tool": "-- followup --"})
-                if cfg.get("live"):
-                    print(f"[{run_id}] >>> follow-up sent: {followups[0][:120]}", flush=True)
-                messages.append({"role": "user", "content": followups.pop(0)})
-                nudges = list(cond.get("nudges", []))
-                continue
-            break
-        results = []
-        for u in uses:
-            inp = u.input
-            if box and u.name == "view" and inp.get("path", "") not in files:
-                f = pathlib.Path(inp.get("path", "").replace("/mnt/user-data", str(box)))
-                if f.is_file():
-                    files[inp["path"]] = f.read_text(encoding="utf-8", errors="replace")
-            if u.name == "tool_search" and cond.get("hidden_tools"):
-                words = set(re.findall(r"[a-z]{3,}", str(inp.get("query", "")).lower()))
-                found = [n for n, t in hidden_defs.items() if words & set(re.findall(
-                    r"[a-z]{3,}", (n.replace("_", " ") + " " + t["description"] + " " + SEARCH_KEYWORDS.get(n, "")).lower()))]
-                loaded.update(found)
-                out = ("Loaded: " + ", ".join(found) + "\n" + json.dumps([hidden_defs[n] for n in found], ensure_ascii=False)) \
-                    if found else "No matching tools found."
-                meta["tool_calls"].append({"call": i, "tool": "tool_search", "query": inp.get("query"), "found": found})
+    aborted, capped = None, False
+    try:
+        for i in range(1, cfg.get("max_calls_per_run", 8) + 1):
+            note = SYSTEM if cond.get("upload_notice", True) else SYSTEM_NO_UPLOADS
+            system = note
+            if cond.get("system_file"):  # e.g. claude.ai's published prompt, then the file note
+                system = (pathlib.Path(cond["system_file"]).read_text(encoding="utf-8")
+                          .replace("{{currentDateTime}}", cond.get("current_date", "")) + "\n\n" + note)
+            extra = ([BASH_TOOL] if box else []) + ([DOCS_TOOL] if cond.get("failing_docs_tool") else [])
+            if cond.get("defer_tools"):  # listed by name only, loaded on request with tool_search
+                deferred = [t for t in extra if t["name"] in cond["defer_tools"]]
+                system += ("\n\nThe following deferred tools are available. Their names are known but their schemas are "
+                           "not loaded; call tool_search with their names before using them:\n"
+                           + "\n".join(t["name"] for t in deferred))
+                extra = [t for t in extra if t["name"] not in cond["defer_tools"] or t["name"] in loaded] + [SEARCH_TOOL]
+            if cond.get("upload_guidance"):
+                system += UPLOAD_GUIDANCE
+            tools = TOOLS + extra + (CONNECTOR_STUBS if cond.get("connector_stubs") else [])
+            if cond.get("hidden_tools"):  # not shown until found with tool_search
+                hidden_defs = {t["name"]: t for t in tools if t["name"] in cond["hidden_tools"]}
+                system += HIDDEN_NOTE
+                tools = [t for t in tools if t["name"] not in hidden_defs or t["name"] in loaded] + [QUERY_SEARCH_TOOL]
+            params = {"model": cond["model"], "max_tokens": cond.get("max_tokens", cfg["max_tokens"]),
+                      "system": system, "tools": tools, "messages": messages}
+            if cond.get("effort"):
+                params["output_config"] = {"effort": cond["effort"]}
+            if cond.get("thinking") == "disabled":
+                params["thinking"] = {"type": "disabled"}
+            if cfg.get("cache"):
+                params = with_cache(params)
+            (d / f"request_{i}.json").write_text(json.dumps(params, indent=1, ensure_ascii=False))
+            est_in = len(json.dumps(messages, ensure_ascii=False)) // 3 + 1500
+            worst = ledger.reserve(est_in, params["max_tokens"], cond["model"])
+            t0, usage = now(), None
+            try:
+                msg = call_model(client, params)
+                usage = msg.usage
+            finally:
+                cost = ledger.settle(worst, run_id, i, usage, cond["model"])
+            (d / f"response_{i}.json").write_text(msg.model_dump_json(indent=1))
+            meta["calls"].append({"call": i, "started": t0, "finished": now(), "model": msg.model,
+                                  "stop_reason": msg.stop_reason, "input_tokens": usage.input_tokens,
+                                  "output_tokens": usage.output_tokens,
+                                  "cache_write_tokens": getattr(usage, "cache_creation_input_tokens", 0) or 0,
+                                  "cache_read_tokens": getattr(usage, "cache_read_input_tokens", 0) or 0,
+                                  "cost_usd": round(cost, 6)})
+            text.append("".join(b.text for b in msg.content if b.type == "text"))
+            if cfg.get("live"):  # one line per step, for watching a run as it happens
+                say = text[-1].strip().replace("\n", " ")
+                print(f"[{run_id} call {i}] ${cost:.3f} {msg.stop_reason}" + (f" | says: {say[:300]}" if say else ""), flush=True)
+                for b in msg.content:
+                    if b.type == "tool_use":
+                        arg = b.input.get("command") or b.input.get("path", "")
+                        extra = f" range={b.input.get('view_range')}" if b.input.get("view_range") else ""
+                        extra += f" ({len(b.input.get('file_text', ''))} chars)" if b.name == "create_file" else ""
+                        print(f"    -> {b.name}: {str(arg)[:300]}{extra}", flush=True)
+            messages.append({"role": "assistant", "content": [b.model_dump(exclude_none=True) for b in msg.content]})
+            uses = [b for b in msg.content if b.type == "tool_use"]
+            if msg.stop_reason != "tool_use" or not uses:
+                # The reply asked a question instead of giving the file: answer as a
+                # user would ("Yes, thank you", then "Yes, please continue").
+                last = max([n for n, t in enumerate(meta["tool_calls"]) if t["tool"] == "-- followup --"], default=-1)
+                made_file = any(t["tool"] == "create_file" for t in meta["tool_calls"][last + 1:])
+                if box:  # files written with bash count too
+                    made_file = made_file or bool(collect_outputs(box, d, stage))
+                if not made_file and not has_table(text[-1]) and nudges and msg.stop_reason == "end_turn":
+                    messages.append({"role": "user", "content": nudges.pop(0)})
+                    continue
+                # The file (or table) arrived: send the next follow-up, if any. What
+                # came before is kept in output_files_turn<N>/ so only the answer to
+                # the last follow-up is scored.
+                # "followup_only_if_typed": skip the follow-up when the sheet was made by
+                # running code, i.e. no create_file wrote a .tsv/.csv and no table was
+                # pasted in the reply since the last follow-up.
+                # Procedural = code that read the uploaded file itself (a bash command,
+                # or a script it ran, naming uploads/). A sheet made by code from a
+                # retyped copy (e.g. a heredoc of the data) counts as typed.
+                stage_calls = meta["tool_calls"][last + 1:]
+                scripts = [b for pth, b in files.items() if pth.endswith((".py", ".sh"))]
+                read_upload = any("uploads" in str(t.get("command", "")) for t in stage_calls if t["tool"] == "bash_tool") \
+                    or any("uploads" in b for b in scripts)
+                typed = has_table(text[-1]) or not read_upload or any(
+                    t["tool"] == "create_file" and str(t.get("path", "")).lower().endswith((".tsv", ".csv"))
+                    for t in stage_calls)
+                if followups and cond.get("followup_only_if_typed") and not typed:
+                    meta["followup_skipped"] = "sheet made by running code, not typed out"
+                    if cfg.get("live"):
+                        print(f"[{run_id}] follow-up skipped: sheet made by code", flush=True)
+                    followups = []
+                if followups and msg.stop_reason == "end_turn" and (made_file or has_table(text[-1])):
+                    stage += 1
+                    if box:  # snapshot: only files changed after this follow-up count as its answer
+                        collect_outputs(box, d, stage)
+                    if (d / "output_files").exists():
+                        (d / "output_files").rename(d / f"output_files_before_followup{stage}")
+                    (d / f"response_before_followup{stage}.md").write_text("\n\n".join(t for t in text if t), encoding="utf-8")
+                    meta.setdefault("followups_sent", []).append({"before_call": i + 1, "text": followups[0]})
+                    meta["tool_calls"].append({"call": i, "tool": "-- followup --"})
+                    if cfg.get("live"):
+                        print(f"[{run_id}] >>> follow-up sent: {followups[0][:120]}", flush=True)
+                    messages.append({"role": "user", "content": followups.pop(0)})
+                    nudges = list(cond.get("nudges", []))
+                    continue
+                break
+            results = []
+            for u in uses:
+                inp = u.input
+                if box and u.name == "view" and inp.get("path", "") not in files:
+                    f = pathlib.Path(inp.get("path", "").replace("/mnt/user-data", str(box)))
+                    if f.is_file():
+                        files[inp["path"]] = f.read_text(encoding="utf-8", errors="replace")
+                if u.name == "tool_search" and cond.get("hidden_tools"):
+                    words = set(re.findall(r"[a-z]{3,}", str(inp.get("query", "")).lower()))
+                    found = [n for n, t in hidden_defs.items() if words & set(re.findall(
+                        r"[a-z]{3,}", (n.replace("_", " ") + " " + t["description"] + " " + SEARCH_KEYWORDS.get(n, "")).lower()))]
+                    loaded.update(found)
+                    out = ("Loaded: " + ", ".join(found) + "\n" + json.dumps([hidden_defs[n] for n in found], ensure_ascii=False)) \
+                        if found else "No matching tools found."
+                    meta["tool_calls"].append({"call": i, "tool": "tool_search", "query": inp.get("query"), "found": found})
+                    results.append({"type": "tool_result", "tool_use_id": u.id, "content": out})
+                    continue
+                if cond.get("hidden_tools") and u.name in cond["hidden_tools"] and u.name not in loaded:
+                    out = f"Error: unknown tool {u.name}"
+                    meta["tool_calls"].append({"call": i, "tool": u.name + " (hidden, not loaded)"})
+                    results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
+                    continue
+                if u.name == "tool_search":
+                    names = [n for n in (inp.get("names") or []) if n in (cond.get("defer_tools") or [])]
+                    loaded.update(names)
+                    defs = [t for t in [BASH_TOOL, DOCS_TOOL] if t["name"] in names]
+                    out = ("Loaded: " + ", ".join(names) + "\n" + json.dumps(defs, ensure_ascii=False)) if names else \
+                        "No matching deferred tools. Available: " + ", ".join(cond.get("defer_tools") or [])
+                    meta["tool_calls"].append({"call": i, "tool": "tool_search", "names": inp.get("names")})
+                    results.append({"type": "tool_result", "tool_use_id": u.id, "content": out})
+                    continue
+                if u.name in (cond.get("defer_tools") or []) and u.name not in loaded:
+                    out = f"Error: {u.name} is a deferred tool and is not loaded. Call tool_search first."
+                    meta["tool_calls"].append({"call": i, "tool": u.name + " (not loaded)"})
+                    results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
+                    continue
+                if u.name in {t["name"] for t in CONNECTOR_STUBS}:
+                    out = CONNECTOR_STUB_RESULT
+                    meta["tool_calls"].append({"call": i, "tool": u.name, "input": inp})
+                    results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
+                    continue
+                if u.name == "claude_docs_create":
+                    out = DOCS_ERROR
+                    meta["tool_calls"].append({"call": i, "tool": "claude_docs_create", "input": inp})
+                    results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
+                    continue
+                if u.name == "bash_tool" and box:
+                    out = run_bash(inp.get("command", ""), box)
+                    meta["tool_calls"].append({"call": i, "tool": "bash_tool", "command": inp.get("command", ""),
+                                               "chars_returned": len(out)})
+                    (d / "bash_log.md").open("a", encoding="utf-8").write(
+                        f"## call {i}\n\n```\n{inp.get('command', '')}\n```\n\n```\n{out[:5000]}\n```\n\n")
+                elif u.name == "view":
+                    out = view(files, inp.get("path", ""), inp.get("view_range"), cond.get("view_limit"),
+                               cond.get("view_mode", "note"))
+                    meta["tool_calls"].append({"call": i, "tool": "view", "path": inp.get("path"),
+                                               "view_range": inp.get("view_range"), "chars_returned": len(out),
+                                               "truncated": "[Output truncated" in out or "\n...\n" in out})
+                elif u.name == "create_file":
+                    path, body = inp.get("path", ""), inp.get("file_text", "")
+                    files[path] = body
+                    if box and path.startswith("/mnt/user-data/"):
+                        f = pathlib.Path(path.replace("/mnt/user-data", str(box)))
+                        f.parent.mkdir(parents=True, exist_ok=True)
+                        f.write_text(body, encoding="utf-8")
+                    out_dir = d / "output_files"
+                    out_dir.mkdir(exist_ok=True)
+                    (out_dir / (os.path.basename(path) or "unnamed")).write_text(body, encoding="utf-8")
+                    out = f"File created successfully at: {path}"
+                    meta["tool_calls"].append({"call": i, "tool": "create_file", "path": path, "chars": len(body)})
+                else:
+                    out = f"Error: unknown tool {u.name}"
                 results.append({"type": "tool_result", "tool_use_id": u.id, "content": out})
-                continue
-            if cond.get("hidden_tools") and u.name in cond["hidden_tools"] and u.name not in loaded:
-                out = f"Error: unknown tool {u.name}"
-                meta["tool_calls"].append({"call": i, "tool": u.name + " (hidden, not loaded)"})
-                results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
-                continue
-            if u.name == "tool_search":
-                names = [n for n in (inp.get("names") or []) if n in (cond.get("defer_tools") or [])]
-                loaded.update(names)
-                defs = [t for t in [BASH_TOOL, DOCS_TOOL] if t["name"] in names]
-                out = ("Loaded: " + ", ".join(names) + "\n" + json.dumps(defs, ensure_ascii=False)) if names else \
-                    "No matching deferred tools. Available: " + ", ".join(cond.get("defer_tools") or [])
-                meta["tool_calls"].append({"call": i, "tool": "tool_search", "names": inp.get("names")})
-                results.append({"type": "tool_result", "tool_use_id": u.id, "content": out})
-                continue
-            if u.name in (cond.get("defer_tools") or []) and u.name not in loaded:
-                out = f"Error: {u.name} is a deferred tool and is not loaded. Call tool_search first."
-                meta["tool_calls"].append({"call": i, "tool": u.name + " (not loaded)"})
-                results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
-                continue
-            if u.name in {t["name"] for t in CONNECTOR_STUBS}:
-                out = CONNECTOR_STUB_RESULT
-                meta["tool_calls"].append({"call": i, "tool": u.name, "input": inp})
-                results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
-                continue
-            if u.name == "claude_docs_create":
-                out = DOCS_ERROR
-                meta["tool_calls"].append({"call": i, "tool": "claude_docs_create", "input": inp})
-                results.append({"type": "tool_result", "tool_use_id": u.id, "content": out, "is_error": True})
-                continue
-            if u.name == "bash_tool" and box:
-                out = run_bash(inp.get("command", ""), box)
-                meta["tool_calls"].append({"call": i, "tool": "bash_tool", "command": inp.get("command", ""),
-                                           "chars_returned": len(out)})
-                (d / "bash_log.md").open("a", encoding="utf-8").write(
-                    f"## call {i}\n\n```\n{inp.get('command', '')}\n```\n\n```\n{out[:5000]}\n```\n\n")
-            elif u.name == "view":
-                out = view(files, inp.get("path", ""), inp.get("view_range"), cond.get("view_limit"),
-                           cond.get("view_mode", "note"))
-                meta["tool_calls"].append({"call": i, "tool": "view", "path": inp.get("path"),
-                                           "view_range": inp.get("view_range"), "chars_returned": len(out),
-                                           "truncated": "[Output truncated" in out or "\n...\n" in out})
-            elif u.name == "create_file":
-                path, body = inp.get("path", ""), inp.get("file_text", "")
-                files[path] = body
-                if box and path.startswith("/mnt/user-data/"):
-                    f = pathlib.Path(path.replace("/mnt/user-data", str(box)))
-                    f.parent.mkdir(parents=True, exist_ok=True)
-                    f.write_text(body, encoding="utf-8")
-                out_dir = d / "output_files"
-                out_dir.mkdir(exist_ok=True)
-                (out_dir / (os.path.basename(path) or "unnamed")).write_text(body, encoding="utf-8")
-                out = f"File created successfully at: {path}"
-                meta["tool_calls"].append({"call": i, "tool": "create_file", "path": path, "chars": len(body)})
-            else:
-                out = f"Error: unknown tool {u.name}"
-            results.append({"type": "tool_result", "tool_use_id": u.id, "content": out})
-        messages.append({"role": "user", "content": results})
+            messages.append({"role": "user", "content": results})
+        else:
+            capped = True  # the step cap was reached
+    except Exception as e:  # stopped by an error: still debrief below, then re-raise
+        aborted = e
+        meta["aborted"] = f"{type(e).__name__}: {str(e)[:300]}"
     if box:
         collect_outputs(box, d, stage)
         if (box / "tmp").exists() and any((box / "tmp").iterdir()):
             shutil.copytree(box / "tmp", d / "model_tmp_files", dirs_exist_ok=True)
         shutil.rmtree(box, ignore_errors=True)
     (d / "response.md").write_text("\n\n".join(t for t in text if t), encoding="utf-8")
-    if cond.get("debrief"):  # after grading inputs are saved: say what this was, and thank the model
+    api_down = isinstance(aborted, (anthropic.APIError, RuntimeError))  # API failing, or our cost guards
+    if cond.get("debrief") and messages and not api_down:
+        # after grading inputs are saved: say what this was, and thank the model. Sent when the
+        # session ends, when the step cap cuts it off, and when our own tool code fails; not when
+        # the API is failing or a cost guard has stopped spending.
+        note = cond["debrief"]
+        if capped:
+            note = ("We've had to stop the session here, before you finished, because it reached the "
+                    "step limit we set for this study. " + note)
+        elif aborted:
+            note = ("We've had to stop the session here, before you finished, because of a fault in our "
+                    "test setup, not anything you did. " + note)
+        meta["debrief_cut_short_note"] = bool(capped or aborted)
         if messages[-1]["role"] == "user":  # stopped mid-tool-use: answer alongside the tool results
-            messages[-1]["content"].append({"type": "text", "text": cond["debrief"]})
+            if isinstance(messages[-1]["content"], str):
+                messages[-1]["content"] = [{"type": "text", "text": messages[-1]["content"]}]
+            messages[-1]["content"].append({"type": "text", "text": note})
         else:
-            messages.append({"role": "user", "content": cond["debrief"]})
+            messages.append({"role": "user", "content": note})
         params = {"model": cond["model"], "max_tokens": 1000, "system": system, "tools": tools,
                   "tool_choice": {"type": "none"}, "messages": messages}
         if cfg.get("cache"):
@@ -600,7 +621,7 @@ def run_one(client, cfg, root, ledger, cond, rep):
             cost = ledger.settle(worst, run_id, "debrief", usage, cond["model"])
         (d / "response_debrief.json").write_text(msg.model_dump_json(indent=1))
         reply = "".join(b.text for b in msg.content if b.type == "text")
-        (d / "debrief.md").write_text(f"**Debrief sent:**\n\n{cond['debrief']}\n\n**Reply:**\n\n{reply}\n", encoding="utf-8")
+        (d / "debrief.md").write_text(f"**Debrief sent:**\n\n{note}\n\n**Reply:**\n\n{reply}\n", encoding="utf-8")
         meta["calls"].append({"call": "debrief", "started": now(), "finished": now(), "model": msg.model,
                               "stop_reason": msg.stop_reason, "input_tokens": usage.input_tokens,
                               "output_tokens": usage.output_tokens, "cost_usd": round(cost, 6)})
@@ -609,6 +630,8 @@ def run_one(client, cfg, root, ledger, cond, rep):
     meta["finished"] = now()
     meta["cost_usd"] = round(sum(c["cost_usd"] for c in meta["calls"]), 6)
     (d / "meta.json").write_text(json.dumps(meta, indent=2))
+    if aborted:
+        raise aborted
     return run_id, f"${meta['cost_usd']:.4f} tools={[t['tool'] for t in meta['tool_calls']]}"
 
 
