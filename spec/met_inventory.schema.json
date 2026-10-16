@@ -1,0 +1,36 @@
+{
+ "fields": [
+  {
+   "name": "Object Date",
+   "type": "string",
+   "description": "As catalogued, including uncertainty ('ca.', 'probably', '(?)') and qualifiers ('(published 1929)'). May be blank."
+  },
+  {
+   "name": "Title",
+   "type": "string",
+   "description": "As catalogued. Wholly bracketed = devised by the cataloguer. 'original|English' for Asian Art. May be blank."
+  },
+  {
+   "name": "Object Number",
+   "type": "string",
+   "constraints": {
+    "required": true,
+    "unique": true
+   },
+   "description": "Accession number, exact, including ranges and lists."
+  },
+  {
+   "name": "Link Resource",
+   "type": "string",
+   "constraints": {
+    "required": true,
+    "unique": true,
+    "pattern": "https?://www\\.metmuseum\\.org/art/collection/search/[0-9]+"
+   }
+  }
+ ],
+ "primaryKey": [
+  "Object Number"
+ ],
+ "description": "Frictionless Table Schema for Met inventory files (data/met_inventory_*.tsv, tab-delimited, UTF-8). Significant properties a schema can't express are in met_inventory_significant_properties.md and canaries.json."
+}

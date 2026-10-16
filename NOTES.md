@@ -400,3 +400,8 @@ that are missing, and a summary that says nothing was lost.
   5/20, P/S/C 0/20. H far weaker than on 100 rows (13/20): first search is
   always "checksum…" (file tools only); 4 of 9 code sessions pasted the file
   into the script; 11 hit the step cap. S ran code most (7/20), no checksums.
+- (analysis/corpus, no API cost) 308 answers mined. Theatre (false integrity
+  claim or fake checksum): typed 55%, code on a copy 35%, code on the upload
+  8%. Typed sheets kept 50% of devised-title brackets and 48% of
+  original-script titles; code on the upload 93% and 98%. Provenance of the
+  bytes decides both. Spec, canaries, held-out file f added (spec/).
