@@ -48,6 +48,7 @@ class Ledger:
         self.data = json.loads(path.read_text()) if path.exists() else {"spent_usd": 0.0, "calls": 0, "entries": []}
         self.reserved = 0.0
         self.reserved_calls = 0
+        self.price_factor = 0.5 if cfg.get("batch") else 1.0  # Message Batches: half price
 
     def prices(self, model):
         p = self.model_prices.get(model)
@@ -58,11 +59,12 @@ class Ledger:
         # prompt caching (5-minute TTL): writes 1.25x input price, reads 0.1x
         write = getattr(usage, "cache_creation_input_tokens", 0) or 0
         read = getattr(usage, "cache_read_input_tokens", 0) or 0
-        return usage.input_tokens * pin + write * pin * 1.25 + read * pin * 0.1 + usage.output_tokens * pout
+        return (usage.input_tokens * pin + write * pin * 1.25 + read * pin * 0.1
+                + usage.output_tokens * pout) * getattr(self, "price_factor", 1.0)
 
     def reserve(self, est_in, max_out, model=None):
         pin, pout = self.prices(model)
-        worst = est_in * pin + max_out * pout
+        worst = (est_in * pin + max_out * pout) * getattr(self, "price_factor", 1.0)
         with LOCK:
             if self.data["spent_usd"] + self.reserved + worst > self.budget:
                 raise RuntimeError(f"budget guard: spent {self.data['spent_usd']:.4f} + reserved "

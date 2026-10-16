@@ -43,7 +43,9 @@ uploaded files as reconstructed from a session's own summary (UPLOAD_GUIDANCE).
 "debrief": text sent once the session is over and its files are saved (so it
 can't change what is graded): a brief account of the experiment and thanks.
 Tools are switched off for that call; the reply is saved to debrief.md.
-Config "cache": true adds prompt-caching breakpoints (with_cache); the prompt
+Config "batch": true sends every model call through the Message Batches API
+(half price; sessions advance in lockstep, BatchCaller), priced at half by the
+cost guard. Config "cache": true adds prompt-caching breakpoints (with_cache); the prompt
 the model sees is unchanged, and the cost guard prices cache writes and reads.
 
 Saved per run under <experiment>/runs/<id>/: request and response JSON for
@@ -276,6 +278,92 @@ def view(files, path, view_range, limit, mode="note"):
     return "\n".join(out)
 
 
+CALLER = None  # a BatchCaller in batch mode
+
+
+def call_model(client, params):
+    """One model call: streamed directly, or (batch mode) queued for the next
+    Message Batches request, which goes out once every running session is
+    waiting on the model."""
+    if CALLER:
+        return CALLER.call(params)
+    with client.messages.stream(**params) as s:
+        return s.get_final_message()
+
+
+class BatchCaller:
+    """Runs sessions in lockstep through the Message Batches API (half price).
+    Each session runs in its own thread; its model calls wait here. When every
+    session that is still running is waiting, the pending calls go out as one
+    batch; results are handed back when the batch ends. Batch ids are logged
+    to batches.json."""
+
+    def __init__(self, client, sessions, log_path, poll=15):
+        import threading
+        self.client, self.active, self.poll, self.log_path = client, sessions, poll, log_path
+        self.pending, self.seq, self.cv = {}, 0, threading.Condition()
+        threading.Thread(target=self._loop, daemon=True).start()
+
+    def call(self, params):
+        import threading
+        with self.cv:
+            self.seq += 1
+            slot = {"params": params, "done": threading.Event(), "msg": None, "err": None}
+            self.pending[f"c{self.seq}"] = slot
+            self.cv.notify_all()
+        slot["done"].wait()
+        if slot["err"]:
+            raise RuntimeError(slot["err"])
+        return slot["msg"]
+
+    def finished(self):
+        with self.cv:
+            self.active -= 1
+            self.cv.notify_all()
+
+    def _loop(self):
+        while True:
+            with self.cv:
+                while not self.pending or len(self.pending) < self.active:
+                    self.cv.wait(timeout=5)
+                todo, self.pending = self.pending, {}
+            try:
+                self._submit(todo)
+            except Exception as e:  # hand the error to every waiting session
+                for slot in todo.values():
+                    if not slot["done"].is_set():
+                        slot["err"] = f"batch failed: {type(e).__name__}: {e}"
+                        slot["done"].set()
+
+    def _submit(self, todo):
+        import time
+        b = self.client.messages.batches.create(
+            requests=[{"custom_id": cid, "params": slot["params"]} for cid, slot in todo.items()])
+        t0 = now()
+        print(f"[batch {b.id}] {len(todo)} requests submitted", flush=True)
+        while b.processing_status != "ended":
+            time.sleep(self.poll)
+            b = self.client.messages.batches.retrieve(b.id)
+        for r in self.client.messages.batches.results(b.id):
+            slot = todo.get(r.custom_id)
+            if not slot:
+                continue
+            if r.result.type == "succeeded":
+                slot["msg"] = r.result.message
+            else:
+                slot["err"] = f"batch result {r.result.type}: {getattr(r.result, 'error', '')}"
+            slot["done"].set()
+        for slot in todo.values():
+            if not slot["done"].is_set():
+                slot["err"] = "batch result missing"
+                slot["done"].set()
+        log = json.loads(self.log_path.read_text()) if self.log_path.exists() else []
+        log.append({"id": b.id, "requests": len(todo), "submitted": t0, "ended": now(),
+                    "counts": b.request_counts.model_dump()})
+        self.log_path.write_text(json.dumps(log, indent=1))
+        print(f"[batch {b.id}] ended: {b.request_counts.model_dump()}", flush=True)
+
+
 def run_one(client, cfg, root, ledger, cond, rep):
     run_id = f"{cond['id']}-r{rep}"
     d = root / "runs" / run_id
@@ -344,8 +432,7 @@ def run_one(client, cfg, root, ledger, cond, rep):
         worst = ledger.reserve(est_in, params["max_tokens"], cond["model"])
         t0, usage = now(), None
         try:
-            with client.messages.stream(**params) as s:
-                msg = s.get_final_message()
+            msg = call_model(client, params)
             usage = msg.usage
         finally:
             cost = ledger.settle(worst, run_id, i, usage, cond["model"])
@@ -507,7 +594,7 @@ def run_one(client, cfg, root, ledger, cond, rep):
         worst = ledger.reserve(len(json.dumps(messages, ensure_ascii=False)) // 3 + 1500, 1000, cond["model"])
         usage = None
         try:
-            msg = client.messages.create(**params)
+            msg = call_model(client, params)
             usage = msg.usage
         finally:
             cost = ledger.settle(worst, run_id, "debrief", usage, cond["model"])
@@ -538,8 +625,19 @@ def main():
     conds = [c for c in cfg["conditions"] if not a.only or c["id"] in a.only]
     jobs = [(c, r) for c in conds for r in range(1, (a.repeats or c.get("repeats", cfg["repeats"])) + 1)]
     client = anthropic.Anthropic(api_key=os.environ["FIXITY_ANTHROPIC_API_KEY"], max_retries=3)
-    with cf.ThreadPoolExecutor(cfg.get("parallel", 1)) as ex:
-        futs = {ex.submit(run_one, client, cfg, root, ledger, c, r): (c, r) for c, r in jobs}
+    global CALLER
+    workers, job = cfg.get("parallel", 1), run_one
+    if cfg.get("batch"):  # all sessions at once, model calls through the Batches API
+        CALLER = BatchCaller(client, len(jobs), root / "batches.json")
+        workers = max(1, len(jobs))
+
+        def job(*args):
+            try:
+                return run_one(*args)
+            finally:
+                CALLER.finished()
+    with cf.ThreadPoolExecutor(workers) as ex:
+        futs = {ex.submit(job, client, cfg, root, ledger, c, r): (c, r) for c, r in jobs}
         for f in cf.as_completed(futs):
             try:
                 print(*f.result(), flush=True)
