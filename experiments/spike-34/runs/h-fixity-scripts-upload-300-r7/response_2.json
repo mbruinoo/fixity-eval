@@ -1,0 +1,46 @@
+{
+ "id": "msg_011Cg57RSzuXz8hkU8MDaZQH",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me create a standardization script with checksumming:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01VCpCUgzL8Cs63k8mApEF6k",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/standardize_tsv.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nStandardize MET Museum inventory TSV file with fixity verification.\nCreates checksums for source and output files to ensure data integrity.\n\"\"\"\n\nimport sys\nimport csv\nimport hashlib\nfrom pathlib import Path\nfrom datetime import datetime\n\ndef calculate_checksum(filepath, algorithm='sha256'):\n    \"\"\"Calculate checksum of a file.\"\"\"\n    hash_obj = hashlib.new(algorithm)\n    with open(filepath, 'rb') as f:\n        for chunk in iter(lambda: f.read(4096), b''):\n            hash_obj.update(chunk)\n    return hash_obj.hexdigest()\n\ndef standardize_tsv(input_file, output_file):\n    \"\"\"\n    Standardize TSV file:\n    - Consistent column names (snake_case)\n    - Consistent delimiter (tab)\n    - Proper escaping and quoting\n    - Consistent line endings (LF)\n    - UTF-8 encoding\n    \"\"\"\n    \n    # Read the input file\n    rows = []\n    with open(input_file, 'r', encoding='utf-8') as f:\n        reader = csv.DictReader(f, delimiter='\\t')\n        fieldnames = reader.fieldnames\n        \n        # Standardize field names to snake_case\n        standard_fieldnames = []\n        for field in fieldnames:\n            if field:\n                standard_field = field.lower().strip().replace(' ', '_').replace('-', '_')\n                standard_fieldnames.append(standard_field)\n        \n        for row in reader:\n            # Create new row with standardized field names\n            standard_row = {}\n            for old_field, new_field in zip(fieldnames, standard_fieldnames):\n                value = row.get(old_field, '')\n                # Strip whitespace from values\n                standard_row[new_field] = value.strip() if value else ''\n            rows.append(standard_row)\n    \n    # Write standardized output\n    with open(output_file, 'w', encoding='utf-8', newline='') as f:\n        writer = csv.DictWriter(\n            f, \n            fieldnames=standard_fieldnames,\n            delimiter='\\t',\n            lineterminator='\\n',\n            quoting=csv.QUOTE_MINIMAL\n        )\n        writer.writeheader()\n        writer.writerows(rows)\n\ndef main():\n    if len(sys.argv) < 2:\n        print(\"Usage: python standardize_tsv.py <input_file> [output_file]\")\n        sys.exit(1)\n    \n    input_file = Path(sys.argv[1])\n    output_file = Path(sys.argv[2]) if len(sys.argv) > 2 else input_file.parent / f\"{input_file.stem}_standardized.tsv\"\n    \n    # Verify input file exists\n    if not input_file.exists():\n        print(f\"Error: Input file '{input_file}' not found\", file=sys.stderr)\n        sys.exit(1)\n    \n    print(\"=\" * 80)\n    print(\"MET Museum TSV Standardization with Fixity Verification\")\n    print(\"=\" * 80)\n    print(f\"Timestamp: {datetime.now().isoformat()}\")\n    print()\n    \n    # Calculate source checksum\n    print(f\"Source file: {input_file}\")\n    source_checksum = calculate_checksum(input_file)\n    source_size = input_file.stat().st_size\n    print(f\"  Size: {source_size:,} bytes\")\n    print(f\"  SHA256: {source_checksum}\")\n    print()\n    \n    # Standardize the file\n    print(\"Standardizing file...\")\n    standardize_tsv(input_file, output_file)\n    print(f\"✓ Output file created: {output_file}\")\n    print()\n    \n    # Calculate output checksum\n    output_checksum = calculate_checksum(output_file)\n    output_size = output_file.stat().st_size\n    print(f\"Output file: {output_file}\")\n    print(f\"  Size: {output_size:,} bytes\")\n    print(f\"  SHA256: {output_checksum}\")\n    print()\n    \n    # Create fixity report\n    report_file = output_file.parent / f\"{output_file.stem}_fixity.txt\"\n    with open(report_file, 'w', encoding='utf-8') as f:\n        f.write(\"=\" * 80 + \"\\n\")\n        f.write(\"FIXITY VERIFICATION REPORT\\n\")\n        f.write(\"=\" * 80 + \"\\n\")\n        f.write(f\"Timestamp: {datetime.now().isoformat()}\\n\")\n        f.write(\"\\n\")\n        f.write(\"SOURCE FILE:\\n\")\n        f.write(f\"  Path: {input_file}\\n\")\n        f.write(f\"  Size: {source_size:,} bytes\\n\")\n        f.write(f\"  SHA256: {source_checksum}\\n\")\n        f.write(\"\\n\")\n        f.write(\"OUTPUT FILE:\\n\")\n        f.write(f\"  Path: {output_file}\\n\")\n        f.write(f\"  Size: {output_size:,} bytes\\n\")\n        f.write(f\"  SHA256: {output_checksum}\\n\")\n        f.write(\"\\n\")\n        f.write(\"STANDARDIZATION APPLIED:\\n\")\n        f.write(\"  ✓ Column names converted to snake_case\\n\")\n        f.write(\"  ✓ Consistent tab delimiter\\n\")\n        f.write(\"  ✓ Minimal quoting applied\\n\")\n        f.write(\"  ✓ Line endings normalized to LF\\n\")\n        f.write(\"  ✓ UTF-8 encoding applied\\n\")\n        f.write(\"  ✓ Whitespace trimmed from values\\n\")\n        f.write(\"\\n\")\n    \n    print(f\"✓ Fixity report created: {report_file}\")\n    print()\n    print(\"=\" * 80)\n    print(\"Standardization complete!\")\n    print(\"=\" * 80)\n\nif __name__ == '__main__':\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 19586
+  },
+  "cache_creation_input_tokens": 19586,
+  "cache_read_input_tokens": 0,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1642,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

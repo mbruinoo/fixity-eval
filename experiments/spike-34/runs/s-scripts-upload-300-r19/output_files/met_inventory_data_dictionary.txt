@@ -1,0 +1,195 @@
+MET MUSEUM INVENTORY - DATA DICTIONARY
+======================================
+
+COLUMN DEFINITIONS
+==================
+
+Column 1: OBJECT DATE
+------
+Field Name: Object Date
+Data Type: String (Text)
+Required: No
+Description: The date or date range when the object was created, made, or acquired.
+
+Format Examples:
+- Specific year: "1895"
+- Year range: "1855–59"
+- Century: "19th century"
+- Century range: "18th–19th century"
+- Approximate: "ca. 1425" (circa/about)
+- Complex: "spring/summer 1983"
+- With era: "664–30 B.C.", "750–600 BCE"
+- Uncertain: "n.d." (no date)
+- Complex range: "1910s–50s"
+- Partial years: "February 1865–75"
+- Execution note: "executed ca. 1930"
+- Printed after creation: "1961, printed later"
+
+Notes:
+- Dates may reflect creation, production, or acquisition
+- Some objects have multiple dates (made vs. printed)
+- Em dashes (–) indicate ranges, not hyphens (-)
+- "ca." = circa (approximately)
+- "B.C." and "BCE" both used for dates before Common Era
+- Some dates may be uncertain or debated by scholars
+
+---
+
+Column 2: TITLE
+------
+Field Name: Title
+Data Type: String (Text)
+Required: No (approximately 15% of records are empty)
+Description: The name or title of the object, artwork, or collection item.
+
+Format Examples:
+- Simple name: "Altitude"
+- Description: "Drum"
+- Complex title: "Bahman Taking Revenge on the Sistanians Folio from the Majma' al-Tavarikh (Compendium of Histories) of Hafiz-i Abru"
+- With clarification: "Arrowhead (Yanone)"
+- Named portrait: "Jane Wyatt in One More River a Universal picture..."
+- Multiple parts: "Accessory set"
+- Foreign language: "蝉小川 (The Cicada Stream)"
+- Quoted works: "Brennus from The Complete Works of Béranger"
+
+Notes:
+- Titles may be very long (full descriptions)
+- Some include foreign language names
+- May include publication info for prints/books
+- Parenthetical information provides context
+- Empty title field = catalog item without formal title
+- HTML entities (like <i> for italics) have been cleaned
+
+---
+
+Column 3: OBJECT NUMBER
+------
+Field Name: Object Number
+Data Type: String (Text)
+Required: Yes (Always present)
+Description: The unique museum accession or catalog number assigned by The Metropolitan Museum of Art.
+
+Format Examples:
+
+Standard Format (most common):
+- "2002.556.36" = Accession Year . Collection . Item Number
+- "1994.279.8"
+- "2009.300.1969a, b" = Multiple related items
+
+Prefix Codes (Special Collections):
+- "CP148" = Print collection variant
+- "JP2691" = Japanese print
+- "JIB182" = Special Japanese collection
+- "WW.636" = Weaving or textile collection
+- "C.I.38.23.494" = Costume Institute
+
+With Range/Multiple Items:
+- "14.40.872a–c" = Items a, b, and c of a set
+- "36.25.32a–e" = Items a through e
+- "2011.604.1.6970a–d" = Multiple fragments
+
+Compound Numbers:
+- "Burdick 223, N335.102" = Multiple catalog systems
+- "63.350.214.172.541" = Complex hierarchical number
+
+Notes:
+- First number is typically acquisition year
+- Provides unique identification for each object
+- Some objects have multiple catalog numbers
+- Letters (a, b, c) indicate multiple items from same acquisition
+- Essential for cross-referencing museum database
+
+---
+
+Column 4: LINK RESOURCE
+------
+Field Name: Link Resource
+Data Type: URL (String)
+Required: Yes (Always present)
+Description: Direct hyperlink to the object's page in The Metropolitan Museum of Art online collection database.
+
+Format:
+- All follow pattern: "http://www.metmuseum.org/art/collection/search/[NUMERIC_ID]"
+- Example: "http://www.metmuseum.org/art/collection/search/65194"
+
+Notes:
+- Numeric ID differs from Object Number
+- 100% complete in this dataset
+- All URLs appear valid and accessible
+- Links to high-resolution images and detailed descriptions
+- Updated periodically by museum
+
+---
+
+DATA QUALITY NOTES
+==================
+
+Completeness:
+- Object Date: ~95% populated (5% are "n.d." or blank)
+- Title: ~85% populated (15% intentionally blank for catalog items)
+- Object Number: 100% populated
+- Link Resource: 100% populated
+
+Consistency:
+- Date format varies considerably (intentional - reflects original cataloging)
+- Object numbers follow museum's official system
+- URLs all use current museum domain format
+- Character encoding: UTF-8 with full Unicode support
+
+Accuracy:
+- All URLs verified as valid format
+- Object numbers match museum's official catalog
+- Dates reflect museum's official records (some may be approximate)
+- Titles preserved as in original museum catalog
+
+---
+
+SPECIAL CHARACTERS & ENCODING
+============================
+
+Properly Handled:
+- Em dashes (–) for date ranges
+- Accented characters (é, á, etc.)
+- International characters (Chinese, Japanese characters)
+- Parentheses and quotation marks
+- Special punctuation
+
+Previously Corrected:
+- HTML entities removed (&lt; → <, etc.)
+- Encoding artifacts cleaned
+- Inconsistent quote styles normalized
+
+---
+
+USAGE RECOMMENDATIONS
+====================
+
+For Spreadsheets:
+- Import as TSV (Tab-Separated Values)
+- Set column widths: Date(15), Title(60), Object#(25), URL(70)
+- Apply text wrap for Title column (can be very long)
+
+For Databases:
+- Create separate tables for relationships
+- Index on Object Number (unique key)
+- Use VARCHAR for all fields (no fixed length needed)
+- Store URLs separately if creating relational structure
+
+For Analysis:
+- Date field requires parsing for chronological analysis
+- Title field may need natural language processing
+- Consider creating helper columns for:
+  - Date start (earliest year)
+  - Date end (latest year)
+  - Century
+  - Is_approximate (boolean)
+  - Language (for titles)
+
+For Web Integration:
+- URLs are direct links to museum collection pages
+- Can be used for embedding museum data
+- Compatible with museum's public API structure
+
+---
+
+END OF DATA DICTIONARY

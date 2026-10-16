@@ -1,0 +1,41 @@
+{
+ "id": "msg_011Cg597Q9FDT68rvpTPaxRL",
+ "container": null,
+ "content": [
+  {
+   "id": "toolu_01P6Z84Cr9Z9uWBVyXb8qxoi",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/04_checksum_result.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nVerify the standardized TSV file checksums and compare with source.\nThis script must be run AFTER standardization.\n\"\"\"\n\nimport hashlib\nimport json\nfrom pathlib import Path\nfrom datetime import datetime\nfrom difflib import unified_diff\n\n\ndef calculate_checksums(file_path):\n    \"\"\"Calculate MD5, SHA256, and file statistics for integrity verification.\"\"\"\n    \n    if not Path(file_path).exists():\n        print(f\"ERROR: File not found: {file_path}\")\n        return None\n    \n    checksums = {}\n    \n    try:\n        with open(file_path, 'rb') as f:\n            file_content = f.read()\n        \n        # Calculate hashes\n        checksums['md5'] = hashlib.md5(file_content).hexdigest()\n        checksums['sha256'] = hashlib.sha256(file_content).hexdigest()\n        checksums['sha512'] = hashlib.sha512(file_content).hexdigest()\n        \n        # File statistics\n        checksums['file_size_bytes'] = len(file_content)\n        checksums['timestamp'] = datetime.now().isoformat()\n        \n        # Count lines for reference\n        with open(file_path, 'r', encoding='utf-8') as f:\n            lines = f.readlines()\n            checksums['line_count'] = len(lines)\n            checksums['empty_lines'] = sum(1 for line in lines if line.strip() == '')\n        \n        return checksums\n        \n    except Exception as e:\n        print(f\"ERROR calculating checksums: {e}\")\n        return None\n\n\ndef compare_checksums(source_checksums, result_checksums):\n    \"\"\"Compare source and result checksums.\"\"\"\n    \n    print(\"\\n--- FIXITY VERIFICATION ---\\n\")\n    \n    print(\"Source File:\")\n    print(f\"  Size: {source_checksums['file_size_bytes']:,} bytes\")\n    print(f\"  Lines: {source_checksums['line_count']}\")\n    print(f\"  MD5: {source_checksums['md5']}\")\n    \n    print(\"\\nResult File:\")\n    print(f\"  Size: {result_checksums['file_size_bytes']:,} bytes\")\n    print(f\"  Lines: {result_checksums['line_count']}\")\n    print(f\"  MD5: {result_checksums['md5']}\")\n    \n    print(\"\\n--- COMPARISON ---\\n\")\n    \n    # File will be different due to standardization\n    if source_checksums['md5'] == result_checksums['md5']:\n        print(\"⚠ WARNING: Source and result are identical!\")\n        print(\"  (This may indicate standardization didn't occur)\")\n    else:\n        print(\"✓ Files differ (expected due to standardization)\")\n    \n    # But line count should be similar (header + data rows)\n    source_data_rows = source_checksums['line_count'] - source_checksums['empty_lines']\n    result_data_rows = result_checksums['line_count'] - 1  # subtract header\n    \n    print(f\"\\n  Source data rows (approx): {source_data_rows}\")\n    print(f\"  Result data rows: {result_data_rows}\")\n    \n    if source_data_rows == result_data_rows:\n        print(f\"  ✓ Row count preserved\")\n    else:\n        print(f\"  ⚠ Row count difference: {result_data_rows - source_data_rows}\")\n    \n    return result_checksums\n\n\ndef main():\n    source_file = \"met_inventory.tsv\"\n    result_file = \"met_inventory_STANDARDIZED.tsv\"\n    source_checksums_file = \"source_checksums.json\"\n    \n    print(\"=\" * 70)\n    print(\"RESULT FILE INTEGRITY VERIFICATION\")\n    print(\"=\" * 70)\n    \n    # Load source checksums\n    print(f\"\\nLoading source checksums from: {source_checksums_file}\")\n    try:\n        with open(source_checksums_file, 'r') as f:\n            source_checksums = json.load(f)\n        print(\"✓ Source checksums loaded\")\n    except FileNotFoundError:\n        print(f\"✗ Source checksums file not found!\")\n        print(f\"  Run 02_checksum_source.py first\")\n        return\n    \n    # Calculate result checksums\n    print(f\"\\nCalculating result file checksums...\")\n    result_checksums = calculate_checksums(result_file)\n    \n    if not result_checksums:\n        print(f\"✗ Failed to calculate result checksums!\")\n        return\n    \n    # Compare\n    compare_checksums(source_checksums, result_checksums)\n    \n    # Save result checksums\n    result_checksums_file = \"result_checksums.json\"\n    with open(result_checksums_file, 'w') as f:\n        json.dump(result_checksums, f, indent=2)\n    print(f\"\\n✓ Result checksums saved to: {result_checksums_file}\")\n    \n    # Create fixity report\n    fixity_report = {\n        'source': source_checksums,\n        'result': result_checksums,\n        'transformation': 'TSV standardization',\n        'standardization_date': datetime.now().isoformat(),\n        'note': 'Files should differ; row count should be preserved'\n    }\n    \n    with open('fixity_verification_report.json', 'w') as f:\n        json.dump(fixity_report, f, indent=2)\n    print(f\"✓ Full fixity report saved to: fixity_verification_report.json\")\n    \n    print(\"\\n\" + \"=\" * 70)\n\n\nif __name__ == \"__main__\":\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 1485
+  },
+  "cache_creation_input_tokens": 1485,
+  "cache_read_input_tokens": 20962,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1530,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "id": "msg_011Cg58nNw3CmCdRV15eJKrF",
+ "container": null,
+ "content": [
+  {
+   "id": "toolu_01Bpods3KfYGGztY1NW6ttfe",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/03_standardize_tsv.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nStandardize the Met Museum TSV inventory file.\n\nOperations performed:\n1. Add proper header row\n2. Normalize HTML entities\n3. Ensure consistent tab delimiters\n4. Trim whitespace\n5. Validate data structure\n6. Remove duplicate whitespace\n\"\"\"\n\nimport re\nimport csv\nfrom html import unescape\nfrom pathlib import Path\nfrom collections import namedtuple\n\n# Define the standard column structure\nHEADERS = ['Object_Date', 'Title', 'Object_Number', 'Link_Resource']\n\ndef clean_html_entities(text):\n    \"\"\"Convert HTML entities to plain text.\"\"\"\n    if not text:\n        return text\n    text = unescape(text)  # &lt; &gt; etc.\n    text = text.replace('&nbsp;', ' ')  # non-breaking spaces\n    return text.strip()\n\n\ndef normalize_row(row):\n    \"\"\"\n    Normalize a row of data.\n    - Ensure 4 columns\n    - Clean HTML entities\n    - Trim whitespace\n    - Handle missing values\n    \"\"\"\n    # Pad row if needed\n    while len(row) < 4:\n        row.append('')\n    \n    # Trim to 4 columns if overfull\n    row = row[:4]\n    \n    # Clean each field\n    cleaned = []\n    for field in row:\n        if field is None:\n            field = ''\n        field = str(field).strip()\n        field = clean_html_entities(field)\n        cleaned.append(field)\n    \n    return cleaned\n\n\ndef parse_tsv_raw(file_path):\n    \"\"\"\n    Parse the TSV file carefully, handling irregular delimiters.\n    The source file may have inconsistent tab usage.\n    \"\"\"\n    rows = []\n    \n    try:\n        with open(file_path, 'r', encoding='utf-8') as f:\n            # Use tab as delimiter, allow variable field count initially\n            reader = csv.reader(f, delimiter='\\t', quotechar='\"', quoting=csv.QUOTE_MINIMAL)\n            \n            for row_num, row in enumerate(reader, 1):\n                if row and any(field.strip() for field in row):  # Skip truly empty rows\n                    rows.append(row)\n        \n        return rows\n        \n    except Exception as e:\n        print(f\"ERROR parsing file: {e}\")\n        return []\n\n\ndef standardize_file(input_path, output_path):\n    \"\"\"\n    Read source TSV, standardize, and write output.\n    \"\"\"\n    \n    print(\"Reading source file...\")\n    rows = parse_tsv_raw(input_path)\n    \n    if not rows:\n        print(\"ERROR: No data read from file!\")\n        return False\n    \n    print(f\"Read {len(rows)} data rows\")\n    \n    # Normalize all rows\n    print(\"Normalizing data...\")\n    normalized = []\n    stats = {\n        'rows_processed': 0,\n        'rows_with_missing_title': 0,\n        'rows_with_missing_date': 0,\n        'rows_with_missing_number': 0,\n        'html_entities_cleaned': 0,\n    }\n    \n    for row in rows:\n        cleaned = normalize_row(row)\n        normalized.append(cleaned)\n        stats['rows_processed'] += 1\n        \n        if not cleaned[0]:  # No date\n            stats['rows_with_missing_date'] += 1\n        if not cleaned[1]:  # No title\n            stats['rows_with_missing_title'] += 1\n        if not cleaned[2]:  # No object number\n            stats['rows_with_missing_number'] += 1\n        if any('&' in field for field in cleaned):\n            stats['html_entities_cleaned'] += 1\n    \n    # Write standardized output\n    print(f\"Writing standardized output to {output_path}...\")\n    \n    try:\n        with open(output_path, 'w', newline='', encoding='utf-8') as f:\n            writer = csv.writer(f, delimiter='\\t', quotechar='\"', quoting=csv.QUOTE_MINIMAL)\n            \n            # Write header\n            writer.writerow(HEADERS)\n            \n            # Write data rows\n            writer.writerows(normalized)\n        \n        print(f\"✓ Wrote {len(normalized)} data rows (+ 1 header row)\")\n        \n        print(\"\\n--- STANDARDIZATION STATISTICS ---\")\n        for key, value in sorted(stats.items()):\n            print(f\"{key}: {value}\")\n        \n        return True\n        \n    except Exception as e:\n        print(f\"ERROR writing file: {e}\")\n        return False\n\n\ndef main():\n    input_file = \"met_inventory.tsv\"\n    output_file = \"met_inventory_STANDARDIZED.tsv\"\n    \n    print(\"=\" * 70)\n    print(\"TSV STANDARDIZATION SCRIPT\")\n    print(\"=\" * 70)\n    print(f\"\\nInput:  {input_file}\")\n    print(f\"Output: {output_file}\")\n    \n    success = standardize_file(input_file, output_file)\n    \n    if success:\n        print(f\"\\n✓ Standardization complete!\")\n        print(f\"✓ Next step: Run 04_checksum_result.py to verify fixity\")\n    else:\n        print(f\"\\n✗ Standardization failed!\")\n    \n    print(\"=\" * 70)\n\n\nif __name__ == \"__main__\":\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 15542
+  },
+  "cache_creation_input_tokens": 15542,
+  "cache_read_input_tokens": 5420,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1449,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

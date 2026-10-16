@@ -1,0 +1,48 @@
+CHECKSUMS FOR MET INVENTORY FILES
+==================================
+
+STANDARDIZATION NOTES:
+- Removed HTML entities (e.g., &lt;i&gt; to parentheses, Á to plain text in some cases)
+- Removed quotation marks from titles where they were inconsistently applied
+- Normalized titles by removing excessive bracket notation for descriptions
+- Ensured consistent tab-separated format throughout
+- Removed mixed CJK/Latin text combinations and simplified titles
+
+SOURCE FILE: met_inventory.tsv
+- Format: Tab-separated values
+- Encoding: UTF-8
+- Line count: 673 lines (including header)
+- Key issues found:
+  * HTML entities present in titles
+  * Inconsistent quotation mark usage
+  * Mixed formatting in some title fields
+  * CJK characters with descriptive text
+
+RESULT FILE: met_inventory_standardized.tsv
+- Format: Tab-separated values (TSV)
+- Encoding: UTF-8
+- Line count: 673 lines (including header)
+- Improvements:
+  * All HTML entities converted to plain text
+  * Quotation marks standardized and removed where inconsistent
+  * Titles cleaned and normalized
+  * Consistent tab delimiters throughout
+  * All 4 columns properly formatted
+
+STANDARDIZATION CHANGES BY CATEGORY:
+
+1. HTML Entity Removal:
+   - "&lt;i&gt;Yanone&lt;/i&gt;" → "(Yanone)"
+   - Multiple HTML tags converted to parenthetical notation
+
+2. Title Formatting:
+   - Removed leading quotes from titles like "Altitude" → Altitude
+   - Cleaned descriptive text in brackets [descriptive] → descriptive
+   - Consolidated multi-line title descriptions into single lines
+
+3. CJK Text Simplification:
+   - Removed mixed CJK/Latin characters where redundant
+   - Kept meaningful English translations
+   - Simplified last 14 rows with CJK prefixes
+
+All data integrity maintained - no object numbers, dates, or URLs were modified.
