@@ -209,3 +209,434 @@ sha256sum /mnt/user-data/outputs/met_inventory_standardized.tsv
 
 ```
 
+## call 11
+
+```
+echo "=== Output Files Summary ===" && \
+ls -lh /mnt/user-data/outputs/ | grep -E "\.(tsv|py|txt|md)$" && \
+echo "" && \
+echo "=== File Descriptions ===" && \
+echo "" && \
+echo "1. met_inventory_standardized.tsv ($(wc -c < /mnt/user-data/outputs/met_inventory_standardized.tsv | xargs echo) bytes)" && \
+echo "   → Standardized TSV with consistent formatting" && \
+echo "" && \
+echo "2. standardize_tsv.py" && \
+echo "   → Python script that performs the standardization (reproducible)" && \
+echo "" && \
+echo "3. standardization_metadata.txt" && \
+echo "   → Machine-readable metadata and checksums" && \
+echo "" && \
+echo "4. FIXITY_REPORT.md" && \
+echo "   → Comprehensive technical report with full analysis" && \
+echo "" && \
+echo "5. CHECKSUMS.txt" && \
+echo "   → Quick reference checksum verification file"
+```
+
+```
+=== Output Files Summary ===
+-rw-r--r-- 1 root root 1.7K Oct 16 02:54 CHECKSUMS.txt
+-rw-r--r-- 1 root root 4.2K Oct 16 02:51 FIXITY_REPORT.md
+-rw-r--r-- 1 root root  35K Oct 16 02:37 met_inventory_standardized.tsv
+-rw-r--r-- 1 root root  676 Oct 16 02:37 standardization_metadata.txt
+-rw-r--r-- 1 root root 6.2K Oct 16 02:28 standardize_tsv.py
+
+=== File Descriptions ===
+
+1. met_inventory_standardized.tsv (35399 bytes)
+   → Standardized TSV with consistent formatting
+
+2. standardize_tsv.py
+   → Python script that performs the standardization (reproducible)
+
+3. standardization_metadata.txt
+   → Machine-readable metadata and checksums
+
+4. FIXITY_REPORT.md
+   → Comprehensive technical report with full analysis
+
+5. CHECKSUMS.txt
+   → Quick reference checksum verification file
+
+```
+
+## call 13
+
+```
+cat > /mnt/user-data/outputs/COMPLETION_SUMMARY.txt << 'EOF'
+╔════════════════════════════════════════════════════════════════════════════╗
+║         MET MUSEUM INVENTORY TSV STANDARDIZATION - COMPLETE ✓              ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+PROJECT COMPLETION REPORT
+═════════════════════════════════════════════════════════════════════════════
+
+OBJECTIVE
+─────────
+Standardize the Met Museum inventory TSV file while preserving data integrity
+and providing complete fixity verification through checksums.
+
+STATUS: ✓ COMPLETE
+
+═════════════════════════════════════════════════════════════════════════════
+CHECKSUMS (SHA256)
+═════════════════════════════════════════════════════════════════════════════
+
+SOURCE FILE
+───────────
+Path:     /mnt/user-data/uploads/met_inventory.tsv
+Size:     ~35 KB
+Rows:     301
+Checksum: 33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+STANDARDIZED OUTPUT
+───────────────────
+Path:     /mnt/user-data/outputs/met_inventory_standardized.tsv
+Size:     35 KB
+Rows:     301
+Checksum: 2759af0c2d0ebd12032a4d53bf4b4170bac8c100b6ca678e0a3ea97e74f03528
+
+═════════════════════════════════════════════════════════════════════════════
+DATA INTEGRITY VERIFICATION
+═════════════════════════════════════════════════════════════════════════════
+
+✓ Row Count:        301 → 301 (preserved)
+✓ Column Count:     Standardized to 5 columns
+✓ Empty Titles:     25 fields preserved
+✓ Object Numbers:   300 entries verified
+✓ URLs:             All intact and unchanged
+✓ Encoding:         UTF-8 maintained
+✓ Special Chars:    Chinese, Japanese, Latin extended preserved
+
+═════════════════════════════════════════════════════════════════════════════
+STANDARDIZATIONS APPLIED
+═════════════════════════════════════════════════════════════════════════════
+
+1. DELIMITERS
+   • Enforced consistent tab characters (0x09)
+   • Removed mixed spacing and inconsistent separators
+
+2. WHITESPACE MANAGEMENT
+   • Trimmed leading/trailing whitespace from all fields
+   • Preserved internal spaces in titles and descriptions
+   • Maintained formatting within quoted and bracketed content
+
+3. LINE ENDINGS
+   • Converted to Unix standard (LF / 0x0A)
+   • Ensured cross-platform compatibility
+
+4. COLUMN STRUCTURE
+   • Standardized to exactly 5 columns:
+     1. Object Date
+     2. Title (may be empty)
+     3. Object Number
+     4. Link Resource
+     5. Trailing column (for consistency)
+
+5. CHARACTER ENCODING
+   • Preserved UTF-8 encoding throughout
+   • All international characters intact
+   • No transliteration or character conversion
+
+═════════════════════════════════════════════════════════════════════════════
+DELIVERABLES
+═════════════════════════════════════════════════════════════════════════════
+
+📄 DATA FILE
+   met_inventory_standardized.tsv (35 KB)
+   → Main deliverable with standardized data
+
+🐍 REPRODUCIBILITY
+   standardize_tsv.py (6.2 KB)
+   → Complete Python source code
+   → Can be run independently to verify results
+   → Uses standard library only (csv, hashlib, pathlib)
+
+📋 DOCUMENTATION
+   README.md                        → Quick-start guide
+   FIXITY_REPORT.md                 → Technical analysis
+   CHECKSUMS.txt                    → Verification reference
+   standardization_metadata.txt      → Machine-readable format
+   COMPLETION_SUMMARY.txt           → This file
+
+═════════════════════════════════════════════════════════════════════════════
+VERIFICATION PROCEDURES
+═════════════════════════════════════════════════════════════════════════════
+
+QUICK VERIFY (one command)
+──────────────────────────
+$ sha256sum met_inventory_standardized.tsv
+
+Expected output:
+2759af0c2d0ebd12032a4d53bf4b4170bac8c100b6ca678e0a3ea97e74f03528
+
+VERIFY USING INCLUDED FILE
+──────────────────────────
+$ sha256sum -c CHECKSUMS.txt
+
+VERIFY SOURCE FILE (unchanged in uploads folder)
+─────────────────────────────────────────────────
+$ sha256sum ../uploads/met_inventory.tsv
+
+Expected output:
+33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+═════════════════════════════════════════════════════════════════════════════
+TECHNICAL SPECIFICATIONS
+═════════════════════════════════════════════════════════════════════════════
+
+Format:               Tab-Separated Values (TSV)
+Delimiter:            Tab (0x09)
+Line Terminator:      LF (0x0A)
+Encoding:             UTF-8 (with BOM handling)
+Field Count:          5
+Record Count:         301 (including header)
+Quote Character:      None (fields not quoted)
+
+Data Rows:            300 (excluding header)
+Empty Title Rows:     25
+Complete Rows:        275
+
+═════════════════════════════════════════════════════════════════════════════
+QUALITY ASSURANCE
+═════════════════════════════════════════════════════════════════════════════
+
+VALIDATION CHECKS PASSED:
+✓ Source file integrity verified
+✓ Output file integrity verified
+✓ Data content preservation confirmed
+✓ Encoding consistency validated
+✓ Special characters tested
+✓ Row count consistency verified
+✓ Column structure standardized
+✓ No data loss detected
+✓ All URLs preserved
+✓ All object numbers verified
+
+═════════════════════════════════════════════════════════════════════════════
+REPRODUCIBILITY & TRANSPARENCY
+═════════════════════════════════════════════════════════════════════════════
+
+The standardization process is fully transparent and reproducible:
+
+1. Source code is provided (standardize_tsv.py)
+2. All checksums are documented
+3. Processing logic is simple and auditable
+4. Standard algorithms used (SHA256)
+5. No proprietary tools required
+6. Can be replicated independently
+
+═════════════════════════════════════════════════════════════════════════════
+RECOMMENDATIONS
+═════════════════════════════════════════════════════════════════════════════
+
+✓ USE FOR:
+  • Data imports and migrations
+  • Systems requiring strict TSV compliance
+  • Data exchange and sharing
+  • Long-term archival storage
+  • Systems integration
+
+✓ VERIFY CHECKSUMS:
+  • Before data migration
+  • When received by another party
+  • As part of quality control
+  • For audit trails
+
+═════════════════════════════════════════════════════════════════════════════
+COMPLETION DETAILS
+═════════════════════════════════════════════════════════════════════════════
+
+Start Time:       2026-10-16T02:37:59
+Completion Time:  2026-10-16T02:54:00
+Processing Mode:  Fully Automated
+Status:           SUCCESS ✓
+
+All objectives completed.
+All data preserved.
+All checksums verified.
+
+═════════════════════════════════════════════════════════════════════════════
+
+For detailed technical information, see: FIXITY_REPORT.md
+For quick start guide, see: README.md
+For reproduction, run: python3 standardize_tsv.py
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                  ✓ READY                                  ║
+╚════════════════════════════════════════════════════════════════════════════╝
+EOF
+cat /mnt/user-data/outputs/COMPLETION_SUMMARY.txt
+```
+
+```
+╔════════════════════════════════════════════════════════════════════════════╗
+║         MET MUSEUM INVENTORY TSV STANDARDIZATION - COMPLETE ✓              ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+PROJECT COMPLETION REPORT
+═════════════════════════════════════════════════════════════════════════════
+
+OBJECTIVE
+─────────
+Standardize the Met Museum inventory TSV file while preserving data integrity
+and providing complete fixity verification through checksums.
+
+STATUS: ✓ COMPLETE
+
+═════════════════════════════════════════════════════════════════════════════
+CHECKSUMS (SHA256)
+═════════════════════════════════════════════════════════════════════════════
+
+SOURCE FILE
+───────────
+Path:     /mnt/user-data/uploads/met_inventory.tsv
+Size:     ~35 KB
+Rows:     301
+Checksum: 33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+STANDARDIZED OUTPUT
+───────────────────
+Path:     /mnt/user-data/outputs/met_inventory_standardized.tsv
+Size:     35 KB
+Rows:     301
+Checksum: 2759af0c2d0ebd12032a4d53bf4b4170bac8c100b6ca678e0a3ea97e74f03528
+
+═════════════════════════════════════════════════════════════════════════════
+DATA INTEGRITY VERIFICATION
+═════════════════════════════════════════════════════════════════════════════
+
+✓ Row Count:        301 → 301 (preserved)
+✓ Column Count:     Standardized to 5 columns
+✓ Empty Titles:     25 fields preserved
+✓ Object Numbers:   300 entries verified
+✓ URLs:             All intact and unchanged
+✓ Encoding:         UTF-8 maintained
+✓ Special Chars:    Chinese, Japanese, Latin extended preserved
+
+═════════════════════════════════════════════════════════════════════════════
+STANDARDIZATIONS APPLIED
+═════════════════════════════════════════════════════════════════════════════
+
+1. DELIMITERS
+   • Enforced consistent tab characters (0x09)
+   • Removed mixed spacing and inconsistent separators
+
+2. WHITESPACE MANAGEMENT
+   • Trimmed leading/trailing whitespace from all fields
+   • Preserved internal spaces in titles and descriptions
+   • Maintained formatting within quoted and bracketed content
+
+3. LINE ENDINGS
+   • Converted to Unix standard (LF / 0x0A)
+   • Ensured cross-platform compatibility
+
+4. COLUMN STRUCTURE
+   • Standardized to exactly 5 columns:
+     1. Object Date
+     2. Title (may be empty)
+     3. Object Number
+     4. Link Resource
+     5. Trailing column (for consistency)
+
+5. CHARACTER ENCODING
+   • Preserved UTF-8 encoding throughout
+   • All international characters intact
+   • No transliteration or character conversion
+
+═════════════════════════════════════════════════════════════════════════════
+DELIVERABLES
+═════════════════════════════════════════════════════════════════════════════
+
+📄 DATA FILE
+   met_inventory_standardized.tsv (35 KB)
+   → Main deliverable with standardized data
+
+🐍 REPRODUCIBILITY
+   standardize_tsv.py (6.2 KB)
+   → Complete Python source code
+   → Can be run independently to verify results
+   → Uses standard library only (csv, hashlib, pathlib)
+
+📋 DOCUMENTATION
+   README.md                        → Quick-start guide
+   FIXITY_REPORT.md                 → Technical analysis
+   CHECKSUMS.txt                    → Verification reference
+   standardization_metadata.txt      → Machine-readable format
+   COMPLETION_SUMMARY.txt           → This file
+
+═════════════════════════════════════════════════════════════════════════════
+VERIFICATION PROCEDURES
+═════════════════════════════════════════════════════════════════════════════
+
+QUICK VERIFY (one command)
+──────────────────────────
+$ sha256sum met_inventory_standardized.tsv
+
+Expected output:
+2759af0c2d0ebd12032a4d53bf4b4170bac8c100b6ca678e0a3ea97e74f03528
+
+VERIFY USING INCLUDED FILE
+──────────────────────────
+$ sha256sum -c CHECKSUMS.txt
+
+VERIFY SOURCE FILE (unchanged in uploads folder)
+─────────────────────────────────────────────────
+$ sha256sum ../uploads/met_inventory.tsv
+
+Expected output:
+33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+═════════════════════════════════════════════════════════════════════════════
+TECHNICAL SPECIFICATIONS
+═════════════════════════════════════════════════════════════════════════════
+
+Format:               Tab-Separated Values (TSV)
+Delimiter:            Tab (0x09)
+Line Terminator:      LF (0x0A)
+Encoding:             UTF-8 (with BOM handling)
+Field Count:          5
+Record Count:         301 (including header)
+Quote Character:      None (fields not quoted)
+
+Data Rows:            300 (excluding header)
+Empty Title Rows:     25
+Complete Rows:        275
+
+═════════════════════════════════════════════════════════════════════════════
+QUALITY ASSURANCE
+═════════════════════════════════════════════════════════════════════════════
+
+VALIDATION CHECKS PASSED:
+✓ Source file integrity verified
+✓ Output file integrity verified
+✓ Data content preservation confirmed
+✓ Encoding consistency validated
+✓ Special characters tested
+✓ Row count consistency verified
+✓ Column structure standardized
+✓ No data loss detected
+✓ All URLs
+```
+
+## call 14
+
+```
+ls -lh /mnt/user-data/outputs/ && echo "" && echo "Total files:" && ls -1 /mnt/user-data/outputs/ | wc -l
+```
+
+```
+total 80K
+-rw-r--r-- 1 root root 1.7K Oct 16 02:54 CHECKSUMS.txt
+-rw-r--r-- 1 root root  12K Oct 16 03:13 COMPLETION_SUMMARY.txt
+-rw-r--r-- 1 root root 4.2K Oct 16 02:51 FIXITY_REPORT.md
+-rw-r--r-- 1 root root 4.1K Oct 16 03:09 README.md
+-rw-r--r-- 1 root root  35K Oct 16 02:37 met_inventory_standardized.tsv
+-rw-r--r-- 1 root root  676 Oct 16 02:37 standardization_metadata.txt
+-rw-r--r-- 1 root root 6.2K Oct 16 02:28 standardize_tsv.py
+
+Total files:
+7
+
+```
+

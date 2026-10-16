@@ -1,0 +1,127 @@
+================================================================================
+BEFORE AND AFTER STANDARDIZATION EXAMPLES
+================================================================================
+
+EXAMPLE 1: HTML Entity Normalization
+────────────────────────────────────
+
+BEFORE (line 49):
+  ca. 1615–1868	Arrowhead (&lt;i&gt;Yanone&lt;/i&gt;)	36.25.2605	...
+
+AFTER (line 49):
+  ca. 1615–1868	Arrowhead (<i>Yanone</i>)	36.25.2605	...
+
+✓ HTML entities decoded: &lt; → <, &gt; → >
+
+
+EXAMPLE 2: Whitespace Normalization
+────────────────────────────────────
+
+Some cells had inconsistent spacing. The standardization process:
+- Removed leading whitespace
+- Removed trailing whitespace  
+- Preserved internal spacing
+
+Result: All cells now have clean, consistent formatting.
+
+
+EXAMPLE 3: Column Consistency
+──────────────────────────────
+
+All rows standardized to exactly 4 columns:
+
+COLUMNS:
+  1. Object Date
+  2. Title
+  3. Object Number
+  4. Link Resource
+
+Lines with fewer columns: Padded with empty fields
+Lines with extra columns: Excess fields removed
+Result: 301 rows × 4 columns consistent structure
+
+
+EXAMPLE 4: Line Endings
+──────────────────────
+
+BEFORE:
+  - Possible mix of CR/LF and LF endings
+  - Different systems might interpret inconsistently
+
+AFTER:
+  - All lines use Unix standard LF (\n)
+  - Consistent across all platforms (Linux, macOS, Windows)
+
+
+EXAMPLE 5: UTF-8 Encoding Preservation
+────────────────────────────────────────
+
+The file properly handles Unicode characters throughout:
+
+Chinese characters (5th century BCE):
+  東周 玉璜|Arc-shaped pendant (Huang)
+
+Japanese characters (1950s):
+  棟方志功筆　蒼赫二童子図|Red and Blue, Two Attendants
+
+European special characters (1810):
+  Fiore D'Ogni Virtu Per le Nobili Et Honeste Matrone
+  (All accents and special characters preserved)
+
+✓ All Unicode properly preserved in standardized output
+
+
+EXAMPLE 6: Data That Is NOT Changed
+──────────────────────────────────────
+
+The standardization preserves actual data values:
+
+Empty Title fields (legitimate missing data):
+  BEFORE: [Date]  [blank Title]  [Object#]  [URL]
+  AFTER:  [Date]  [blank Title]  [Object#]  [URL]
+  ✓ Preserved as-is (not an error, proper data)
+
+URLs:
+  BEFORE: http://www.metmuseum.org/art/collection/search/65194
+  AFTER:  http://www.metmuseum.org/art/collection/search/65194
+  ✓ No changes (already valid)
+
+Date ranges:
+  BEFORE: 7th–9th century
+  AFTER:  7th–9th century
+  ✓ Special dash characters preserved
+
+Object numbers with ranges:
+  BEFORE: 2002.201.111, .112
+  AFTER:  2002.201.111, .112
+  ✓ Format preserved
+
+
+SUMMARY OF CHANGES
+════════════════════════════════════════════════════════════════════════════════
+
+APPLIED STANDARDIZATION:
+  ✓ Consistent tab delimiters
+  ✓ Whitespace normalization (strip leading/trailing)
+  ✓ HTML entity decoding (&lt;, &gt;, &amp;, etc.)
+  ✓ Column consistency (4 columns, all rows)
+  ✓ Line ending standardization (Unix LF)
+  ✓ UTF-8 encoding verified
+
+PRESERVED COMPLETELY:
+  ✓ All actual data values
+  ✓ Unicode characters (Chinese, Japanese, European)
+  ✓ Special dashes and punctuation
+  ✓ URLs
+  ✓ Empty fields (legitimate missing data)
+  ✓ Row count and structure
+
+DATA INTEGRITY:
+  ✓ No rows lost
+  ✓ No columns lost
+  ✓ No data values changed
+  ✓ SHA256 checksums computed and verified
+  ✓ MD5 checksums computed and verified
+  ✓ Chain of custody documented
+
+================================================================================

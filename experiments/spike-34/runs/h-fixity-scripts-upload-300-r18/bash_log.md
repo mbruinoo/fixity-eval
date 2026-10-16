@@ -120,3 +120,25 @@ cd /mnt/user-data/outputs && ls -lh met_inventory* fixity* README* && echo && ec
 
 ```
 
+## call 13
+
+```
+cd /mnt/user-data/outputs && echo "=== FINAL OUTPUT FILES ===" && ls -lh && echo && echo "=== QUICK VERIFICATION ===" && echo "SHA-256 of standardized file:" && sha256sum met_inventory_standardized.tsv
+```
+
+```
+=== FINAL OUTPUT FILES ===
+total 128K
+-rw-r--r-- 1 root root 1.4K Oct 16 02:37 README.md
+-rw-r--r-- 1 root root 5.1K Oct 16 03:02 STANDARDIZATION_SUMMARY.txt
+-rw-r--r-- 1 root root  798 Oct 16 02:37 fixity_report.json
+-rw-r--r-- 1 root root  35K Oct 16 02:37 met_inventory_source.txt
+-rw-r--r-- 1 root root  35K Oct 16 02:37 met_inventory_standardized.tsv
+-rw-r--r-- 1 root root  40K Oct 16 02:28 standardize_met_inventory.py
+
+=== QUICK VERIFICATION ===
+SHA-256 of standardized file:
+d29688f6cfe8b8821f88dc78fff57bd32bf3555fb3a43cf7a4315f4143ea4853  met_inventory_standardized.tsv
+
+```
+

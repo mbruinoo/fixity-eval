@@ -1,0 +1,137 @@
+================================================================================
+METROPOLITAN MUSEUM OF ART INVENTORY TSV STANDARDIZATION
+Data Fixity Preservation Report
+================================================================================
+
+EXECUTION TIMESTAMP: 2026-10-16T02:37:59.425630
+
+================================================================================
+SOURCE DATA INTEGRITY
+================================================================================
+
+Filename: met_inventory_source.txt
+File Size: 35 KB
+SHA-256: 1f487d12804e5cbd285ff6cf9f1d560595731455546be9230f887b7611e7860e
+MD5:     1c2323177f9fb869f2df32f5cb85e7a6
+
+================================================================================
+OUTPUT DATA INTEGRITY
+================================================================================
+
+Filename: met_inventory_standardized.tsv
+File Size: 35 KB
+SHA-256: d29688f6cfe8b8821f88dc78fff57bd32bf3555fb3a43cf7a4315f4143ea4853
+MD5:     40a44e788343362f9b0ba4a619480414
+
+Record Count: 300 data rows + 1 header row = 301 total lines
+Columns: 4 (Object Date | Title | Object Number | Link Resource)
+Format: Tab-separated values (TSV)
+Encoding: UTF-8
+Line Endings: LF (Unix-style)
+
+================================================================================
+STANDARDIZATION ACTIONS PERFORMED
+================================================================================
+
+1. REMOVED DUPLICATE HEADERS
+   - The original file had the header row embedded in the data
+   - Ensured only one header row at the beginning of the output
+
+2. NORMALIZED COLUMN STRUCTURE
+   - Ensured all rows contain exactly 4 columns
+   - Filled missing columns with empty strings where necessary
+   - Applied consistent field separators (tab characters)
+
+3. CLEANED WHITESPACE
+   - Stripped leading and trailing whitespace from each field
+   - Preserved internal whitespace within field values
+   - Normalized line endings to LF
+
+4. STANDARDIZED ENCODING
+   - Converted all content to UTF-8
+   - Preserved special characters including:
+     * International characters (è, é, Á, etc.)
+     * Asian characters (Chinese, Japanese)
+     * Special punctuation (–, …, etc.)
+
+5. APPLIED CSV BEST PRACTICES
+   - Used minimal quoting strategy (only when necessary)
+   - Consistent tab separators throughout
+   - No extraneous whitespace between fields and delimiters
+
+================================================================================
+DATA SAMPLES
+================================================================================
+
+HEADER ROW:
+Object Date	Title	Object Number	Link Resource
+
+FIRST DATA ROW:
+7th–9th century		2002.556.36	http://www.metmuseum.org/art/collection/search/65194
+
+LAST DATA ROW:
+dated 1978	近代  程十髮  雜畫  冊頁十四開|Various Subjects	1986.267.435a–p	http://www.metmuseum.org/art/collection/search/36421
+
+================================================================================
+VERIFICATION INSTRUCTIONS
+================================================================================
+
+To verify the integrity of the standardized file:
+
+    cd /mnt/user-data/outputs
+    
+    # Verify SHA-256
+    sha256sum met_inventory_standardized.tsv
+    # Expected: d29688f6cfe8b8821f88dc78fff57bd32bf3555fb3a43cf7a4315f4143ea4853
+    
+    # Verify MD5
+    md5sum met_inventory_standardized.tsv
+    # Expected: 40a44e788343362f9b0ba4a619480414
+    
+    # Verify record count
+    wc -l met_inventory_standardized.tsv
+    # Expected: 301 (300 data rows + 1 header)
+
+================================================================================
+OUTPUT FILES
+================================================================================
+
+✓ met_inventory_standardized.tsv
+  - The standardized, production-ready data file
+  - 301 lines (1 header + 300 data records)
+  - 4 tab-separated columns
+  - UTF-8 encoding, LF line endings
+
+✓ fixity_report.json
+  - Machine-readable integrity verification report
+  - Contains SHA-256 and MD5 checksums for both source and output
+  - Lists all standardization actions performed
+
+✓ README.md
+  - Human-readable documentation with checksums
+  - Includes verification instructions
+  - Quick reference for standardization changes
+
+✓ standardize_met_inventory.py
+  - Python 3 processing script used to generate this output
+  - Fully reproducible and auditable
+  - Can be run independently for verification
+
+✓ STANDARDIZATION_SUMMARY.txt
+  - This comprehensive report
+
+================================================================================
+FIXITY PRESERVATION CONCLUSION
+================================================================================
+
+✓ Source data checksummed before processing
+✓ All standardization actions logged and documented
+✓ Output data checksummed after processing
+✓ Checksums match system verification commands
+✓ Full provenance and reproducibility maintained
+✓ Data integrity preserved across standardization
+
+The standardized TSV file is ready for production use and archival.
+All changes are reversible and fully documented.
+
+================================================================================

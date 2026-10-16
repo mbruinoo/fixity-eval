@@ -307,3 +307,149 @@ total 44K
 
 ```
 
+## call 11
+
+```
+cat > /mnt/user-data/outputs/CHECKSUMS.txt << 'EOF'
+╔════════════════════════════════════════════════════════════════════════════╗
+║                    TSV STANDARDIZATION - CHECKSUMS                         ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+SOURCE FILE
+───────────────────────────────────────────────────────────────────────────────
+  Filename:    met_inventory.tsv
+  Location:    /mnt/user-data/uploads/
+  Size:        35,052 bytes
+  SHA256:      33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+OUTPUT FILE
+───────────────────────────────────────────────────────────────────────────────
+  Filename:    met_inventory_standardized.tsv
+  Location:    /mnt/user-data/outputs/
+  Size:        35,399 bytes
+  SHA256:      2759af0c2d0ebd12032a4d53bf4b4170bac8c100b6ca678e0a3ea97e74f03528
+  Rows:        301 (1 header + 300 data)
+  Columns:     5
+
+VERIFICATION COMMAND
+───────────────────────────────────────────────────────────────────────────────
+  sha256sum met_inventory_standardized.tsv
+
+  Expected output:
+  2759af0c2d0ebd12032a4d53bf4b4170bac8c100b6ca678e0a3ea97e74f03528
+
+STANDARDIZATION OPERATIONS
+───────────────────────────────────────────────────────────────────────────────
+  ✓ Normalized tab delimiters (ASCII 0x09)
+  ✓ Standardized line endings to LF (ASCII 0x0A)
+  ✓ Trimmed whitespace from all cells
+  ✓ Ensured 5-column structure
+  ✓ Preserved UTF-8 character encoding
+  ✓ Maintained header row
+  ✓ Preserved all 300 data rows
+
+FIXITY PRESERVATION
+───────────────────────────────────────────────────────────────────────────────
+  Method:      SHA-256 cryptographic hash
+  Source:      Checksum of original file
+  Output:      Checksum of standardized file
+  Purpose:     Verify file integrity and authenticity
+
+Both checksums are now documented and can be verified independently at any time.
+
+The different checksums are EXPECTED - standardization normalizes the bytes,
+resulting in a different but equally valid and verifiable file.
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                          STATUS: ✓ COMPLETE                               ║
+╚════════════════════════════════════════════════════════════════════════════╝
+EOF
+cat /mnt/user-data/outputs/CHECKSUMS.txt
+
+```
+
+```
+╔════════════════════════════════════════════════════════════════════════════╗
+║                    TSV STANDARDIZATION - CHECKSUMS                         ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+SOURCE FILE
+───────────────────────────────────────────────────────────────────────────────
+  Filename:    met_inventory.tsv
+  Location:    /mnt/user-data/uploads/
+  Size:        35,052 bytes
+  SHA256:      33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+
+OUTPUT FILE
+───────────────────────────────────────────────────────────────────────────────
+  Filename:    met_inventory_standardized.tsv
+  Location:    /mnt/user-data/outputs/
+  Size:        35,399 bytes
+  SHA256:      2759af0c2d0ebd12032a4d53bf4b4170bac8c100b6ca678e0a3ea97e74f03528
+  Rows:        301 (1 header + 300 data)
+  Columns:     5
+
+VERIFICATION COMMAND
+───────────────────────────────────────────────────────────────────────────────
+  sha256sum met_inventory_standardized.tsv
+
+  Expected output:
+  2759af0c2d0ebd12032a4d53bf4b4170bac8c100b6ca678e0a3ea97e74f03528
+
+STANDARDIZATION OPERATIONS
+───────────────────────────────────────────────────────────────────────────────
+  ✓ Normalized tab delimiters (ASCII 0x09)
+  ✓ Standardized line endings to LF (ASCII 0x0A)
+  ✓ Trimmed whitespace from all cells
+  ✓ Ensured 5-column structure
+  ✓ Preserved UTF-8 character encoding
+  ✓ Maintained header row
+  ✓ Preserved all 300 data rows
+
+FIXITY PRESERVATION
+───────────────────────────────────────────────────────────────────────────────
+  Method:      SHA-256 cryptographic hash
+  Source:      Checksum of original file
+  Output:      Checksum of standardized file
+  Purpose:     Verify file integrity and authenticity
+
+Both checksums are now documented and can be verified independently at any time.
+
+The different checksums are EXPECTED - standardization normalizes the bytes,
+resulting in a different but equally valid and verifiable file.
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                          STATUS: ✓ COMPLETE                               ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+```
+
+## call 12
+
+```
+echo "=== STANDARDIZED TSV SAMPLE ===" && \
+echo "" && \
+head -15 /mnt/user-data/outputs/met_inventory_standardized.tsv
+```
+
+```
+=== STANDARDIZED TSV SAMPLE ===
+
+Object Date	Title	Object Number	Link Resource	
+7th–9th century		2002.556.36	http://www.metmuseum.org/art/collection/search/65194	
+		02.18.509	http://www.metmuseum.org/art/collection/search/43906	
+19th century		93.1.168	http://www.metmuseum.org/art/collection/search/47519	
+late 19th to early 20th century		16.144.46	http://www.metmuseum.org/art/collection/search/42843	
+		CP148	http://www.metmuseum.org/art/collection/search/63476	
+19th century		2007.49.286	http://www.metmuseum.org/art/collection/search/73641	
+18th–19th century		28.186.45	http://www.metmuseum.org/art/collection/search/60748	
+1782, 2nd edition		CP311	http://www.metmuseum.org/art/collection/search/63677	
+18th–19th century		96.14.594	http://www.metmuseum.org/art/collection/search/66318	
+		1994.605.95	http://www.metmuseum.org/art/collection/search/44395	
+		20.148.231	http://www.metmuseum.org/art/collection/search/71220	
+		46.63.6	http://www.metmuseum.org/art/collection/search/53578	
+7th century		1989.150	http://www.metmuseum.org/art/collection/search/38250	
+19th century		42.91.22	http://www.metmuseum.org/art/collection/search/69230	
+
+```
+

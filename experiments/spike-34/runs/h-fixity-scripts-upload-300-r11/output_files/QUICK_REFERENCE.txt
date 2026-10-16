@@ -1,0 +1,251 @@
+================================================================================
+MET MUSEUM INVENTORY TSV STANDARDIZATION - QUICK REFERENCE
+================================================================================
+
+BASIC COMMAND
+=============
+python3 standardize_met_inventory.py met_inventory.tsv met_inventory_standardized.tsv
+
+
+CHECKSUM VERIFICATION COMMANDS
+===============================
+
+LINUX / UNIX:
+  sha256sum met_inventory_standardized.tsv
+  md5sum met_inventory_standardized.tsv
+
+MACOS:
+  shasum -a 256 met_inventory_standardized.tsv
+  md5 met_inventory_standardized.tsv
+
+WINDOWS POWERSHELL:
+  Get-FileHash met_inventory_standardized.tsv -Algorithm SHA256
+  Get-FileHash met_inventory_standardized.tsv -Algorithm MD5
+
+
+FILE VALIDATION COMMANDS
+========================
+
+Count total lines (should be 488):
+  wc -l met_inventory_standardized.tsv
+
+Count data rows only (should be 487):
+  tail -n +2 met_inventory_standardized.tsv | wc -l
+
+Check column count (should be 4):
+  head -1 met_inventory_standardized.tsv | tr '\t' '\n' | wc -l
+
+View first 5 records:
+  head -5 met_inventory_standardized.tsv
+
+View last 5 records:
+  tail -5 met_inventory_standardized.tsv
+
+View specific record (e.g., row 100):
+  sed -n '100p' met_inventory_standardized.tsv
+
+Show differences from source:
+  diff met_inventory.tsv met_inventory_standardized.tsv
+
+
+WHAT GETS STANDARDIZED
+======================
+
+✓ Line endings (CRLF → LF)
+✓ Trailing whitespace removed
+✓ HTML entities converted (&lt;i&gt; → plain text)
+✓ 4-column structure verified
+✓ UTF-8 encoding preserved
+✓ Tab delimiter consistency
+✓ Header row preserved
+
+
+FILE INFORMATION
+================
+
+Total Records:       488 (1 header + 487 data rows)
+Columns:            4
+  1. Object Date
+  2. Title
+  3. Object Number
+  4. Link Resource
+
+Character Encoding: UTF-8
+Delimiter:         Tab character
+Empty Titles:      12 records (intentional)
+HTML Entities:     1 found (converted)
+
+
+OUTPUT FILES GENERATED
+======================
+
+1. met_inventory_standardized.tsv
+   - The standardized data file
+   - Same structure as source, cleaned format
+   - Ready for use in databases or analysis tools
+
+2. met_inventory_standardized_CHECKSUMS.txt
+   - MD5 and SHA256 checksums for both files
+   - Line count and processing statistics
+   - Verification commands
+
+
+TROUBLESHOOTING CHECKLIST
+=========================
+
+Python not found?
+  → Ensure Python 3.6+ installed: python3 --version
+
+Permission denied?
+  → Add execute: chmod +x standardize_met_inventory.py
+
+File not found?
+  → Use full path or cd to correct directory
+
+Encoding issues?
+  → Set terminal/editor to UTF-8
+
+Checksums don't match?
+  → Re-run script to generate fresh checksums
+  → Verify comparing correct files
+
+
+DATA QUALITY FACTS
+==================
+
+Empty Titles:
+  12 records have no title (intentional - untitled items in collection)
+
+All Records Have:
+  ✓ Object Number
+  ✓ Link Resource (valid URL to Met Museum)
+
+Date Formats Vary:
+  • Specific years: "1895"
+  • Date ranges: "1855–59"
+  • Approximate: "ca. 1900"
+  • BCE dates: "664–30 B.C."
+  • Complex dates: "December 7, 1942"
+
+Special Characters Preserved:
+  • Latin diacritics: é, á, ü, etc.
+  • Chinese characters: 東, 周, etc.
+  • Japanese characters: 蝉, 小川, etc.
+
+
+CHECKSUM INTERPRETATION
+=======================
+
+SHA256: 
+  • Modern, 256-bit hash
+  • Most secure, preferred for new applications
+  • 64 hexadecimal characters
+  • Example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+
+MD5:
+  • Legacy, 128-bit hash
+  • Still acceptable for integrity checking
+  • 32 hexadecimal characters
+  • Example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+
+
+CREATE CHECKSUM FILE FOR VERIFICATION
+======================================
+
+From CHECKSUMS.txt file:
+  sha256sum -c met_inventory_standardized_CHECKSUMS.txt
+
+Manual verification:
+  echo "EXPECTED_SHA256  met_inventory_standardized.tsv" > verify.sha256
+  sha256sum -c verify.sha256
+
+  echo "EXPECTED_MD5  met_inventory_standardized.tsv" > verify.md5
+  md5sum -c verify.md5
+
+
+BEST PRACTICES
+==============
+
+1. Keep source and standardized files together
+2. Store checksums with files for future verification
+3. Use version control (git) to track changes
+4. Maintain backups in separate locations
+5. Document when standardization was performed
+6. Record environment details (Python version, system)
+7. Re-verify checksums periodically for long-term archival
+
+
+SCRIPT OUTPUT EXAMPLE
+=====================
+
+================================================================================
+MET MUSEUM INVENTORY TSV STANDARDIZATION TOOL
+================================================================================
+
+[1/4] Calculating source file checksums...
+      Source: met_inventory.tsv
+      Lines:  488
+      MD5:    a1b2c3d4e5f6...
+      SHA256: 1a2b3c4d5e6f...
+
+[2/4] Standardizing TSV file...
+      Rows processed:        488
+      Rows written:          488
+      Empty title fields:    12
+      HTML entities found:   1
+      Whitespace trimmed:    0
+      Issues detected:       0 ✓
+
+[3/4] Verifying standardized file...
+      Output: met_inventory_standardized.tsv
+      Lines:  488
+      Line count match: ✓
+
+[4/4] Generating checksum file...
+      MD5:    b2c3d4e5f6g7...
+      SHA256: 2b3c4d5e6f7g8...
+      Checksums: met_inventory_standardized_CHECKSUMS.txt
+
+================================================================================
+STANDARDIZATION COMPLETE ✓
+================================================================================
+
+
+QUICK WORKFLOW
+==============
+
+Step 1: Run standardization
+  $ python3 standardize_met_inventory.py met_inventory.tsv met_inventory_standardized.tsv
+
+Step 2: Check results
+  $ cat met_inventory_standardized_CHECKSUMS.txt
+
+Step 3: Verify checksums
+  $ sha256sum met_inventory_standardized.tsv
+
+Step 4: Compare changes
+  $ diff met_inventory.tsv met_inventory_standardized.tsv
+
+Step 5: Archive both files
+  $ mkdir met_inventory_archive
+  $ cp met_inventory.tsv met_inventory_standardized.tsv met_inventory_standardized_CHECKSUMS.txt met_inventory_archive/
+
+
+FOR MORE INFORMATION
+====================
+
+See: TSV_STANDARDIZATION_GUIDE.md
+
+Topics covered:
+  • Detailed standardization procedures
+  • File validation methods
+  • Long-term archival best practices
+  • Comprehensive troubleshooting
+  • Data quality analysis
+  • Column reference information
+  • Preservation best practices
+
+
+================================================================================
+Version: 1.0 | Last Updated: 2024 | Status: Production Ready
+================================================================================

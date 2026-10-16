@@ -72,3 +72,50 @@ Files ready for download:
 
 ```
 
+## call 12
+
+```
+chmod +x /mnt/user-data/outputs/verify_integrity.sh && /mnt/user-data/outputs/verify_integrity.sh
+```
+
+```
+==================================================
+Met Museum Inventory TSV Integrity Verification
+==================================================
+
+ERROR: met_inventory_standardized.tsv not found!
+
+```
+
+## call 13
+
+```
+ls -la /mnt/user-data/outputs/ | grep met_inventory
+```
+
+```
+-rw-r--r-- 1 root root 35044 Oct 16 02:33 met_inventory.tsv
+-rw-r--r-- 1 root root 35066 Oct 16 02:41 met_inventory_standardized.tsv
+
+```
+
+## call 14
+
+```
+cd /mnt/user-data/outputs && ./verify_integrity.sh
+```
+
+```
+==================================================
+Met Museum Inventory TSV Integrity Verification
+==================================================
+
+File: met_inventory_standardized.tsv
+Expected SHA-256: a573e8c3147d6b2112fed1b4041be0724d562eb2eeb19085c2647b4bbe9b0e93
+Computed SHA-256: a573e8c3147d6b2112fed1b4041be0724d562eb2eeb19085c2647b4bbe9b0e93
+
+✅ VERIFIED: File integrity confirmed!
+   The standardized file has not been modified.
+
+```
+

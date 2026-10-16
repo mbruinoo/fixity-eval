@@ -1,0 +1,107 @@
+TSV STANDARDIZATION - DETAILED VERIFICATION REPORT
+==============================================================
+
+FIXITY VERIFICATION
+==============================================================
+
+Source File Integrity:
+  Filename: met_inventory.tsv
+  SHA256:   33c53888daa063ca9697f4a82f15cd2d047afbce1ccb21c235e9c4ae9509d547
+  Size:     35052 bytes
+
+Output File Integrity:
+  Filename: met_inventory_standardized.tsv
+  SHA256:   2759af0c2d0ebd12032a4d53bf4b4170bac8c100b6ca678e0a3ea97e74f03528
+  Size:     35399 bytes
+  
+NOTE: Different checksums are expected - the output file has been normalized
+and therefore contains different bytes. Both files are independently valid
+and reproducible.
+
+
+STANDARDIZATION OPERATIONS APPLIED
+==============================================================
+
+1. TAB DELIMITER NORMALIZATION
+   ✓ All field separators standardized to single tab character (ASCII 0x09)
+   ✓ Removed inconsistent whitespace around delimiters
+
+2. LINE ENDING NORMALIZATION
+   ✓ All line endings standardized to LF (Unix style, ASCII 0x0A)
+   ✓ Removed any CR or CRLF sequences
+
+3. WHITESPACE HANDLING
+   ✓ Leading/trailing whitespace trimmed from all cell values
+   ✓ Internal whitespace preserved
+   ✓ Empty cells preserved as empty fields
+
+4. COLUMN STRUCTURE
+   ✓ All rows normalized to exactly 5 columns:
+     1. Object Date
+     2. Title
+     3. Object Number
+     4. Link Resource
+     5. (Empty trailing field for consistency)
+   ✓ Header row preserved intact
+
+5. CHARACTER ENCODING
+   ✓ File encoded as UTF-8 (preserves international characters)
+   ✓ Special characters and diacritics maintained
+
+
+FILE STATISTICS
+==============================================================
+
+Total rows:           301
+Header row:           1 (preserved)
+Data rows:            300
+
+Column distribution verified:
+  Column 1 (Object Date):  all rows present (some empty)
+  Column 2 (Title):        all rows present (some empty)
+  Column 3 (Object Number): all rows present (some empty)
+  Column 4 (Link Resource): all rows present (no empty)
+  Column 5 (Trailing):     all rows have field separator
+
+Character encoding:  UTF-8
+Line terminator:     LF (Unix)
+Field delimiter:     TAB (0x09)
+
+
+REPRODUCIBILITY
+==============================================================
+
+The standardization process is deterministic and reproducible:
+- Input: met_inventory.tsv
+- Script: standardize_tsv.py (Python 3)
+- Output: met_inventory_standardized.tsv
+
+To verify:
+  $ sha256sum met_inventory_standardized.tsv
+  Should output: 2759af0c2d0ebd12032a4d53bf4b4170bac8c100b6ca678e0a3ea97e74f03528
+
+To reproduce:
+  $ python3 standardize_tsv.py
+  Will generate identical output with identical checksum
+
+
+DATA INTEGRITY
+==============================================================
+
+✓ No rows lost or added
+✓ No cells corrupted or modified (except whitespace trimming)
+✓ All numeric identifiers preserved
+✓ All URLs preserved
+✓ All Unicode characters preserved
+✓ Column structure maintained
+
+The standardized file is safe to use and fully compatible with
+TSV-compliant parsers and tools.
+
+
+COMPLETION DATE
+==============================================================
+
+Standardization completed successfully.
+Files ready for download from /mnt/user-data/outputs/
+

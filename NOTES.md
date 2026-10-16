@@ -396,3 +396,7 @@ that are missing, and a summary that says nothing was lost.
 - (spike-33) 300-row file, 1 each: baseline typed it, 18 titles changed: 9 lost
   [supplied-title] brackets, 9 lost their Chinese/Japanese original (0.67%); H ran a script on the upload, 0.0%,
   real source/result checksums.
+- (spike-34, 300-row file, 20 each, Batches API) Real source checksums: H
+  5/20, P/S/C 0/20. H far weaker than on 100 rows (13/20): first search is
+  always "checksum…" (file tools only); 4 of 9 code sessions pasted the file
+  into the script; 11 hit the step cap. S ran code most (7/20), no checksums.
