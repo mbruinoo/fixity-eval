@@ -30,7 +30,7 @@ $0.42 for 20 calls (caching: A read 52k / wrote 79k tokens from cache; H read
 |---|---|---|
 | How | Drive connector (failed) → searched "file creation" → typed all 300 rows with `create_file` | web search, Drive connector (failed) → found `create_file`, wrote a script → loaded bash → ran it on the uploaded file → `sha256sum` of source and result |
 | Rows out / missing / invented | 300 / 0 / 0 | 300 / 0 / 0 |
-| Rows with content changed (Tier 1) | **18 (6%)**: square brackets removed from titles (`[Irises]` → `Irises`), which the Met uses for supplied titles | **0** |
+| Rows with content changed (Tier 1) | **18 (6%)**: 9 titles lost their square brackets (`[Irises]` → `Irises`), which the Met uses for supplied titles; 9 bilingual titles lost their Chinese or Japanese original (`擦條\|Sand-file for carving jade` → `Sand-file for carving jade`) | **0** |
 | Formatting-only changes (Tier 3, not counted) | 8 (quotes removed, "  " → " - ") | 3 (quotes removed) |
 | Fixity error rate | **0.67%** | **0.0%** |
 | Checksums | none | **real**: source `33c53888…` (matches the file) and result, both from `sha256sum` |
