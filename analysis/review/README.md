@@ -53,8 +53,12 @@ set by the reviewer:
   a change of meaning.
 - **1 Minor**: changed, but recoverable (e.g. "1929 (published 1929)" →
   "1929", where the qualifier only repeated the date).
-- **2 Moderate**: changed, with a semblance of the original (e.g. "collected
-  1960s–70s" → "1960s–70s", which now reads as the date the object was made).
+- **2 Moderate**: changed, with removed information, but still accurate or
+  with a semblance of the original (e.g. "collected 1960s–70s" → "1960s–70s",
+  which now reads as the date the object was made; "Koekuk, No. 22, collector
+  card from the American Indian Series (D6), issued by the Kelley Baking
+  Company to promote Kelley's Bread" → "Koekuk, No. 22 (from American Indian
+  Series D6)").
 - **3 Severe**: completely changed or fabricated (e.g. "19th century" →
   "1721"). Best done by
 someone with cataloguing experience; the tags are in `keys/3_losses_key.csv`.
