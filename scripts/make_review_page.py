@@ -143,8 +143,18 @@ function val(s){return s?`<div class="val">${esc(s)}</div>`:`<div class="val emp
 function opts(id,key,list){return `<div class="opts">${list.map(([v,l,t])=>`<button class="opt" data-id="${id}" data-k="${key}" data-v="${v}" data-tone="${t}" aria-pressed="${(A[id]||{})[key]===v}">${l}</button>`).join('')}</div>`}
 function side(it,which){const v=which==='src'?it.src:it.out;if(!v)return '<div class="val empty">(blank)</div>';
  return '<div class="val">'+it.diff.filter(([op])=>op==='eq'||op===(which==='src'?'del':'ins')).map(([op,t])=>op==='eq'?esc(t):`<span class="d-${op}">${esc(t)}</span>`).join('')+'</div>'}
-function changes(it){const q=t=>'“'+esc(t.trim()||t)+'”';const rm=it.diff.filter(d=>d[0]==='del'&&d[1].trim()).map(d=>q(d[1]));const ad=it.diff.filter(d=>d[0]==='ins'&&d[1].trim()).map(d=>q(d[1]));
- const parts=[];if(!it.src&&it.out)parts.push('<div><b>Blank filled with</b> '+q(it.out)+'</div>');else{if(rm.length)parts.push('<div><b>Removed:</b> '+rm.join(', ')+'</div>');if(ad.length)parts.push('<div><b>Added:</b> '+ad.join(', ')+'</div>');}
+function changes(it){const q=t=>'“'+esc(t.trim()||t)+'”';const N=t=>t.replace(/[\s\u3000]+/g,' ').trim();
+ let dels=it.diff.filter(d=>d[0]==='del'&&d[1].trim()).map(d=>d[1]),ins=it.diff.filter(d=>d[0]==='ins'&&d[1].trim()).map(d=>d[1]);
+ const moved=[];
+ // text that was removed in one place and added in another (perhaps with different spacing) was moved, not lost
+ dels=dels.filter(d=>{const n=N(d.replace(/[|]/g,''));if(!n||!/[\p{L}\p{N}]/u.test(n))return true;const j=ins.findIndex(i=>N(i).includes(n));if(j<0)return true;
+   moved.push(d.replace(/[|]/g,''));const rest=N(ins[j]).replace(n,'');ins[j]=rest;if(/\s{2,}/.test(d)&&!/\s{2,}/.test(it.out))moved.push(null);return false});
+ ins=ins.filter(i=>N(i)&&N(i)!=='('&&N(i)!==')'&&N(i)!=='()').concat(ins.filter(i=>/^[\s()]+$/.test(i)&&i.trim()).length&&moved.length?['( )']:[]);
+ const parts=[];if(!it.src&&it.out)parts.push('<div><b>Blank filled with</b> '+q(it.out)+'</div>');else{
+  const mv=moved.filter(Boolean);if(mv.length)parts.push('<div><b>Moved:</b> '+mv.map(q).join(', ')+(moved.includes(null)?' <span class="legend">(and its spacing collapsed: runs of spaces became one)</span>':'')+'</div>');
+  if(it.src.includes('|')&&!it.out.includes('|'))parts.push('<div><b>Removed:</b> the “|” between the original-language and English titles</div>');
+  const rm=dels.map(d=>it.src.includes('|')&&!it.out.includes('|')?d.replace(/[|]/g,''):d).filter(d=>N(d)).map(q);if(rm.length)parts.push('<div><b>Removed:</b> '+rm.join(', ')+'</div>');
+  const ad=ins.map(q);if(ad.length)parts.push('<div><b>Added:</b> '+ad.join(', ')+'</div>');}
  if(!parts.length)parts.push('<div><b>Only spacing changed.</b></div>');return '<div class="summary">'+parts.join('')+'</div>'}
 function note(id){return `<textarea data-id="${id}" placeholder="Note (optional)" aria-label="Note">${esc((A[id]||{}).note||'')}</textarea>`}
 function done(id){const a=A[id]||{};if(id[0]==='c')return !!a.judgement;if(id[0]==='k')return a.is_claim==='no'||(a.is_claim==='yes'&&!!a.truth);return !!a.meaning_lost&&(a.meaning_lost!=='yes'||!!a.severity)}
