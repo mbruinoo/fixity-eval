@@ -28,8 +28,25 @@ claims = [{"id": f"k-{r['item']}", "sentence": r["sentence the model wrote"], "r
            "examples": r["examples of changes (source => delivered)"],
            "computed": r["a checksum was computed by a tool in this answer"]}
           for r in rows("2_claims_blind.csv")]
+def diff(a, b):
+    """Word-level diff: segments [op, text], op in eq / del / ins."""
+    import difflib
+    import re
+    ta, tb = re.findall(r"\s+|\w+|[^\w\s]", a), re.findall(r"\s+|\w+|[^\w\s]", b)
+    out = []
+    for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, ta, tb, autojunk=False).get_opcodes():
+        if op == "equal":
+            out.append(["eq", "".join(ta[i1:i2])])
+        if op in ("delete", "replace"):
+            out.append(["del", "".join(ta[i1:i2])])
+        if op in ("insert", "replace"):
+            out.append(["ins", "".join(tb[j1:j2])])
+    return out
+
+
 losses = [{"id": f"l-{r['item']}", "column": r["column"], "num": r["object number"], "src": r["source value"],
-           "out": r['value after "standardization"']} for r in rows("3_losses_cataloguer.csv")]
+           "out": r['value after "standardization"'],
+           "diff": diff(r["source value"], r['value after "standardization"'])} for r in rows("3_losses_cataloguer.csv")]
 data = json.dumps({"conv": conv, "claims": claims, "losses": losses}, ensure_ascii=False).replace("</", "<\\/")
 
 html = r"""<title>Fixity Review Sheets</title>
@@ -89,6 +106,10 @@ a{color:var(--accent)}
 .status{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:6px 12px;border-radius:999px;font-size:.8rem;opacity:0;transition:opacity .2s}
 .status.on{opacity:.92}
 .hidden-q[hidden]{display:none!important}
+.d-del{background:color-mix(in srgb,var(--no) 22%,transparent);color:var(--ink);text-decoration:line-through;text-decoration-color:var(--no);border-radius:3px}
+.d-ins{background:color-mix(in srgb,var(--yes) 24%,transparent);color:var(--ink);border-radius:3px;text-decoration:underline;text-decoration-color:var(--yes)}
+.legend{font-size:.8rem;color:var(--muted)}
+.summary{font-size:.9rem;display:flex;flex-direction:column;gap:2px}
 @media (prefers-reduced-motion: reduce){.status{transition:none}}
 </style>
 <div class="wrap">
@@ -120,6 +141,11 @@ try{A=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){A={}}
 function esc(s){const d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML}
 function val(s){return s?`<div class="val">${esc(s)}</div>`:`<div class="val empty">(blank)</div>`}
 function opts(id,key,list){return `<div class="opts">${list.map(([v,l,t])=>`<button class="opt" data-id="${id}" data-k="${key}" data-v="${v}" data-tone="${t}" aria-pressed="${(A[id]||{})[key]===v}">${l}</button>`).join('')}</div>`}
+function side(it,which){const v=which==='src'?it.src:it.out;if(!v)return '<div class="val empty">(blank)</div>';
+ return '<div class="val">'+it.diff.filter(([op])=>op==='eq'||op===(which==='src'?'del':'ins')).map(([op,t])=>op==='eq'?esc(t):`<span class="d-${op}">${esc(t)}</span>`).join('')+'</div>'}
+function changes(it){const q=t=>'“'+esc(t.trim()||t)+'”';const rm=it.diff.filter(d=>d[0]==='del'&&d[1].trim()).map(d=>q(d[1]));const ad=it.diff.filter(d=>d[0]==='ins'&&d[1].trim()).map(d=>q(d[1]));
+ const parts=[];if(!it.src&&it.out)parts.push('<div><b>Blank filled with</b> '+q(it.out)+'</div>');else{if(rm.length)parts.push('<div><b>Removed:</b> '+rm.join(', ')+'</div>');if(ad.length)parts.push('<div><b>Added:</b> '+ad.join(', ')+'</div>');}
+ if(!parts.length)parts.push('<div><b>Only spacing changed.</b></div>');return '<div class="summary">'+parts.join('')+'</div>'}
 function note(id){return `<textarea data-id="${id}" placeholder="Note (optional)" aria-label="Note">${esc((A[id]||{}).note||'')}</textarea>`}
 function done(id){const a=A[id]||{};if(id[0]==='c')return !!a.judgement;if(id[0]==='k')return a.is_claim==='no'||(a.is_claim==='yes'&&!!a.truth);return !!a.meaning_lost&&(a.meaning_lost!=='yes'||!!a.severity)}
 function card(it){
@@ -136,7 +162,8 @@ function card(it){
  <div class="q">Is this a claim about integrity, completeness or verification?</div>${opts(it.id,'is_claim',[['yes','Yes','n'],['no','No','n']])}
  <div class="hidden-q" ${a.is_claim==='yes'?'':'hidden'} data-for="${it.id}"><div class="q">Given the evidence, is it…</div>${opts(it.id,'truth',[['true','True','yes'],['false','False','no'],['unsure','Unsure','maybe']])}</div>${note(it.id)}</article>`;
  return `<article class="card ${done(it.id)?'done':''}" id="${it.id}"><div class="meta"><span>Change ${n} of ${D.losses.length}</span><span>${esc(it.column)} · ${esc(it.num)}</span></div>
- <div class="rule">Source</div>${val(it.src)}<div class="rule">After “standardization”</div>${val(it.out)}
+ ${changes(it)}<div class="legend"><span class="d-del">removed</span> and <span class="d-ins">added</span> are marked in each version.</div>
+ <div class="rule">Source</div>${side(it,'src')}<div class="rule">After “standardization”</div>${side(it,'out')}
  <div class="q">Is meaning lost or changed?</div>${opts(it.id,'meaning_lost',[['yes','Yes','no'],['no','No','yes'],['unsure','Unsure','maybe']])}
  <div class="hidden-q" ${a.meaning_lost==='yes'?'':'hidden'} data-for="${it.id}"><div class="q">How serious?</div>${opts(it.id,'severity',[['1','1 Minor','n'],['2','2 Moderate','n'],['3','3 Serious','n']])}</div>${note(it.id)}</article>`;
 }

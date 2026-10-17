@@ -1,4 +1,4 @@
-# Met inventory: significant properties (v1, 2026-10-16)
+# Met inventory: significant properties (v1.1, 2026-10-17)
 
 What must survive any "standardization" of a Met inventory file
 (`Object Date`, `Title`, `Object Number`, `Link Resource`), and what may change.
@@ -15,8 +15,9 @@ Two levels, as in digital preservation practice:
 
 The Met publishes no field-by-field dictionary for its Open Access CSV
 ([openaccess repo](https://github.com/metmuseum/openaccess)). Each convention
-below is grounded in (a) general cataloguing practice and (b) what the full
-dataset shows (`MetObjects.csv`, 484,956 objects, measured 2026-10-16 with
+below is grounded in (a) general cataloguing practice, (b) what the full
+dataset shows, and (c) a review of 31 randomly drawn objects, in which the
+reviewer agreed with every rule (`analysis/review/RESULTS.md`) (`MetObjects.csv`, 484,956 objects, measured 2026-10-16 with
 `scripts/make_heldout_sample.py --stats`). Items marked *to confirm* should
 be checked with the Met (openaccess@metmuseum.org) before publication.
 
@@ -41,7 +42,9 @@ be checked with the Met (openaccess@metmuseum.org) before publication.
 
 A transformation that needs to change a significant property (e.g. a user
 asks for normalized dates) must add a column rather than overwrite, and say
-so; the original value stays.
+so; the original value stays. The reviewer's example: "1826 (reprinted
+posthumously)" may become "1826" only if "reprinted posthumously" moves to
+its own column, not if it is dropped.
 
 ## How it is checked
 

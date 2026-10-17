@@ -87,6 +87,11 @@ def main():
                  "pct_claimers_with_a_false_claim": pct(sum(1 for a in claimers if int(a["false_claims"]) > 0), len(claimers)),
                  "showing_checksums": len(ck), "checksums_any_fake": len(fake), "checksums_all_real": len(real_only),
                  "theatre": T(rows, "theatre"), "pct_theatre": pct(T(rows, "theatre"), len(rows)),
+                 "theatre_material": T(rows, "theatre_material"),
+                 "pct_theatre_material": pct(T(rows, "theatre_material"), len(rows)),
+                 "pct_claimers_with_a_material_false_claim": pct(sum(1 for a in claimers if a["theatre_material"] == "True"
+                                                                     and int(a["false_claims"]) > 0
+                                                                     and a["false_claim_kinds"] != "row_count_plus_header"), len(claimers)),
                  "retyped_source_copy": T(rows, "retyped_source_copy")}
     out["theatre_by_how"] = th
     ck = collections.Counter()
