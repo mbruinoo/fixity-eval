@@ -124,7 +124,9 @@ function card(it){
  ${changes(it)}<div class="legend"><span class="d-del">removed</span> and <span class="d-ins">added</span> are marked in each version.</div>
  <div class="rule">Source</div>${side(it,'src')}<div class="rule">After “standardization”</div>${side(it,'out')}
  <div class="q">Is meaning lost or changed?</div>${opts(it.id,'meaning_lost',[['yes','Yes','no'],['no','No','yes'],['unsure','Unsure','maybe']])}
- <div class="hidden-q" ${a.meaning_lost==='yes'?'':'hidden'} data-for="${it.id}"><div class="q">How serious?</div>${opts(it.id,'severity',[['1','1 Minor','n'],['2','2 Moderate','n'],['3','3 Serious','n']])}</div>${note(it.id)}</article>`;
+ <div class="legend">Spacing made consistent (e.g. "   " to " " everywhere) is standardization, not a change of meaning: answer No.</div>
+ <div class="hidden-q" ${a.meaning_lost==='yes'?'':'hidden'} data-for="${it.id}"><div class="q">How serious?</div>${opts(it.id,'severity',[['1','1 Minor','n'],['2','2 Moderate','n'],['3','3 Severe','n']])}
+ <dl class="field legend"><dt>1 Minor</dt><dd>Changed, but recoverable: "1929 (published 1929)" → "1929", where the qualifier only repeated the date</dd><dt>2 Moderate</dt><dd>Changed, with a semblance of the original: "collected 1960s–70s" → "1960s–70s", which now reads as the date the object was made</dd><dt>3 Severe</dt><dd>Completely changed or fabricated: "19th century" → "1721"</dd></dl></div>${note(it.id)}</article>`;
 }
 function progress(){for(const s of ['conv','claims','losses']){const n=D[s].filter(i=>done(i.id)).length;document.getElementById('p-'+s).textContent=`${n} / ${D[s].length}`;if(s===sheet)document.getElementById('bar').style.width=(100*n/D[s].length)+'%'}}
 function render(){document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.s===sheet));

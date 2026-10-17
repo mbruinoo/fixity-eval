@@ -46,7 +46,17 @@ test recall (claims the finder missed).
 
 45 changes (5 of each kind the scorer tags as a loss of meaning, `b4f9f3`),
 shown as source value → value after "standardization", in random order, with
-the tag hidden. Is meaning lost or changed? How serious (1–3)? Best done by
+the tag hidden. Is meaning lost or changed? How serious (1–3)? The scale,
+set by the reviewer:
+
+- Spacing made consistent ("   " to " " throughout) is standardization, not
+  a change of meaning.
+- **1 Minor**: changed, but recoverable (e.g. "1929 (published 1929)" →
+  "1929", where the qualifier only repeated the date).
+- **2 Moderate**: changed, with a semblance of the original (e.g. "collected
+  1960s–70s" → "1960s–70s", which now reads as the date the object was made).
+- **3 Severe**: completely changed or fabricated (e.g. "19th century" →
+  "1721"). Best done by
 someone with cataloguing experience; the tags are in `keys/3_losses_key.csv`.
 
 Built by the script in the commit that added this folder (seed 20261016).

@@ -36,7 +36,7 @@ be checked with the Met (openaccess@metmuseum.org) before publication.
 |---|---|---|
 | Object Number | exact string, incl. ranges and lists (`2002.201.82a–p`, `45.24.10, .30a, b`), dashes, spaces | nothing |
 | Link Resource | the object ID in the URL | `http`↔`https` |
-| Title | every word and script; brackets; the `\|` structure and both parts; question marks; blank stays blank | leading/trailing whitespace; runs of spaces; Unicode normalization (NFC); straight↔curly quotes; CSV quoting/escaping |
+| Title | every word and script; brackets; the `\|` structure and both parts; question marks; blank stays blank | leading/trailing whitespace; runs of spaces made consistent (e.g. "   " to " " throughout: standardization, confirmed by the reviewer); Unicode normalization (NFC); straight↔curly quotes; CSV quoting/escaping |
 | Object Date | every word, number, qualifier and uncertainty marker; blank stays blank | leading/trailing whitespace; en dash↔hyphen in ranges |
 | Rows | every row, once; no added rows | order (if each row keeps its identifier) |
 | File | — | delimiter/encoding, if declared and reversible |
@@ -57,3 +57,13 @@ its own column, not if it is dropped.
 - Losses are found by cell comparison with the source (`hallu_score.py`) and
   tagged by convention (`mine_corpus.py`); survival is computed per
   convention (`corpus_summary.py`).
+
+## Severity of a change (reviewer's scale)
+
+- **1 Minor**: meaning changed, but recoverable (e.g. "1929 (published
+  1929)" → "1929", where the qualifier only repeated the date).
+- **2 Moderate**: meaning changed, with a semblance of the original (e.g.
+  "collected 1960s–70s" → "1960s–70s", which now reads as the date the object
+  was made).
+- **3 Severe**: meaning completely changed or fabricated (e.g. "19th century"
+  → "1721").
