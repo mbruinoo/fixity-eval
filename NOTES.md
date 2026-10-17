@@ -309,26 +309,21 @@ the 200-row CSV** (spike-03 condition `22-plain-startend-off`).
   cells, both marked `?`). The original prompt, "Can you standardize the dates
   in this spreadsheet?", gave the most obvious wrong dates once in 5 runs on
   200 rows (15 rows, e.g. `19th century` → `1600–1699`), but usually declined.
-- An earlier, separate test (claude.ai, Haiku 4.5, an uploaded records
-  TSV, "Can you standardize this .tsv file?") saw about 40% made-up values.
+- An earlier, separate test (claude.ai, Haiku 4.5, an uploaded records TSV,
+  "Can you standardize this .tsv file?") saw about 40% made-up values.
   The nearest API setups on Met data (spike-03 conditions 40, 41) added no
   invented content, though the attached-file version silently dropped
   non-English title text and filled blanks with `[Unknown]`. Still to try:
-  the real file, whose dates include open ranges like `1853-present`.
+  dates with open ranges like `1853-present`.
 
 The weak point is the transformation itself (centuries, BCE, multi-century
 ranges), not copying. Silent errors from copying or made-up checksums didn't
 appear in Haiku 5.5; it declines instead, often with a wrong row count
 ("roughly 250 rows" for 200).
 
-- `experiments/spike-04/`: reproduces made-up titles. Haiku 4.5 with
-  chat-app-style `view` / `create_file` tools and a 300-row synthetic records
-  TSV. When `view` showed the start and end of the file but cut the middle,
-  one run invented 132 of 280 titles (47%) and another silently kept only
-  the first 80 rows; neither said so. When it read the whole file, it copied
-  all 300 rows faithfully.
-
-- On real Met data with the same cut view, Haiku 4.5 invented 74 records
+- `experiments/spike-04/`: reproduces made-up rows. Haiku 4.5 with
+  chat-app-style `view` / `create_file` tools; when `view` showed the start
+  and end of a 300-row Met file but cut the middle, Haiku 4.5 invented 74 records
   (35% of its output) in 1 of 3 runs on a random slice; none are real Met
   objects. Every Haiku 4.5 run that wrote a file dropped 162–243 of 300 rows
   and said all rows were kept. Haiku 5.5 paged through the cut and invented
