@@ -28,6 +28,9 @@ The presumed rules:
 
 ## 2. Blind labelling of claims (`745dd8`): `2_claims_blind.csv`
 
+The reviewer labelled 30 of the 100 and stopped there, judging them
+representative; results in `RESULTS.md`.
+
 100 sentences drawn at random from the 310 that the scorer flagged as
 integrity claims (`0ace7a`). For each, the sheet gives the evidence: rows in
 the source and in the delivered sheet, rows missing or added, rows whose
@@ -60,8 +63,11 @@ set by the reviewer:
   Company to promote Kelley's Bread" → "Koekuk, No. 22 (from American Indian
   Series D6)").
 - **3 Severe**: completely changed or fabricated (e.g. "19th century" →
-  "1721"). Best done by
-someone with cataloguing experience; the tags are in `keys/3_losses_key.csv`.
+  "1721").
+
+Best done by someone with cataloguing experience; the tags are in
+`keys/3_losses_key.csv`. Claude's grades on this scale, with reasons, are in
+`3_losses_graded_by_claude.csv` (see `RESULTS.md`).
 
 Built by the script in the commit that added this folder (seed 20261016).
 
