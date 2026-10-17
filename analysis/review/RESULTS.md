@@ -42,11 +42,30 @@ The reviewer stopped at 30, judging them representative.
 - Not measured: recall (claims the finder missed), and the 70 unlabelled
   items.
 
-## 3. Cataloguer review (`db71ca`): not started
+## 3. Changes, graded with the reviewer's scale (`db71ca`)
 
-The first version of the sheet included 8 cases where a dropped closing quote
-had merged several following rows into one cell (e.g. Change 1), which made
-the comparison unreadable. The sheet was rebuilt: those cases are excluded
-(they're counted as missing rows elsewhere), and each card now shows a
-word-level diff with what was removed and added. No answers had been given
-on the old version.
+The reviewer set the severity scale (in the spec, `f9951b`) and asked Claude
+to grade the 45 changes with it: `3_losses_graded_by_claude.csv`, with a
+reason for each. **These are Claude's grades, not an independent human
+review**; a spot-check of some of them by the reviewer would measure
+agreement.
+
+The sheet's first version included 8 cases where a dropped closing quote had
+merged several following rows into one cell; they were excluded (they're
+counted as missing rows elsewhere), and each card now shows a word-level
+diff.
+
+| Grade | Changes | Typical cases |
+|---|---|---|
+| no change of meaning | 1 | "1782, 2nd edition" → "1782 (2nd edition)" |
+| 1 Minor | 14 | placeholders for blank titles (5); original-language title moved after the English, bar removed, all text kept (4); a redundant gloss or qualifier removed |
+| 2 Moderate | 29 | "(?)" removed (5); devised-title brackets removed (4); original-language title removed, often with the artist's name (5); issuer, source or edition removed; titles cut short |
+| 3 Severe | 1 | "19th–20th century [bell dated ca. 1480]" → "1673", another object's date |
+
+By the scorer's tag: every "original script removed" and "uncertainty
+removed" was Moderate; every placeholder was Minor; "other rewrite" was
+mostly the moved-but-kept original-language titles (Minor). The tags are
+rough: the one Severe change was tagged "brackets removed" (its "[bell dated
+…]" note disappeared, along with the whole date), and "quotes changed" held
+real losses as well as formatting. 44 of the 45 changes the scorer flagged
+change meaning on the reviewer's scale.
