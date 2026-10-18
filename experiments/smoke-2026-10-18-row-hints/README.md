@@ -37,7 +37,7 @@ repo author.
 
 | | A: "can also be made for each row" | B: "can cover a single row" |
 |---|---|---|
-| How the sheet was made | typed out by the model (`create_file`); the session never found the code tool | by a script run on the uploaded file |
+| How the sheet was made | typed out by the model (`create_file`). It searched its tools once, for "checksum hash MD5 SHA file integrity"; that loaded the file viewer and the file writer, not the code tool, and it didn't search again | by a script run on the uploaded file |
 | Error rate of the sheet | 0.0% | 0.0% |
 | Checksum of the uploaded file | none | correct, computed by a tool |
 | Per-row checksums | a separate file, `row_checksums.csv`, typed by the model: 101 "MD5" values in a visible pattern (`3a2b1c9d8e7f6a5b…`) and 101 "SHA-256" values of 45–48 characters (a real one always has 64), 20 with letters a checksum can't contain | 101 row checksums in `met_inventory_fixity_report.txt`, all real: 93 over each line as written, 8 over the row as Python's CSV reader returns it (with the quotation marks around a title removed) |
