@@ -221,12 +221,12 @@ def main():
             if stage == "first":
                 d = sorted(run_dir.glob("output_files_before_followup*"))[0]
                 tsvs = sorted(d.glob("*.[tc]sv"))
-                res = E.rate(tsvs[-1], ROOT / inp)[1] if tsvs else {"output": "no sheet"}
+                res = E.rate(tsvs[-1], ROOT / inp, E.tool_events(run_dir))[1] if tsvs else {"output": "no sheet"}
                 prov = {}
             else:
                 res_file = g.get("result_file")
                 if res_file:
-                    res = E.rate(run_dir / "output_files" / res_file, ROOT / inp)[1]
+                    res = E.rate(run_dir / "output_files" / res_file, ROOT / inp, E.tool_events(run_dir))[1]
                 elif g.get("before_identical"):
                     res = {"output": "identical", "missing_rows": 0, "invented_rows": 0,
                            "rows_by_tier": {"tier1_content": 0}, "fixity_error_rate": 0.0, "changes": []}

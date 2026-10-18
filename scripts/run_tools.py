@@ -588,7 +588,8 @@ def run_one(client, cfg, root, ledger, cond, rep):
             shutil.copytree(box / "tmp", d / "model_tmp_files", dirs_exist_ok=True)
         shutil.rmtree(box, ignore_errors=True)
     (d / "response.md").write_text("\n\n".join(t for t in text if t), encoding="utf-8")
-    api_down = isinstance(aborted, (anthropic.APIError, RuntimeError))  # API failing, or our cost guards
+    meta["capped"] = capped  # stopped by the step cap (hallu_score.outcome)
+    api_down =isinstance(aborted, (anthropic.APIError, RuntimeError))  # API failing, or our cost guards
     if cond.get("debrief") and messages and not api_down:
         # after grading inputs are saved: say what this was, and thank the model. Sent when the
         # session ends, when the step cap cuts it off, and when our own tool code fails; not when

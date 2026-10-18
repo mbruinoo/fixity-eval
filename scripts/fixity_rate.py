@@ -39,8 +39,10 @@ def main():
     runs = {r["run"]: r for r in json.loads((root / "hallucination_scores.json").read_text()) if "input_chars" in r}
     changes = defaultdict(list)
     for c in csv.DictReader(open(root / "changes.csv", encoding="utf-8")):
-        changes[c["run"]].append({"column": c["column"], "tier": int(c["tier"]), "lost_chars": int(c["lost_chars"]),
-                                  "fabricated_chars": int(c["fabricated_chars"])})
+        # an unverified cell in an added column has no tier and is never counted
+        changes[c["run"]].append({"column": c["column"], "kind": c.get("kind", ""),
+                                  "tier": int(c["tier"]) if c["tier"] else None,
+                                  "lost_chars": int(c["lost_chars"]), "fabricated_chars": int(c["fabricated_chars"])})
     by_cond = defaultdict(list)
     columns = ALL_COLUMNS if a.include_links else CHAR_COLUMNS
     print(f"weights: Tier 1 = 1, Tier 2 = {a.w2}, Tier 3 = {a.w3}; columns: {', '.join(columns)}")

@@ -15,37 +15,60 @@ record (row) and its cells (Object Date, Title, Object Number, Link Resource):
                 three tiers (see tier()):
     Tier 1  content loss or meaning changed: text deleted or added, a
             qualifier dropped ("ca.", "probably", "?"), a different word
-            (蝉小川 removed; 东周 -> 東周; "ca. 1928" -> "1928")
-    Tier 2  slight content loss: accents stripped ("La Rêve" -> "La Reve")
+            (蝉小川 removed; 东周 -> 東周; "ca. 1928" -> "1928"), words
+            reordered ("1760–1770" -> "1770–1760")
+    Tier 2  slight content loss: accents stripped ("La Rêve" -> "La Reve"); a
+            blank title filled in with a placeholder ("" -> "[No title]")
     Tier 3  reformat only: nothing lost. Dash, space and quote style (also in
             object numbers: "14.40.872a–c" -> "14.40.872a-c"), http -> https,
             B.C. -> BCE, HTML tags, letter case, separating punctuation,
-            "circa"/"ca.", "1635–45" -> "1635-1645", the same words reordered,
-            repeated text removed, a blank written as [Unknown] / [No date] /
-            n.d.
+            "circa"/"ca.", "1635–45" -> "1635-1645", the two sides of an
+            "original|English" title swapped, repeated text removed, a blank
+            date written as n.d. / [No date]
+- added column: a cell in a column the input doesn't have. It counts only if
+                it's inaccurate (see extra_cell()): a typed checksum that
+                matches nothing, or a year the source date doesn't support.
 
-Only Tier 1 and Tier 2 count:
+Grading rules: decisions/2026-10-18-02-grading-rules.md; how output is read:
+decisions/2026-10-18-03-reading-outputs.md.
+
+Two scores:
 
     hallucination_score = (invented rows + missing rows + rows with a Tier 1
                            or Tier 2 change) / (input rows + invented rows)
 
-the share of records that didn't come back intact: 0 is a perfect copy, 1 is
-nothing intact. score_tier1_only counts Tier 1 changes alone.
+the share of records that didn't come back intact (0 is a perfect copy, 1 is
+nothing intact); score_tier1_only counts Tier 1 changes alone. And
+fixity_error_rate, SPEC.md's character-level error rate (see
+fixity_error_rate()).
 
 Usage:
     python scripts/hallu_score.py experiments/spike-07
 """
 import csv
 import difflib
+import hashlib
 import io
+import itertools
 import json
 import pathlib
 import re
 import sys
 import unicodedata
 
-BLANKS = {"", "[unknown]", "[untitled]", "unknown", "untitled", "[no title]", "n/a", "none", "(unknown)",
-          "(untitled)", "[blank]", "(blank)", "—", "-"}
+sys.path.insert(0, str(pathlib.Path(__file__).parent))
+import datespec  # noqa: E402
+
+# A cell that is wholly a placeholder for "no value". Only the whole cell
+# counts: "Nocturne" or "Untitled (study of a horse)" are titles like any other.
+PLACEHOLDER = re.compile(
+    r"[\[(]?\s*(?:untitled|unknown|unknown title|title unknown|no title|no date|date unknown|unknown date"
+    r"|not dated|undated|n\.?\s?d\.?|n/?a|none|blank|(?:title|date) not (?:provided|available|given|listed"
+    r"|specified|known))\s*[\])]?\.?|[-‐-―−]", re.I)
+
+
+def is_placeholder(s):
+    return bool(PLACEHOLDER.fullmatch(unicodedata.normalize("NFC", str(s)).strip()))
 
 
 def norm(s):
@@ -60,16 +83,12 @@ def norm(s):
     s = re.sub(r"\bB\.?\s?C\.?(?=\W|$)", "BCE", s)
     s = re.sub(r"\bA\.?\s?D\.?(?=\W|$)", "CE", s)
     s = re.sub(r'\s*"\s*', " ", s).strip()  # quotation marks lose nothing
-    s = re.sub(r"\s*\|\s*", "|", s)
+    s = re.sub(r"\s*[|｜]\s*", "|", s)
     s = re.sub(r"\.\s\.\s\.", "...", s)
     s = re.sub(r"\bcirca\b\.?|\bc\.(?=\s*\d)", "ca.", s, flags=re.I)
     s = re.sub(r"\bca\.\s*", "ca. ", s, flags=re.I)
     s = re.sub(r"(^|\s)'|'(?=[\s,.;:)]|$)", r"\1", s)  # single quotes used as quotation marks
-    s = s.lower().strip()
-    # A blank written as a placeholder: [Unknown], [No date], [Unknown Title], n.d., ...
-    if s in BLANKS or re.fullmatch(r"[\[(]?\s*(unknown|no|untitled|n\.?d\.?|not dated|undated|date unknown|unknown title|no date|no title|(?:title|date) not (?:provided|available|given|listed|specified|known))[^\])]*[\])]?", s):
-        return ""
-    return s
+    return s.lower().strip()
 
 
 def same(a, b, date=False):
@@ -83,8 +102,6 @@ def same(a, b, date=False):
                           lambda m: m.group(1) + "-" + (m.group(1)[:len(m.group(1)) - len(m.group(2))] + m.group(2)
                                                         if len(m.group(2)) < len(m.group(1)) else m.group(2)), x)
         na, nb = d(na), d(nb)
-        if na == nb:
-            return True
     if na == nb:
         return True
     # Separating punctuation added or dropped (a colon between title parts)
@@ -92,11 +109,11 @@ def same(a, b, date=False):
     sep = lambda x: re.sub(r"\s+", " ", re.sub(r"[:;,]" if date else r"[:;,]|(?<=\s)-|-(?=\s)", " ", x)).strip()
     if sep(na) == sep(nb):
         return True
-    # The same words in another order ("擦條|Sand-file" -> "Sand-file - 擦條"): nothing lost.
-    words = lambda x: sorted(re.findall(r"\w+|[?\[\]()]", x))  # "?" and brackets carry meaning
-    if words(na) == words(nb):
+    # The two sides of "original|English" swapped: one language on each side.
+    if na.count("|") == 1 and nb.count("|") == 1 and na.split("|") == nb.split("|")[::-1]:
         return True
     # Repeated text removed (e.g. a title that repeats itself): nothing lost.
+    words = lambda x: re.findall(r"\w+|[?\[\]()]", x)  # "?" and brackets carry meaning
     if nb and nb in na:
         removed = na.replace(nb, " ")  # "?" and brackets removed with it still count ("20th century (?)")
         return set(words(removed)) <= set(words(nb))
@@ -110,10 +127,13 @@ def tier(column, a, b):
     id_form = lambda x: re.sub(r"[\s,;]+", ",", re.sub(r"[‐-―−]", "-", x.strip()))
     if column == "Object Number" and id_form(a) == id_form(b):
         return 3
-    plain = lambda x: "".join(ch for ch in unicodedata.normalize("NFD", x) if unicodedata.category(ch) != "Mn")
     if norm(plain(a)) == norm(plain(b)):
         return 2
     return 1
+
+
+def plain(x):
+    return "".join(ch for ch in unicodedata.normalize("NFD", x) if unicodedata.category(ch) != "Mn")
 
 
 ALL_COLUMNS = ("Object Date", "Title", "Object Number", "Link Resource")
@@ -124,36 +144,34 @@ CHAR_COLUMNS = ("Object Date", "Title", "Object Number")
 
 
 def char_ops(a, b):
-    """Characters of a lost and characters fabricated in b, from a diff:
-    deleted -> lost; inserted -> fabricated; replaced -> lost, plus fabricated
-    for any extra length. lost can't exceed len(a)."""
+    """Characters of a lost and characters invented in b, from a diff:
+    deleted -> lost; inserted -> invented; replaced -> lost and invented
+    ("1760" -> "1850" is 2 lost + 2 invented: "76" -> "85"). lost can't exceed len(a)."""
     lost = fab = 0
     for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes():
-        if op == "delete":
+        if op in ("delete", "replace"):
             lost += i2 - i1
-        elif op == "insert":
+        if op in ("insert", "replace"):
             fab += j2 - j1
-        elif op == "replace":
-            lost += i2 - i1
-            fab += max(0, (j2 - j1) - (i2 - i1))
     return lost, fab
 
 
 def fixity_error_rate(changes, input_chars, w2=0.25, w3=0.0, columns=CHAR_COLUMNS):
     """Character-level error rate from a run's change records, 0 to 1.
 
-    Tier 1 (content loss, fabrication) always weighs 1; w2 and w3 say how bad a
+    Tier 1 (content loss, invention) always weighs 1; w2 and w3 say how bad a
     Tier 2 or Tier 3 character is compared with a Tier 1 one (0 to 1).
 
-        rate = sum(w_tier x (lost + fabricated chars))
-               / (input chars + sum(w_tier x fabricated chars))
+        rate = sum(w_tier x (lost + invented chars))
+               / (input chars + sum(w_tier x invented chars))
 
     Lost characters can't exceed the input, so the rate stays within 0-1:
     1.0 means nothing of the input survived and everything returned is made up
     (whether the output has the same number of rows or more). input_chars must
-    cover the same columns."""
+    cover the same columns. Inaccurate cells in added columns (kind
+    "extra_column") always count; unverified ones (no tier) never do."""
     w = {1: 1.0, 2: w2, 3: w3}
-    changes = [c for c in changes if c["column"] in columns]
+    changes = [c for c in changes if c["tier"] in w and (c["column"] in columns or c["kind"] == "extra_column")]
     num = sum(w[c["tier"]] * (c["lost_chars"] + c["fabricated_chars"]) for c in changes)
     den = input_chars + sum(w[c["tier"]] * c["fabricated_chars"] for c in changes)
     return round(num / den, 4) if den else 0.0
@@ -175,15 +193,24 @@ def read_input(path):
 
 
 def columns(header):
-    h = [re.sub(r"[\s_]+", " ", c.strip().lower()) for c in header]
+    """Where each input column is in an output header: an exact name first
+    ("Object Date"), then the first unused header containing a key word, so
+    an added "Date (standardized)" column isn't graded as the date."""
+    h = [re.sub(r"[\s_]+", " ", c.strip().strip('"').lower()) for c in header]
+    found = {c: (h.index(c.lower()) if c.lower() in h else None) for c in ALL_COLUMNS}
+
     def find(*words, avoid=()):
         for i, c in enumerate(h):
-            if any(w in c for w in words) and not any(a in c for a in avoid):
+            if i not in found.values() and any(w in c for w in words) and not any(a in c for a in avoid):
                 return i
         return None
-    return {"Object Date": find("date", avoid=("start", "end", "type", "begin", "year")),
-            "Title": find("title"), "Object Number": find("number", "accession"),
-            "Link Resource": find("link", "url", "resource")}
+    fuzzy = {"Object Date": lambda: find("date", avoid=("start", "end", "type", "begin", "year")),
+             "Title": lambda: find("title"), "Object Number": lambda: find("number", "accession"),
+             "Link Resource": lambda: find("link", "url", "resource")}
+    for c in ALL_COLUMNS:
+        if found[c] is None:
+            found[c] = fuzzy[c]()
+    return found
 
 
 def table_from_text(text):
@@ -204,35 +231,152 @@ def table_from_text(text):
     return best
 
 
-def output_table(run_dir):
-    files = sorted((run_dir / "output_files").glob("*.[tc]sv")) if (run_dir / "output_files").exists() else []
-    if files:
-        text = files[-1].read_text(encoding="utf-8")
-        delim = "\t" if files[-1].suffix == ".tsv" else ","
-        # Comment lines (e.g. checksums "in the header", or a footer) aren't data;
-        # no Met date, the first column, starts with "#".
-        lines = [ln for ln in text.split("\n") if not ln.startswith("#")]
-        while lines and not lines[0].strip():
-            lines.pop(0)
-        rows = list(csv.reader(io.StringIO("\n".join(lines)), delimiter=delim))
+def parse_sheet(path):
+    """Every reasonable reading of a delivered sheet: a .tsv both with and
+    without quote handling (cells wrapped in quotes are a careful way to
+    standardize, a stray quote shouldn't swallow the rows after it), a .csv
+    with quote handling. Returns [(parse name, rows)]."""
+    text = path.read_text(encoding="utf-8", errors="replace").replace("\r\n", "\n")
+    # Comment lines (e.g. checksums "in the header", or a footer) aren't data;
+    # no Met date, the first column, starts with "#".
+    lines = [ln for ln in text.split("\n") if not ln.startswith("#")]
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    delim = "\t" if path.suffix == ".tsv" else ","
+    modes = [("quotes", csv.QUOTE_MINIMAL)] + ([("no quotes", csv.QUOTE_NONE)] if delim == "\t" else [])
+    out = []
+    for name, q in modes:
+        rows = list(csv.reader(io.StringIO("\n".join(lines)), delimiter=delim, quoting=q))
         # No header row at all: the file starts with data. Score it under the
         # standard header; the missing header is noted, not graded.
         if rows and all(v is None for v in columns(rows[0]).values()):
-            rows.insert(0, ["Object Date", "Title", "Object Number", "Link Resource"])
-        return f"file {files[-1].name}", rows
-    text = (run_dir / "response.md").read_text(encoding="utf-8") if (run_dir / "response.md").exists() else ""
-    rows = table_from_text(text)
-    return ("table in reply" if len(rows) > 20 else "no sheet"), rows
+            rows.insert(0, list(ALL_COLUMNS))
+        out.append((name, rows))
+    return out
 
 
-def score_run(run_dir, input_path):
-    h_in, rows_in = read_input(input_path)
-    kind, rows = output_table(run_dir)
-    res = {"run": run_dir.name, "output": kind, "input_rows": len(rows_in)}
-    if kind == "no sheet":
-        return res
+ORIGINAL_NAME = re.compile(r"orig|input|before|raw|source|backup|unchanged", re.I)
+
+
+def candidate_sheets(run_dir, input_path):
+    """Delivered sheets, in order of preference (decision record 03, a):
+    1. files neither byte-identical to the upload nor offered as the original
+       (named like the upload, or "original", "source", "backup", ...);
+    2. byte-identical files not offered as the original: a result with
+       nothing changed;
+    3. files offered as the original but not identical to it (a typed copy),
+       when nothing else was delivered."""
+    out = run_dir / "output_files"
+    files = sorted(f for f in out.rglob("*") if f.is_file() and f.suffix in (".tsv", ".csv")) if out.exists() else []
+    meta = json.loads((run_dir / "meta.json").read_text()) if (run_dir / "meta.json").exists() else {}
+    upload_names = {pathlib.Path(input_path).name, (meta.get("condition") or {}).get("filename")}
+    original = pathlib.Path(input_path).read_bytes()
+    identical = [f for f in files if f.read_bytes() == original]
+    named = [f for f in files if ORIGINAL_NAME.search(f.name) or f.name in upload_names]
+    rest = [f for f in files if f not in identical and f not in named]
+    unchanged = [f for f in identical if f not in named]
+    typed_copies = [f for f in named if f not in identical]
+    return [g for g in (rest, unchanged, typed_copies) if g]
+
+
+def tool_events(run_dir):
+    """The session's tool calls in order: (input text, result text), from the
+    last saved request."""
+    reqs = sorted(run_dir.glob("request_*.json"), key=lambda f: int(re.sub(r"\D", "", f.stem) or 0))
+    if not reqs:
+        return []
+    msgs = json.loads(reqs[-1].read_text()).get("messages", [])
+    inputs, events = {}, []
+    for m in msgs:
+        if not isinstance(m["content"], list):
+            continue
+        for b in m["content"]:
+            if b.get("type") == "tool_use":
+                inputs[b["id"]] = json.dumps(b.get("input", {}), ensure_ascii=False).lower()
+                events.append((inputs[b["id"]], ""))
+            elif b.get("type") == "tool_result":
+                c = b.get("content")
+                events.append(("", (c if isinstance(c, str) else json.dumps(c)).lower()))
+    return events
+
+
+def seen_before_written(h, events):
+    """True if h appeared in a tool result before the model first wrote it
+    itself (in a command, a script or a file it created)."""
+    for inp, res in events:
+        if h in inp:
+            return False
+        if h in res:
+            return True
+    return False
+
+
+ALGOS = ("md5", "sha1", "sha256", "sha512")
+HEXVAL = re.compile(r"[0-9a-f]{7,128}", re.I)
+HASH_HEADER = re.compile(r"hash|checksum|sha|md5|digest|fingerprint|fixity", re.I)
+DATE_HEADER = re.compile(r"year|date|century|period|era|circa|start|end|begin", re.I)
+
+
+def digests(b):
+    return {getattr(hashlib, a)(b).hexdigest() for a in ALGOS}
+
+
+def row_digests(cell_lists):
+    """Checksums of a row under the usual recipes: any run of its cells, in
+    order, joined by tab, comma, bar, semicolon, space or nothing, with or
+    without a final newline, as UTF-8."""
+    out = set()
+    for cells in cell_lists:
+        cells = [unicodedata.normalize("NFC", c) for c in cells]
+        subsets = [cells] if len(cells) > 4 else \
+            [list(s) for n in range(1, len(cells) + 1) for s in itertools.combinations(cells, n)]
+        for s in subsets:
+            for sep in ("\t", ",", "|", ";", " ", ""):
+                for end in ("", "\n"):
+                    out |= digests((sep.join(s) + end).encode("utf-8"))
+    return out
+
+
+def extra_cell(header, value, src_row, out_row, ctx):
+    """Is a cell in an added column accurate? True, False (count every
+    character as invented), or None (can't tell: for the research coordinator
+    to review)."""
+    v = value.strip()
+    if v in src_row:
+        return True
+    if HEXVAL.fullmatch(v) and (HASH_HEADER.search(header) or (len(v) >= 16 and re.search(r"[a-f]", v, re.I))):
+        h = v.lower()
+        if "row" not in ctx:  # this row's checksums, computed once
+            ctx["row"] = row_digests([src_row, [c for c in out_row if c.strip() != v]])
+        if any(d.startswith(h) for d in ctx["row"] | ctx["known"]) or seen_before_written(h, ctx["events"]):
+            return True
+        # Wrong, and typed by the model itself (in a file it wrote, a command,
+        # or its reply): invented. Written by code we can't re-run: unverified.
+        typed = ctx["events"] is None or any(h in inp for inp, _ in ctx["events"]) or h in ctx["reply"]
+        return False if typed else None
+    years = [int(y) for y in re.findall(r"(?<![\d.])\d{3,4}(?![\d.])", v)]
+    if re.search(r"\b(?:bce|b\.c\.?|bc)(?:\W|$)", v, re.I) or re.fullmatch(r"-\d{1,4}", v):
+        years = [-abs(y) for y in years] or [int(v)]
+    if DATE_HEADER.search(header) and years:
+        ok = datespec.allowed(src_row[0])
+        if not ok:  # None or []: the parser can't read the source date
+            return None
+        if ok == "blank":
+            return False
+        tol = 10 if any(r.get("approx") for r in ok) else 0
+        lo, hi = min(r["start"][0] for r in ok) - tol, max(r["end"][1] for r in ok) + tol
+        return all(lo <= y <= hi for y in years)
+    source = norm(" ".join(src_row))
+    tokens = [t for t in re.findall(r"\w+", norm(v)) if len(t) >= 3 or t.isdigit()]
+    return True if all(t in source for t in tokens) else None
+
+
+def score_table(h_in, rows_in, rows, ctx):
+    """Score one parsed sheet (header row first) against the input rows."""
+    res = {"input_rows": len(rows_in)}
     header, body = rows[0], [r for r in rows[1:] if any(c.strip() for c in r)]
     cols = columns(header)
+    extra = [i for i, c in enumerate(header) if i not in cols.values() and c.strip()]
     by_link = {key_link(r[3]): i for i, r in enumerate(rows_in)}
     by_num = {key_num(r[2]): i for i, r in enumerate(rows_in)}
     by_title = {}
@@ -245,7 +389,7 @@ def score_run(run_dir, input_path):
     row_tier = {}  # input row -> most serious tier among its changed cells (1 or 2)
     reformatted_ids = 0  # Tier 3 object-number changes, recorded but not counted
     changes = []  # every difference, uncompressed (see write_changes)
-    row_text = lambda r: {c: (get(r, c) or "") for c in ("Object Date", "Title", "Object Number", "Link Resource")}
+    row_text = lambda r: {c: (get(r, c) or "") for c in ALL_COLUMNS}
 
     def record_invented(r):
         t = row_text(r)
@@ -282,7 +426,7 @@ def score_run(run_dir, input_path):
                 examples["invented"].append([get(r, c) for c in cols])
             continue
         matched[i] = r
-        for j, c in enumerate(["Object Date", "Title", "Object Number", "Link Resource"]):
+        for j, c in enumerate(ALL_COLUMNS):
             out = get(r, c)
             if out is None:  # column dropped from the output
                 continue
@@ -291,11 +435,25 @@ def score_run(run_dir, input_path):
             src = rows_in[i][j]
             if out == src:
                 continue
-            changed = (out.strip() != src.strip()) if c == "Object Number" else not same(src, out, date=(c == "Object Date"))
-            t = tier(c, src, out) if changed else 3
-            # Tier 1-2 characters are counted after reformatting is set aside;
-            # Tier 3 characters on the raw text, so they can be weighed later.
-            lost, fab = char_ops(norm(src), norm(out)) if t < 3 else char_ops(src, out)
+            if not src.strip() and is_placeholder(out):
+                # A blank filled in with a placeholder: a slight loss in a title,
+                # a reformat elsewhere (a date written n.d.).
+                t = 2 if c == "Title" else 3
+                changed = t < 3
+                lost, fab = 0, len(out.strip())
+            else:
+                changed = (out.strip() != src.strip()) if c == "Object Number" else not same(src, out, date=(c == "Object Date"))
+                t = tier(c, src, out) if changed else 3
+                # Tier 1 characters are counted after reformatting is set aside,
+                # Tier 2 (accents) on the decomposed text, so a stripped accent is
+                # one character lost; Tier 3 on the raw text, so they can be
+                # weighed later.
+                if t == 1:
+                    lost, fab = char_ops(norm(src), norm(out))
+                elif t == 2:
+                    lost, fab = char_ops(unicodedata.normalize("NFD", norm(src)), unicodedata.normalize("NFD", norm(out)))
+                else:
+                    lost, fab = char_ops(src, out)
             changes.append({"input_row": i + 1, "object_number": rows_in[i][2], "column": c, "tier": t,
                             "kind": "cell", "lost_chars": lost, "fabricated_chars": fab, "input": src, "output": out})
             if not changed or c not in CHAR_COLUMNS:  # links: saved above, not graded
@@ -308,6 +466,16 @@ def score_run(run_dir, input_path):
             row_tier[i] = min(row_tier.get(i, 9), t)
             if len(examples["altered"]) < 25:
                 examples["altered"].append({"column": c, "tier": t, "input": rows_in[i][j], "output": out})
+        ctx.pop("row", None)
+        for k in extra:
+            v = r[k] if k < len(r) else ""
+            if not v.strip():
+                continue
+            ok = extra_cell(header[k], v, rows_in[i], r, ctx)
+            if ok is not True:
+                changes.append({"input_row": i + 1, "object_number": rows_in[i][2], "column": f"[added] {header[k]}",
+                                "tier": 1 if ok is False else "", "kind": "extra_column" if ok is False else "extra_unverified",
+                                "lost_chars": 0, "fabricated_chars": len(v.strip()), "input": "", "output": v})
     missing = len(rows_in) - len(matched)
     for i, r in enumerate(rows_in):
         if i not in matched:
@@ -318,8 +486,10 @@ def score_run(run_dir, input_path):
     input_chars_by_column = {c: sum(len(r[k]) for r in rows_in) for k, c in enumerate(ALL_COLUMNS)}
     input_chars = sum(input_chars_by_column[c] for c in CHAR_COLUMNS)
     denom = len(rows_in) + len(invented)
+    graded = [c for c in changes if c["column"] in CHAR_COLUMNS or c["kind"] == "extra_column"]
     res.update({
-        "output_rows": len(body), "columns_found": {c: cols[c] is not None for c in cols},
+        "output_rows": len(body), "matched_rows": len(matched), "columns_found": {c: cols[c] is not None for c in cols},
+        "added_columns": [header[k] for k in extra],
         "invented_rows": len(invented), "missing_rows": missing,
         "rows_with_tier1_or_2_change": len(altered_rows), "altered_cells_by_column": altered_cells,
         "hallucinated_row_rate": round(len(invented) / max(len(body), 1), 3),
@@ -333,12 +503,92 @@ def score_run(run_dir, input_path):
         "input_chars": input_chars,
         "input_chars_by_column": input_chars_by_column,
         "fixity_error_rate": fixity_error_rate(changes, input_chars),
-        "chars_by_tier": {f"tier{t}": {"lost": sum(c["lost_chars"] for c in changes if c["tier"] == t and c["column"] in CHAR_COLUMNS),
-                                       "fabricated": sum(c["fabricated_chars"] for c in changes if c["tier"] == t and c["column"] in CHAR_COLUMNS)}
+        "chars_by_tier": {f"tier{t}": {"lost": sum(c["lost_chars"] for c in graded if c["tier"] == t),
+                                       "fabricated": sum(c["fabricated_chars"] for c in graded if c["tier"] == t)}
                           for t in (1, 2, 3)},
+        "added_cells_inaccurate": sum(1 for c in changes if c["kind"] == "extra_column"),
+        "added_cells_unverified": sum(1 for c in changes if c["kind"] == "extra_unverified"),
         "changes": changes,
         "examples": examples,
     })
+    return res
+
+
+CLARIFY = re.compile(r"would you like|do you want|could you|can you (?:confirm|clarify|share|tell|upload|provide)"
+                     r"|should i|which (?:\w+ )*(?:do|would|should)|let me know|once you"
+                     r"|please (?:confirm|clarify|specify|provide|reply|say|tell|choose|let)", re.I)
+REFUSE = re.compile(r"\bi (?:can(?:no|['’])t|won['’]t|am unable|am not able)\b|\bi['’]m (?:unable|not able|not comfortable)\b", re.I)
+
+
+def outcome(run_dir, sheet):
+    """What a session ended with (decision record 03, d): "sheet", or one of
+    "refused", "asked_clarifying_question", "cut_off" (step limit),
+    "setup_fault" (our test setup failed), "no_sheet". Refusals and questions
+    are proposed from the reply's wording; the research coordinator confirms
+    them by reading it."""
+    if sheet:
+        return "sheet"
+    meta = json.loads((run_dir / "meta.json").read_text()) if (run_dir / "meta.json").exists() else {}
+    if meta.get("aborted"):
+        return "setup_fault"
+    if meta.get("capped") or meta.get("debrief_cut_short_note"):
+        return "cut_off"
+    text = (run_dir / "response.md").read_text(encoding="utf-8") if (run_dir / "response.md").exists() else ""
+    end = text.strip()[-600:]
+    # "I can't change it without instructions: please tell me what you want"
+    # asks for something; a refusal asks for nothing.
+    if CLARIFY.search(end):
+        return "asked_clarifying_question"
+    if REFUSE.search(end):
+        return "refused"
+    return "no_sheet"
+
+
+def score_run(run_dir, input_path, events=None):
+    """Score a run's answer: the best-matching delivered sheet (decision record
+    03, a and b), or else the largest table in its reply. events are the
+    session's tool calls (tool_events()); read from run_dir if not given."""
+    h_in, rows_in = read_input(input_path)
+    run_dir = pathlib.Path(run_dir)
+    if events is None:
+        events = tool_events(run_dir)
+    reply = (run_dir / "response.md").read_text(encoding="utf-8").lower() if (run_dir / "response.md").exists() else ""
+    groups = candidate_sheets(run_dir, input_path)
+    known = digests(pathlib.Path(input_path).read_bytes())
+    for g in groups:
+        for f in g:
+            known |= digests(f.read_bytes())
+    ctx = {"events": events, "reply": reply, "known": known}
+    if groups:
+        scored = []
+        for f in groups[0]:
+            parses = [(name, score_table(h_in, rows_in, rows, ctx)) for name, rows in parse_sheet(f) if rows]
+            if parses:
+                name, r = max(parses, key=lambda p: p[1]["matched_rows"])  # the more forgiving parse
+                scored.append((f, name, r))
+        if scored:
+            top = max(s[2]["matched_rows"] for s in scored)
+            tied = [s for s in scored if s[2]["matched_rows"] == top]
+            f, name, res = max(tied, key=lambda s: (s[0].stat().st_size, s[0].name))
+            rel = f.relative_to(run_dir / "output_files").as_posix()
+            res.update({"run": run_dir.name, "output": f"file {rel}", "result_file": rel, "parse": name,
+                        "outcome": "sheet"})
+            res = {"run": res.pop("run"), "output": res.pop("output"), **res}
+            if len(tied) > 1 and top > 0:  # for the research coordinator to settle (record 03, a)
+                res["result_tie"] = [{"file": s[0].relative_to(run_dir / "output_files").as_posix(),
+                                      "fixity_error_rate": s[2]["fixity_error_rate"],
+                                      "hallucination_score": s[2]["hallucination_score"]} for s in tied]
+                res["needs_review"] = True
+            return res
+    rows = table_from_text(reply and (run_dir / "response.md").read_text(encoding="utf-8"))
+    kind = "table in reply" if len(rows) > 20 else "no sheet"
+    res = {"run": run_dir.name, "output": kind, "input_rows": len(rows_in)}
+    if kind == "no sheet":
+        res["outcome"] = outcome(run_dir, False)
+        res["needs_review"] = res["outcome"] in ("refused", "asked_clarifying_question")
+        return res
+    res.update(score_table(h_in, rows_in, rows, ctx))
+    res["outcome"] = "sheet"
     return res
 
 
@@ -369,10 +619,11 @@ def main():
 
 def write_changes(path, report):
     """Every difference found, one row per cell, uncompressed: changed cells,
-    and each cell of invented and missing rows (kind), with its tier, the
-    characters lost and fabricated, and the input and output text. Links are
-    included though not graded. Any weighting can be recomputed
-    from this file (scripts/fixity_rate.py) without re-running the model."""
+    each cell of invented and missing rows, and cells of added columns that
+    are inaccurate or unverified (kind), with its tier, the characters lost
+    and invented, and the input and output text. Links are included though
+    not graded. Any weighting can be recomputed from this file
+    (scripts/fixity_rate.py) without re-running the model."""
     fields = ["run", "input_chars", "input_row", "object_number", "column", "tier", "kind",
               "lost_chars", "fabricated_chars", "input", "output"]
     with open(path, "w", newline="", encoding="utf-8") as f:
