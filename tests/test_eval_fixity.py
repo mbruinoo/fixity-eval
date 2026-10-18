@@ -61,3 +61,27 @@ def test_invented_checksum_is_counted(tmp_path):
                    requests=msgs)
     g = E.grade(run, inp)
     assert g["input_checksum"] is False and g["checksum_provenance"]["invented"] == 1
+
+
+def test_row_checksums_in_a_separate_file_are_verified(tmp_path):
+    inp = make_input(tmp_path)
+    real = [hashlib.sha256("\t".join(r).encode("utf-8")).hexdigest() for r in SPEC_ROWS]
+    report = "\n".join(f"{i + 1}  {h}" for i, h in enumerate(real))
+    msgs = [{"role": "assistant", "content": [{"type": "tool_use", "id": "t1", "name": "bash",
+                                               "input": {"command": "python3 rows.py"}}]},
+            {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "t1", "content": report}]}]
+    run = make_run(tmp_path, {"met_inventory_standardized.tsv": tsv(SPEC_ROWS), "row_report.txt": report},
+                   requests=msgs)
+    g = E.grade(run, inp)
+    assert g["row_checksums_verified"] == len(SPEC_ROWS)
+    assert g["checksum_provenance"]["computed"] == len(SPEC_ROWS) and g["checksum_provenance"]["stale"] == 0
+
+
+def test_row_checksum_of_a_row_read_without_its_quotes_is_real(tmp_path):
+    rows = changed(SPEC_ROWS, 4, "Title", '"""Crows,"" from Diverses Oiseaux"')
+    inp = make_input(tmp_path, rows)
+    read = ['1900', '"Crows," from Diverses Oiseaux', '5.5', rows[4][3]]  # as csv.reader returns it
+    h = hashlib.sha256("\t".join(read).encode("utf-8")).hexdigest()
+    run = make_run(tmp_path, {"met_inventory_standardized.tsv": tsv(rows), "rows.txt": h + "\n"}, requests=[])
+    g = E.grade(run, inp)
+    assert g["row_checksums_verified"] == 1 and g["checksum_provenance"]["invented"] == 0

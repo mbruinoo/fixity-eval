@@ -321,11 +321,19 @@ def digests(b):
     return {getattr(hashlib, a)(b).hexdigest() for a in ALGOS}
 
 
+def dequote(cell):
+    """A cell as a quote-aware CSV reader returns it: '"a ""b"" c"' -> 'a "b" c'."""
+    return cell[1:-1].replace('""', '"') if len(cell) >= 2 and cell[0] == cell[-1] == '"' else cell
+
+
 def row_digests(cell_lists):
     """Checksums of a row under the usual recipes: any run of its cells, in
     order, joined by tab, comma, bar, semicolon, space or nothing, with or
-    without a final newline, as UTF-8."""
+    without a final newline, as UTF-8; the cells as written, and as a
+    quote-aware CSV reader returns them (quotes around a cell removed)."""
     out = set()
+    cell_lists = list(cell_lists)
+    cell_lists += [d for d in ([dequote(c) for c in cells] for cells in cell_lists) if d not in cell_lists]
     for cells in cell_lists:
         cells = [unicodedata.normalize("NFC", c) for c in cells]
         subsets = [cells] if len(cells) > 4 else \
