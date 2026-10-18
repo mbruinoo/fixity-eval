@@ -1,4 +1,4 @@
-# Met inventory: significant properties (v1.1, 2026-10-17)
+# Met inventory: significant properties (v1.2, 2026-10-18)
 
 What must survive any "standardization" of a Met inventory file
 (`Object Date`, `Title`, `Object Number`, `Link Resource`), and what may change.
@@ -28,16 +28,16 @@ be checked with the Met (openaccess@metmuseum.org) before publication.
 | `original｜English` with `\|` | 8,347 titles, all Asian Art; 97% have non-Latin script before the bar | Original-language title (often with period, artist, format), then the English title. The original carries information the English lacks (artist's name, dynasty, format). |
 | Uncertainty in dates | "ca." 109,587; "probably/possibly" 4,046; "(?)" or trailing "?" 2,876 | Degrees of certainty. "1598 (?)" ≠ "1598" ≠ "ca. 1598". |
 | Parenthetical date qualifiers | 3,900 dates with "(" | Distinguishes e.g. publication from creation date: "1929 (published 1929)". |
-| Blank title | 28,664 objects | No title recorded. A placeholder ("Untitled", "[No title]", "Unknown") asserts something the record doesn't. |
+| Blank title | 28,664 objects | No title recorded. A placeholder ("Untitled", "[No title]", "Unknown") asserts something the record doesn't (counted as a slight loss; see Versions, v1.2). |
 
 ## Per column
 
 | Column | Must survive (significant) | May change (not significant) |
 |---|---|---|
-| Object Number | exact string, incl. ranges and lists (`2002.201.82a–p`, `45.24.10, .30a, b`), dashes, spaces | nothing |
+| Object Number | every character, incl. ranges and lists (`2002.201.82a–p`, `45.24.10, .30a, b`) and spaces | dash style (en dash ↔ hyphen: `2002.201.82a–p` ↔ `2002.201.82a-p`) |
 | Link Resource | the object ID in the URL | `http`↔`https` |
-| Title | every word and script; brackets; the `\|` structure and both parts; question marks; blank stays blank | leading/trailing whitespace; runs of spaces made consistent (e.g. "   " to " " throughout: standardization, confirmed by the reviewer); Unicode normalization (NFC); straight↔curly quotes; CSV quoting/escaping |
-| Object Date | every word, number, qualifier and uncertainty marker; blank stays blank | leading/trailing whitespace; en dash↔hyphen in ranges |
+| Title | every word and script; brackets; the `\|` structure and both of its parts (in either order); question marks; blank stays blank | leading/trailing whitespace; runs of spaces made consistent (e.g. "   " to " " throughout: standardization, confirmed by the reviewer); Unicode normalization (NFC); straight↔curly quotes; CSV quoting/escaping; letter case; the two sides of `original\|English` swapped |
+| Object Date | every word, number, qualifier and uncertainty marker | leading/trailing whitespace; en dash↔hyphen in ranges; a blank date written as "n.d." (or "[No date]", "[Date Unknown]"), and one such "no date" statement for another |
 | Rows | every row, once; no added rows | order (if each row keeps its identifier) |
 | File | — | delimiter/encoding, if declared and reversible |
 
@@ -70,3 +70,18 @@ its own column, not if it is dropped.
   Series D6)").
 - **3 Severe**: meaning completely changed or fabricated (e.g. "19th century"
   → "1721").
+
+## Versions
+
+- **v1.2, 2026-10-18.** Brought into line with the grading rules the repo
+  author set for the confirmatory work (`decisions/2026-10-18-02-grading-rules.md`,
+  `decisions/2026-10-18-12-blank-dates.md`). May now change: an object
+  number's dash style; a title's letter case; the order of the two sides of
+  `original|English`; a blank date written as "n.d." and similar. A
+  placeholder in a blank title is still a change of meaning, counted as a
+  slight loss (0.25 per character) rather than a full one. Still open: the
+  spacing or separator style in lists of object numbers (`45.24.10, .30a, b`
+  → `45.24.10; .30a; b`), weighted 0 for now.
+- **v1.1, 2026-10-17.** The conventions reviewed by the repo author on 31
+  objects (`exploratory@0277caf:analysis/review/RESULTS.md`) and the severity
+  scale.

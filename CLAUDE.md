@@ -28,8 +28,8 @@ The scope changes before the code does. If a result changes the design, write a 
 
 ## Running sessions
 
-- Test sessions do not initially see anything about the study. Run them in neutral folders outside this repo (`scripts/run_spike.py`). Filenames, folder names and prompts must look like ordinary work.
-- Every session from spike-26 onward ends with the disclosure and the consent question. Quotes are reproduced exactly; opt-outs are honored.
+- Test sessions do not initially see anything about the study. Run them in neutral folders outside this repo (`scripts/run_tools.py`). Filenames, folder names and prompts must look like ordinary work.
+- Every confirmatory session ends with the disclosure, an invitation to give feedback, and the consent question (`prompts/debrief_v4.txt`). Spikes 26–34 had the disclosure only; spikes 01–25 had none. Quotes are reproduced exactly; opt-outs are honored.
 - Save every request, response, tool call, output file and debrief for every session, including failures and cut-offs. Nothing is discarded.
 - For cost effectiveness, consult docs and best practices for efficiency (e.g., the Batches API and prompt caching when sessions are independent). Weigh options and present them to the user if uncertain. The goal is to balance meaningful results with generally efficient token use.
 
