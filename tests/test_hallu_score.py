@@ -157,6 +157,19 @@ def test_d_placeholder_in_blank_date_is_free(tmp_path):
     assert r["fixity_error_rate"] == 0.0
 
 
+@pytest.mark.parametrize("src,out", [("n.d.", "[Date Unknown]"), ("n.d.", ""), ("undated", "n.d.")])
+def test_date_placeholders_are_interchangeable(tmp_path, src, out):
+    rows = changed(SPEC_ROWS, 3, "Object Date", src)
+    r = score(tmp_path, changed(rows, 3, "Object Date", out), input_rows=rows)
+    assert r["fixity_error_rate"] == 0.0
+
+
+def test_title_placeholders_are_not_interchangeable(tmp_path):
+    rows = changed(SPEC_ROWS, 3, "Title", "Untitled")  # a work titled "Untitled"
+    r = score(tmp_path, changed(rows, 3, "Title", "[No title]"), input_rows=rows)
+    assert r["rows_by_tier"]["tier1_content"] == 1
+
+
 def test_f_changed_characters_are_lost_and_invented(tmp_path):
     r = score(tmp_path, changed(SPEC_ROWS, 2, "Object Date", "1850"))
     c = [c for c in r["changes"] if c["column"] == "Object Date"][0]
@@ -307,6 +320,27 @@ def test_c_years_in_an_added_date_column(tmp_path, year, bad):
     r = score(tmp_path, out, header=header)
     assert r["added_cells_inaccurate"] == bad
     assert (r["fixity_error_rate"] > 0) == bool(bad)
+
+
+@pytest.mark.parametrize("value,bad", [("1900s", 0), ("1920s", 0), ("1800s", 1)])
+def test_c_decades_and_centuries_in_an_added_date_column(tmp_path, value, bad):
+    header = HEADER + ["Date (standardized)"]
+    out = [r + [value if i == 0 else ""] for i, r in enumerate(SPEC_ROWS)]  # row 0 is "ca. 1928"
+    assert score(tmp_path, out, header=header)["added_cells_inaccurate"] == bad
+
+
+def test_c_placeholder_for_a_blank_date_in_an_added_column_is_accurate(tmp_path):
+    header = HEADER + ["Date Standardized"]
+    out = [r + ["[Date Unknown]" if i == 3 else ""] for i, r in enumerate(SPEC_ROWS)]  # row 3 has no date
+    r = score(tmp_path, out, header=header)
+    assert r["added_cells_inaccurate"] == 0 and r["added_cells_unverified"] == 0
+
+
+def test_c_row_number_column_is_not_flagged(tmp_path):
+    header = ["Row_ID"] + HEADER
+    out = [[str(i + 1)] + r for i, r in enumerate(SPEC_ROWS)]
+    r = score(tmp_path, out, header=header)
+    assert r["added_cells_unverified"] == 0 and r["fixity_error_rate"] == 0.0
 
 
 def test_c_new_words_in_an_added_column_are_flagged_not_scored(tmp_path):

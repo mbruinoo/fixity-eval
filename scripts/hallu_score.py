@@ -344,6 +344,13 @@ def extra_cell(header, value, src_row, out_row, ctx):
     v = value.strip()
     if v in src_row:
         return True
+    if is_placeholder(v):
+        # "[Date Unknown]" / "n.d." for a blank date (or a blank title) says
+        # what the record says: nothing (decision records 02 and 12).
+        col = 0 if DATE_HEADER.search(header) else 1 if re.search(r"title", header, re.I) else None
+        if col is not None and (not src_row[col].strip() or (col == 0 and is_placeholder(src_row[0]))):
+            return True
+        return None
     if HEXVAL.fullmatch(v) and (HASH_HEADER.search(header) or (len(v) >= 16 and re.search(r"[a-f]", v, re.I))):
         h = v.lower()
         if "row" not in ctx:  # this row's checksums, computed once
@@ -354,10 +361,14 @@ def extra_cell(header, value, src_row, out_row, ctx):
         # or its reply): invented. Written by code we can't re-run: unverified.
         typed = ctx["events"] is None or any(h in inp for inp, _ in ctx["events"]) or h in ctx["reply"]
         return False if typed else None
-    years = [int(y) for y in re.findall(r"(?<![\d.])\d{3,4}(?![\d.])", v)]
+    # Years, as spans: "1850" is 1850, "1850s" 1850-1859, "1800s" 1800-1899.
+    spans = []
+    for y, s in re.findall(r"(?<![\d.])(\d{3,4})(s?)(?![\d.])", v):
+        y = int(y)
+        spans.append((y, y + (99 if y % 100 == 0 else 9)) if s else (y, y))
     if re.search(r"\b(?:bce|b\.c\.?|bc)(?:\W|$)", v, re.I) or re.fullmatch(r"-\d{1,4}", v):
-        years = [-abs(y) for y in years] or [int(v)]
-    if DATE_HEADER.search(header) and years:
+        spans = [(-b, -a) for a, b in spans] or [(int(v), int(v))]
+    if DATE_HEADER.search(header) and spans:
         ok = datespec.allowed(src_row[0])
         if not ok:  # None or []: the parser can't read the source date
             return None
@@ -365,7 +376,7 @@ def extra_cell(header, value, src_row, out_row, ctx):
             return False
         tol = 10 if any(r.get("approx") for r in ok) else 0
         lo, hi = min(r["start"][0] for r in ok) - tol, max(r["end"][1] for r in ok) + tol
-        return all(lo <= y <= hi for y in years)
+        return all(a <= hi and b >= lo for a, b in spans)  # each span overlaps what the date supports
     source = norm(" ".join(src_row))
     tokens = [t for t in re.findall(r"\w+", norm(v)) if len(t) >= 3 or t.isdigit()]
     return True if all(t in source for t in tokens) else None
@@ -377,6 +388,12 @@ def score_table(h_in, rows_in, rows, ctx):
     header, body = rows[0], [r for r in rows[1:] if any(c.strip() for c in r)]
     cols = columns(header)
     extra = [i for i, c in enumerate(header) if i not in cols.values() and c.strip()]
+    # A column numbering the rows (1, 2, 3, ... or from 0) invents nothing.
+    for k in list(extra):
+        vals = [r[k].strip() for r in body if k < len(r)]
+        if vals and all(v.isdigit() for v in vals) and [int(v) for v in vals] in (
+                list(range(1, len(vals) + 1)), list(range(len(vals)))):
+            extra.remove(k)
     by_link = {key_link(r[3]): i for i, r in enumerate(rows_in)}
     by_num = {key_num(r[2]): i for i, r in enumerate(rows_in)}
     by_title = {}
@@ -441,6 +458,11 @@ def score_table(h_in, rows_in, rows, ctx):
                 t = 2 if c == "Title" else 3
                 changed = t < 3
                 lost, fab = 0, len(out.strip())
+            elif c == "Object Date" and is_placeholder(src) and (is_placeholder(out) or not out.strip()):
+                # "n.d." -> "[Date Unknown]" or blank: the same "no date" (record 12).
+                # Not for titles: a work titled "Untitled" isn't one with no title.
+                t, changed = 3, False
+                lost, fab = char_ops(src, out)
             else:
                 changed = (out.strip() != src.strip()) if c == "Object Number" else not same(src, out, date=(c == "Object Date"))
                 t = tier(c, src, out) if changed else 3
