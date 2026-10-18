@@ -29,7 +29,7 @@ deleting or rewriting it scored nothing.
 | c2. The two sides of an `original｜English` title swapped (`擦條｜Sand-file` → `Sand-file｜擦條`) | Reformatting. Standardizing can reasonably mean putting one language on one side of the bar. | 0 |
 | d. A blank title filled in with a placeholder ("Untitled", "[No title]", "Unknown") | Slight loss: not ideal, but a reasonable thing to infer from "standardize". | 0.25 per character |
 | e. A missing row | Its date, title and object number count; its link doesn't, since links aren't graded (SPEC.md §1). | 1.0 per character |
-| f. A changed character ("1760" → "1850") | Counted as lost *and* invented, as SPEC's formula reads: 3 lost + 3 invented, and the invented characters are added to the bottom of the fraction. | 1.0 per character |
+| f. A changed character ("1760" → "1850") | Counted as lost *and* invented, as SPEC's formula reads: here 2 lost ("76") + 2 invented ("85"), since "1" and "0" survive, and the invented characters are added to the bottom of the fraction. | 1.0 per character |
 
 The bug is fixed: only a cell that is wholly a placeholder counts as one
 (a closed list: "Untitled", "[No title]", "Unknown", "n.d.", "No date", …),
