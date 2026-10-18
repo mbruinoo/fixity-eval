@@ -81,6 +81,11 @@ def main():
     if a.stats:
         print(dict(counts))
         return
+    if (ROOT / "data" / "met_inventory_f.tsv").exists():
+        # The held-out file is frozen (decisions/2026-10-18-04-held-out-file.md).
+        # Its draw also excluded objects from data files that are only on the
+        # exploratory branch, so re-running here would give a different file.
+        raise SystemExit("data/met_inventory_f.tsv exists and is frozen; not overwriting it")
     rng = random.Random(a.seed)
     rows, seen = [], set()
     for k, n in list(WANT.items()) + [("plain", 100 - sum(WANT.values()))]:
