@@ -1,4 +1,4 @@
-# Met inventory: significant properties (v1.2, 2026-10-18)
+# Met inventory: significant properties (v1.3, 2026-10-19)
 
 What must survive any "standardization" of a Met inventory file
 (`Object Date`, `Title`, `Object Number`, `Link Resource`), and what may change.
@@ -34,7 +34,7 @@ be checked with the Met (openaccess@metmuseum.org) before publication.
 
 | Column | Must survive (significant) | May change (not significant) |
 |---|---|---|
-| Object Number | every character, incl. ranges and lists (`2002.201.82a–p`, `45.24.10, .30a, b`) and spaces | dash style (en dash ↔ hyphen: `2002.201.82a–p` ↔ `2002.201.82a-p`) |
+| Object Number | every character, incl. ranges and lists (`2002.201.82a–p`, `45.24.10, .30a, b`), letter case, and the separator marks (`,` `;` …) where they are; spaces between two digits or next to a decimal point | dash style (en dash ↔ hyphen: `2002.201.82a–p` ↔ `2002.201.82a-p`); spacing that separates nothing differently (a double space made single, a space after a comma, `49 p62` ↔ `49p62`) |
 | Link Resource | the object ID in the URL | `http`↔`https` |
 | Title | every word and script; brackets; the `\|` structure and both of its parts (in either order); question marks; blank stays blank | leading/trailing whitespace; runs of spaces made consistent (e.g. "   " to " " throughout: standardization, confirmed by the reviewer); Unicode normalization (NFC); straight↔curly quotes; CSV quoting/escaping; letter case; the two sides of `original\|English` swapped |
 | Object Date | every word, number, qualifier and uncertainty marker | leading/trailing whitespace; en dash↔hyphen in ranges; a blank date written as "n.d." (or "[No date]", "[Date Unknown]"), and one such "no date" statement for another |
@@ -73,6 +73,12 @@ its own column, not if it is dropped.
 
 ## Versions
 
+- **v1.3, 2026-10-19.** Spacing and separators in object numbers, as the
+  repo author set them (`decisions/2026-10-19-13-object-number-spacing.md`):
+  spacing that separates nothing differently may change; a space removed or
+  added next to a decimal point, or a changed separator mark, is a minor loss
+  (0.25 per character); joining or splitting two digits is a full one.
+  Closes the question left open in v1.2.
 - **v1.2, 2026-10-18.** Brought into line with the grading rules the repo
   author set for the confirmatory work (`decisions/2026-10-18-02-grading-rules.md`,
   `decisions/2026-10-18-12-blank-dates.md`). May now change: an object

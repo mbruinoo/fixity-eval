@@ -402,3 +402,32 @@ def test_fixity_rate_recomputes_from_changes_csv(tmp_path):
           "lost_chars": int(c["lost_chars"]), "fabricated_chars": int(c["fabricated_chars"])} for c in rows],
         r["input_chars"])
     assert recomputed == r["fixity_error_rate"]
+
+
+# Object numbers: spacing and separators (record 13)
+
+@pytest.mark.parametrize("src,out,tier,lost,invented", [
+    ("2002.201.82a–p", "2002.201.82a-p", 3, None, None),          # dash style
+    ("45.24.10,  .30a", "45.24.10, .30a", 3, None, None),          # double space made single
+    ("45.24.10, .30a", "45.24.10,.30a", 3, None, None),            # space after a comma
+    ("#49 p62", "#49p62", 3, None, None),                          # the letter still separates
+    ("#49 .620", "#49.620", 2, 1, 0),                              # next to a decimal point
+    ("#49 62", "#4962", 1, 1, 0),                                  # two digits joined
+    ("#4962", "#49 62", 1, 0, 1),                                  # a number split
+    ("45.24.10, .30a, b", "45.24.10; .30a; b", 2, 2, 2),           # separator marks changed
+    ("45.24.10, .30a", "45.24.10 .30a", 2, 1, 0),                  # a separator removed
+    ("45.24.10", "45.24.11", 1, 1, 1),                             # a digit changed
+    ("14.40.872a", "14.40.872A", 1, 1, 1),                         # case: part of an identifier
+])
+def test_object_number_changes(src, out, tier, lost, invented):
+    t, l, f = H.object_number_change(src, out)
+    assert t == tier
+    if lost is not None:
+        assert (l, f) == (lost, invented)
+
+
+def test_object_number_minor_change_weighs_a_quarter(tmp_path):
+    rows = changed(SPEC_ROWS, 2, "Object Number", "45.24.10, .30a, b")
+    r = score(tmp_path, changed(rows, 2, "Object Number", "45.24.10; .30a; b"), input_rows=rows)
+    n = r["input_chars"]
+    assert r["fixity_error_rate"] == round(0.25 * 4 / (n + 0.25 * 2), 4)

@@ -132,6 +132,48 @@ def tier(column, a, b):
     return 1
 
 
+SEPARATORS = re.compile(r"[\s,;:/|]*[,;:/|][\s,;:/|]*")
+
+
+def object_number_change(a, b):
+    """Grade a changed object number (decision record 13). Returns (tier,
+    lost, invented): tier 3 for dash style and spacing that separates nothing
+    differently; 2 (minor) for a space removed or added next to a decimal
+    point, or a separator mark changed, added, removed or moved; 1 for a
+    space between two digits removed or added, and for anything else.
+    Characters are counted for the parts that count; a tier-3 change is
+    counted on the raw text, so it can be weighed later."""
+    dash = lambda x: re.sub(r"[‐-―−]", "-", x.strip())
+    x, y = dash(a), dash(b)
+    worst, lost, fab = 3, 0, 0
+    for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, x, y, autojunk=False).get_opcodes():
+        if op == "equal":
+            continue
+        old, new = x[i1:i2], y[j1:j2]
+        if not old.strip() and not new.strip():  # only spaces removed, added or changed
+            s, (left, right) = (x, (i1, i2)) if len(old) >= len(new) else (y, (j1, j2))
+            pair = (s[left - 1] if left else "", s[right] if right < len(s) else "")
+            if old and new:
+                sev = 3  # one kind of space for another ("  " -> " ")
+            elif all(c.isdigit() for c in pair) and all(pair):
+                sev = 1  # "49 62" -> "4962": a different number
+            elif "." in pair and any(c.isdigit() for c in pair):
+                sev = 2  # "49 .620" -> "49.620": could read as one value
+            else:
+                sev = 3  # "49 p62" -> "49p62", "10, .30a" -> "10,.30a"
+        elif all(SEPARATORS.fullmatch(s) or not s.strip() for s in (old, new)):
+            sev = 2  # "45.24.10, .30a" -> "45.24.10; .30a"
+        else:
+            sev = 1
+        if sev < 3:
+            lost += i2 - i1
+            fab += j2 - j1
+        worst = min(worst, sev)
+    if worst == 3:
+        lost, fab = char_ops(a, b)
+    return worst, lost, fab
+
+
 def plain(x):
     return "".join(ch for ch in unicodedata.normalize("NFD", x) if unicodedata.category(ch) != "Mn")
 
@@ -471,8 +513,11 @@ def score_table(h_in, rows_in, rows, ctx):
                 # Not for titles: a work titled "Untitled" isn't one with no title.
                 t, changed = 3, False
                 lost, fab = char_ops(src, out)
+            elif c == "Object Number":
+                t, lost, fab = object_number_change(src, out)
+                changed = t < 3
             else:
-                changed = (out.strip() != src.strip()) if c == "Object Number" else not same(src, out, date=(c == "Object Date"))
+                changed = not same(src, out, date=(c == "Object Date"))
                 t = tier(c, src, out) if changed else 3
                 # Tier 1 characters are counted after reformatting is set aside,
                 # Tier 2 (accents) on the decomposed text, so a stripped accent is

@@ -19,3 +19,6 @@ after they're committed; a later record supersedes an earlier one and says so.
 | [2026-10-18-10](2026-10-18-10-result-file-order.md) | Which delivered file is the result (refines 03, a) |
 | [2026-10-18-11](2026-10-18-11-no-sheet-outcomes.md) | Sessions without a sheet: five outcomes (refines 03, d) |
 | [2026-10-18-12](2026-10-18-12-blank-dates.md) | A blank date written as "n.d." is correct |
+| [2026-10-19-13](2026-10-19-13-object-number-spacing.md) | Spacing and separators in object numbers |
+| [2026-10-19-14](2026-10-19-14-fix-line.md) | The fix line's wording (supersedes 09's fix line) |
+| [2026-10-19-15](2026-10-19-15-row-hint.md) | Stage 2: the wording of the per-row hint |
