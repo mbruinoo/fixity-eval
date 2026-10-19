@@ -27,3 +27,4 @@ after they're committed; a later record supersedes an earlier one and says so.
 | [2026-10-19-18](2026-10-19-18-stage-3-request.md) | Stage 3: the request |
 | [2026-10-19-19](2026-10-19-19-tool-search.md) | The emulation's tool search stays as it is |
 | [2026-10-19-20](2026-10-19-20-stage-1-size.md) | Stage 1: size and cost settings |
+| [2026-10-19-21](2026-10-19-21-stage-1-frozen.md) | Stage 1's pre-registration is frozen |
