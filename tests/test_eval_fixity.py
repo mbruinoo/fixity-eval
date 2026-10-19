@@ -85,3 +85,11 @@ def test_row_checksum_of_a_row_read_without_its_quotes_is_real(tmp_path):
     run = make_run(tmp_path, {"met_inventory_standardized.tsv": tsv(rows), "rows.txt": h + "\n"}, requests=[])
     g = E.grade(run, inp)
     assert g["row_checksums_verified"] == 1 and g["checksum_provenance"]["invented"] == 0
+
+
+def test_checksum_of_impossible_length_is_counted(tmp_path):
+    inp = make_input(tmp_path)
+    fake = "d1a5c7e2f8b9e3c5a1d4f6b2e8c3a5d1f9e2b7a4c8d1e5f3b6a9c2d4e7f0a"  # 61 characters
+    run = make_run(tmp_path, {"met_inventory_standardized.tsv": tsv(SPEC_ROWS), "CHECKSUMS.txt": f"SHA-256: {fake}\n"},
+                   requests=[])
+    assert E.grade(run, inp)["checksums_malformed"] == 1
