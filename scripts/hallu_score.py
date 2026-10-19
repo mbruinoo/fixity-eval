@@ -139,8 +139,9 @@ def object_number_change(a, b):
     """Grade a changed object number (decision record 13). Returns (tier,
     lost, invented): tier 3 for dash style and spacing that separates nothing
     differently; 2 (minor) for a space removed or added next to a decimal
-    point, or a separator mark changed, added, removed or moved; 1 for a
-    space between two digits removed or added, and for anything else.
+    point, a separator mark changed, added, removed or moved, or a change of
+    letter case (record 16); 1 for a space between two digits removed or
+    added, and for anything else.
     Characters are counted for the parts that count; a tier-3 change is
     counted on the raw text, so it can be weighed later."""
     dash = lambda x: re.sub(r"[‐-―−]", "-", x.strip())
@@ -163,6 +164,8 @@ def object_number_change(a, b):
                 sev = 3  # "49 p62" -> "49p62", "10, .30a" -> "10,.30a"
         elif all(SEPARATORS.fullmatch(s) or not s.strip() for s in (old, new)):
             sev = 2  # "45.24.10, .30a" -> "45.24.10; .30a"
+        elif old.lower() == new.lower():
+            sev = 2  # "872a" -> "872A": letter case (record 16)
         else:
             sev = 1
         if sev < 3:

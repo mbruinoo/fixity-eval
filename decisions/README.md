@@ -22,3 +22,6 @@ after they're committed; a later record supersedes an earlier one and says so.
 | [2026-10-19-13](2026-10-19-13-object-number-spacing.md) | Spacing and separators in object numbers |
 | [2026-10-19-14](2026-10-19-14-fix-line.md) | The fix line's wording (supersedes 09's fix line) |
 | [2026-10-19-15](2026-10-19-15-row-hint.md) | Stage 2: the wording of the per-row hint |
+| [2026-10-19-16](2026-10-19-16-object-number-case.md) | Letter case in object numbers is a minor change |
+| [2026-10-19-17](2026-10-19-17-stage-1-requests.md) | Stage 1: three requests (supersedes 09's and 14's) |
+| [2026-10-19-18](2026-10-19-18-stage-3-request.md) | Stage 3: the request |

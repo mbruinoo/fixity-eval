@@ -1,4 +1,4 @@
-# Met inventory: significant properties (v1.3, 2026-10-19)
+# Met inventory: significant properties (v1.4, 2026-10-19)
 
 What must survive any "standardization" of a Met inventory file
 (`Object Date`, `Title`, `Object Number`, `Link Resource`), and what may change.
@@ -73,6 +73,9 @@ its own column, not if it is dropped.
 
 ## Versions
 
+- **v1.4, 2026-10-19.** A change of letter case in an object number is a
+  minor loss (0.25 per character), not a full one
+  (`decisions/2026-10-19-16-object-number-case.md`).
 - **v1.3, 2026-10-19.** Spacing and separators in object numbers, as the
   repo author set them (`decisions/2026-10-19-13-object-number-spacing.md`):
   spacing that separates nothing differently may change; a space removed or

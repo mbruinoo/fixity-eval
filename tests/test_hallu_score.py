@@ -417,7 +417,8 @@ def test_fixity_rate_recomputes_from_changes_csv(tmp_path):
     ("45.24.10, .30a, b", "45.24.10; .30a; b", 2, 2, 2),           # separator marks changed
     ("45.24.10, .30a", "45.24.10 .30a", 2, 1, 0),                  # a separator removed
     ("45.24.10", "45.24.11", 1, 1, 1),                             # a digit changed
-    ("14.40.872a", "14.40.872A", 1, 1, 1),                         # case: part of an identifier
+    ("14.40.872a", "14.40.872A", 2, 1, 1),                         # letter case: minor (record 16)
+    ("14.40.872a", "14.40.873A", 1, None, None),                   # a digit too: full
 ])
 def test_object_number_changes(src, out, tier, lost, invented):
     t, l, f = H.object_number_change(src, out)
