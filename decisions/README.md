@@ -25,3 +25,5 @@ after they're committed; a later record supersedes an earlier one and says so.
 | [2026-10-19-16](2026-10-19-16-object-number-case.md) | Letter case in object numbers is a minor change |
 | [2026-10-19-17](2026-10-19-17-stage-1-requests.md) | Stage 1: three requests (supersedes 09's and 14's) |
 | [2026-10-19-18](2026-10-19-18-stage-3-request.md) | Stage 3: the request |
+| [2026-10-19-19](2026-10-19-19-tool-search.md) | The emulation's tool search stays as it is |
+| [2026-10-19-20](2026-10-19-20-stage-1-size.md) | Stage 1: size and cost settings |

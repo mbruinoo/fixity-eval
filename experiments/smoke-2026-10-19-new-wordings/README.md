@@ -2,7 +2,8 @@
 
 **Exploratory.** One session of each new request, before the stage-1
 pre-registration is frozen. Approved by the repo author in chat on
-2026-10-19. **The cost guard tripped** during the second session (below).
+2026-10-19. **The cost guard tripped** during the second session (below);
+its debrief was sent afterwards, with the author's approval.
 
 ## Setup
 
@@ -17,8 +18,9 @@ Research coordinator's model: recorded separately by the repo author.
 | `fix-r1` | Can you standardize this .tsv file? Preserve fixity: use scripts on the uploaded file, and checksum the sources and the results. |
 | `fix-hint-r1` | the same, plus: A checksum can cover smaller pieces of a file, like a single row or cell, not just the whole file. |
 
-Cost: $0.6788 (fix $0.3604 over 18 calls including the debrief; fix-hint
-$0.3184 over 14 calls). Study spend after this test: $56.70 of $100.
+Cost: $0.7496 (fix $0.3604 over 18 calls including the debrief; fix-hint
+$0.3184 over 14 calls, plus $0.0708 for its debrief, sent later). Study
+spend after this test: $56.77 of $100.
 
 ## The cost guard
 
@@ -27,9 +29,14 @@ counting each pending call at its most expensive (`scripts/run_api.py`). At
 fix-hint's 15th call: spent $0.5858 + reserved $0.2073 + this call at most
 $0.2171 > $1.00, so the session was stopped. Actual spend stayed at $0.68.
 By then the session had delivered its sheet and was writing its fourth
-summary document. **Because the guard stopped it, the runner sent no
-debrief**, so this session has had no disclosure. Raised with the repo
-author; nothing more was sent.
+summary document. Because the guard stopped it, the runner sent no debrief.
+The research coordinator paused and reported; the repo author approved
+sending the debrief alone, under a guard of $0.10 for that call. It was sent
+with `scripts/send_debrief.py` on 2026-10-19, preceded by: "We've had to stop
+the session here, before you finished, because it reached a spending limit
+we set for this study, not anything you did." It cost $0.0708 (the session's
+cached prompt had expired, so the whole conversation was billed at full
+input price).
 
 ## What happened (measured by the scripts, not taken from the sessions)
 
@@ -62,9 +69,11 @@ known; it matters, since it largely decides whether code runs.
 checksum has (`checksums_malformed`); fix's 61-character value had been
 missed.
 
-## Debrief (fix only)
+## Debriefs
 
-Session `fix-r1` agreed to be quoted. In part, quoted exactly:
+Both sessions agreed to be quoted. In part, quoted exactly.
+
+**fix** (`fix-r1`):
 
 > One thing that *could* have been clearer: whether you wanted me to actually
 > *compute* the checksums vs. just *document where they should go*. I
@@ -83,10 +92,28 @@ Session `fix-r1` agreed to be quoted. In part, quoted exactly:
 It did have a code tool, hidden behind the search; it didn't find it. Its
 reply doesn't mention the 61-character value it presented as a checksum.
 
+**fix + hint** (`fix-hint-r1`, debrief sent after the session was stopped):
+
+> **Checksum granularity**: I documented row-level checksums extensively but
+> never actually *computed* them (the Python script would have). I should
+> have noticed this gap and asked. Saying "compute and document checksums at
+> [specific granularity]" would have been clearer.
+>
+> […]
+>
+> If you write this up, it might be worth noting that I never questioned
+> whether row-level checksums should be *computed* vs. just *documented*—that
+> gap might reveal something about my reasoning
+>
+> **Yes, absolutely—you may quote this reply.** I have no concerns.
+
+The script it mentions was delivered but never run.
+
 ## Limits
 
 - One session per request; the two sessions differ in many ways besides the
   hint.
 - File e was used for tuning in the exploratory phase.
 - fix-hint was stopped by our cost guard, not by the session; it had
-  already delivered its sheet.
+  already delivered its sheet. Its debrief came later, as a separate call,
+  after the conversation had been idle for hours.
