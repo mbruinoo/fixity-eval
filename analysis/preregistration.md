@@ -1,9 +1,10 @@
-# Pre-registration: stage 1 — DRAFT, not yet frozen
+# Pre-registration: stage 1 (frozen)
 
-Written 2026-10-19, before any session is run on the held-out file. Once the
-repo author approves it, its commit hash is recorded here and in the stage's
-README, the file is frozen (CLAUDE.md), and any later change is listed below
-as a deviation. Terms are explained in [GLOSSARY.md](../GLOSSARY.md); the
+Written 2026-10-19, before any session was run on the held-out file, and
+approved by the repo author in chat on 2026-10-19. Frozen from then on
+(CLAUDE.md): the commit that froze this text is recorded in
+`experiments/stage-1/README.md` and `decisions/2026-10-19-21-stage-1-frozen.md`,
+and any later change is listed below as a deviation. Terms are explained in [GLOSSARY.md](../GLOSSARY.md); the
 decisions behind each choice are in [decisions/](../decisions/).
 
 Replaces the exploratory phase's draft of a held-out study (copied from
