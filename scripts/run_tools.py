@@ -647,9 +647,13 @@ def main():
     ap.add_argument("config")
     ap.add_argument("--only", nargs="*")
     ap.add_argument("--repeats", type=int)
+    ap.add_argument("--budget", type=float,
+                    help="cost guard for this invocation (total ledger spend, USD), instead of the config's")
     a = ap.parse_args()
     cfg_path = pathlib.Path(a.config)
     cfg = json.loads(cfg_path.read_text())
+    if a.budget is not None:  # set by the repo author for one step, e.g. replacements
+        cfg["budget_stop_usd"] = a.budget
     root = cfg_path.parent
     # A frozen input (the held-out file) must be byte for byte the recorded
     # one before anything is spent (decisions/2026-10-18-04-held-out-file.md).

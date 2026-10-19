@@ -58,7 +58,11 @@ def main():
     worst = ledger.reserve(len(json.dumps(messages, ensure_ascii=False)) // 3 + 1500, 1000, cond["model"])
     (d / "request_debrief.json").write_text(json.dumps(params, indent=1, ensure_ascii=False))
     client = anthropic.Anthropic(api_key=os.environ["FIXITY_ANTHROPIC_API_KEY"], max_retries=3)  # as run_tools.py
-    msg = client.messages.create(**params)
+    try:
+        msg = client.messages.create(**params)
+    except anthropic.APIError as e:  # nothing was sent to the session: remove the unsent request
+        (d / "request_debrief.json").unlink()
+        sys.exit(f"{a.run}: not sent ({type(e).__name__}: {str(e)[:200]})")
     cost = ledger.settle(worst, a.run, "debrief", msg.usage, cond["model"])
     (d / "response_debrief.json").write_text(msg.model_dump_json(indent=1))
     reply = "".join(b.text for b in msg.content if b.type == "text")

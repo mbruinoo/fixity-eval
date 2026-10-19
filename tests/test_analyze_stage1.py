@@ -47,3 +47,14 @@ def test_analysis_counts_no_sheet_sessions_but_leaves_them_out_of_the_rate():
     assert res["main (fix vs base)"]["M1 error rate"]["significant"]
     m2 = res["main (fix vs base)"]["M2 upload checksum computed"]
     assert m2["a"] == "13/20" and m2["b"] == "0/19" and m2["significant"]
+
+
+def test_setup_faults_are_reported_but_left_out_of_the_tests():
+    rows = [row("base", i, 0.06) for i in range(20)]
+    rows += [row("fix", i, 0.0) for i in range(20)] + [row("fix", 21, 0.5, outcome="setup_fault")]
+    rows += [row("fix-hint", i, 0.0) for i in range(20)]
+    res = A.analyze(rows)
+    assert res["described"]["fix"]["sessions"] == 21
+    assert res["described"]["fix"]["outcomes"]["setup_fault"] == 1
+    assert res["tested_sessions"]["fix"] == 20
+    assert res["main (fix vs base)"]["M2 upload checksum computed"]["a"] == "0/20"

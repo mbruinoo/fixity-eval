@@ -17,7 +17,11 @@ were made, whether the code tool was found, and medians, ranges and 95%
 Wilson intervals.
 
 Sessions without a sheet are reported in the outcome table and left out of
-the error-rate comparisons; every session counts for M2, S1 and S2.
+the error-rate comparisons; every session counts for M2, S1 and S2. A session
+ended by a fault in our setup (meta.json "aborted": the API refusing calls, a
+cost guard, our tool code) is reported as "setup_fault" and left out of every
+test, since the pre-registration replaces it with a new session
+(decision record 22).
 
 Usage:
     python scripts/analyze_stage1.py experiments/<stage-1>
@@ -89,9 +93,12 @@ def sessions(root):
     out = []
     for run, s in sorted(scores.items()):
         g = fix.get(run, {})
+        meta_path = root / "runs" / run / "meta.json"
+        aborted = json.loads(meta_path.read_text()).get("aborted") if meta_path.exists() else None
         prov = g.get("checksum_provenance") or {}
         out.append({
-            "run": run, "request": re.sub(r"-r\d+$", "", run), "outcome": s.get("outcome"),
+            "run": run, "request": re.sub(r"-r\d+$", "", run),
+            "outcome": "setup_fault" if aborted else s.get("outcome"),
             "error_rate": s.get("fixity_error_rate") if s.get("outcome") == "sheet" else None,
             "upload_checksum_computed": bool(g.get("input_checksum_computed")),
             "row_checksums_by_code": (g.get("row_checksums_by_code") or 0) > 0,
@@ -135,9 +142,11 @@ def compare_share(a, b, key, alpha):
 
 
 def analyze(rows):
-    by = {q: [r for r in rows if r["request"] == q] for q in REQUESTS}
+    every = {q: [r for r in rows if r["request"] == q] for q in REQUESTS}
+    by = {q: [r for r in every[q] if r["outcome"] != "setup_fault"] for q in REQUESTS}  # replaced
     return {
-        "described": {q: describe(by[q]) for q in REQUESTS},
+        "described": {q: describe(every[q]) for q in REQUESTS},
+        "tested_sessions": {q: len(by[q]) for q in REQUESTS},
         "main (fix vs base)": {
             "M1 error rate": compare_rates(by["fix"], by["base"], 0.025),
             "M2 upload checksum computed": compare_share(by["fix"], by["base"], "upload_checksum_computed", 0.025),

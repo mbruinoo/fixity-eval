@@ -28,3 +28,4 @@ after they're committed; a later record supersedes an earlier one and says so.
 | [2026-10-19-19](2026-10-19-19-tool-search.md) | The emulation's tool search stays as it is |
 | [2026-10-19-20](2026-10-19-20-stage-1-size.md) | Stage 1: size and cost settings |
 | [2026-10-19-21](2026-10-19-21-stage-1-frozen.md) | Stage 1's pre-registration is frozen |
+| [2026-10-19-22](2026-10-19-22-stage-1-replacements.md) | Stage 1: four sessions stopped by the workspace limit are replaced |

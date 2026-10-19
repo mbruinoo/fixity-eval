@@ -152,4 +152,9 @@ which sessions count. Anything added later is reported as exploratory.
 
 ## Deviations
 
-None yet.
+- **2026-10-19, before any session was scored.** `scripts/analyze_stage1.py`
+  (committed before the freeze) counted every session in the tests and
+  didn't apply the replacement rule above. It now reports a session ended by
+  a fault in our setup in the outcome table and leaves it out of the tests,
+  as the rule requires. Prompted by four sessions stopped when the workspace
+  spending limit was reached (decision record 22).
