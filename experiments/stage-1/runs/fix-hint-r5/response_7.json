@@ -1,0 +1,46 @@
+{
+ "id": "msg_011CgAqvRhzSKGjQpszdzuBt",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Finally, let me create a verification script you can use to check the file integrity:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01EVc6moWGjPtPCGEnztNFhd",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_fixity.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nTSV Fixity Verification Script\nVerifies the integrity of the standardized Met Museum inventory file against checksums.\n\"\"\"\n\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\n\nclass TSVVerifier:\n    def __init__(self, tsv_path: str, checksums_path: str):\n        self.tsv_path = Path(tsv_path)\n        self.checksums_path = Path(checksums_path)\n        self.checksums = None\n        self.verification_results = {\n            'overall_status': 'PASS',\n            'file_checksum_match': False,\n            'row_count_match': False,\n            'row_checksums': []\n        }\n    \n    def compute_hash(self, data: str) -> str:\n        \"\"\"Compute SHA-256 hash of data.\"\"\"\n        return hashlib.sha256(data.encode('utf-8')).hexdigest()\n    \n    def load_checksums(self) -> bool:\n        \"\"\"Load checksum record from JSON file.\"\"\"\n        try:\n            with open(self.checksums_path, 'r', encoding='utf-8') as f:\n                self.checksums = json.load(f)\n            print(f\"✓ Checksums loaded from {self.checksums_path}\")\n            return True\n        except Exception as e:\n            print(f\"✗ Failed to load checksums: {e}\")\n            return False\n    \n    def verify_file_checksum(self) -> bool:\n        \"\"\"Verify the entire output file checksum.\"\"\"\n        with open(self.tsv_path, 'r', encoding='utf-8') as f:\n            content = f.read()\n        \n        computed_hash = self.compute_hash(content)\n        recorded_hash = self.checksums['output_file']['sha256']\n        \n        if computed_hash == recorded_hash:\n            print(f\"✓ File checksum verified\")\n            print(f\"  SHA-256: {computed_hash}\")\n            self.verification_results['file_checksum_match'] = True\n            return True\n        else:\n            print(f\"✗ File checksum MISMATCH\")\n            print(f\"  Expected: {recorded_hash}\")\n            print(f\"  Got:      {computed_hash}\")\n            self.verification_results['overall_status'] = 'FAIL'\n            return False\n    \n    def verify_row_count(self) -> bool:\n        \"\"\"Verify the number of data rows matches.\"\"\"\n        with open(self.tsv_path, 'r', encoding='utf-8') as f:\n            reader = csv.DictReader(f, delimiter='\\t')\n            row_count = sum(1 for _ in reader)\n        \n        recorded_count = self.checksums['output_file']['total_rows']\n        \n        if row_count == recorded_count:\n            print(f\"✓ Row count verified: {row_count} rows\")\n            self.verification_results['row_count_match'] = True\n            return True\n        else:\n            print(f\"✗ Row count MISMATCH\")\n            print(f\"  Expected: {recorded_count}\")\n            print(f\"  Got:      {row_count}\")\n            self.verification_results['overall_status'] = 'FAIL'\n            return False\n    \n    def verify_row_checksums(self, sample_size: int = 10) -> bool:\n        \"\"\"Verify checksums of individual rows (sample).\"\"\"\n        with open(self.tsv_path, 'r', encoding='utf-8') as f:\n            reader = csv.DictReader(f, delimiter='\\t')\n            \n            all_match = True\n            verified_rows = []\n            \n            for row_num, row in enumerate(reader, start=2):\n                # Standardize field names for canonical form\n                standardized_row = {}\n                for key, value in row.items():\n                    if key is None:\n                        continue\n                    standard_key = key.strip().lower().replace(' ', '_')\n                    standard_value = value.strip() if value else ''\n                    standardized_row[standard_key] = standard_value\n                \n                # Compute canonical form\n                canonical = json.dumps(standardized_row, sort_keys=True, \n                                     ensure_ascii=True, separators=(',', ':'))\n                computed_hash = self.compute_hash(canonical)\n                \n                # Find recorded hash\n                recorded = None\n                for r in self.checksums['rows']:\n                    if r['row_number'] == row_num:\n                        recorded = r\n                        break\n                \n                if recorded:\n                    match = computed_hash == recorded['checksum']\n                    if row_num <= sample_size or not match:\n                        status = \"✓\" if match else \"✗\"\n                        print(f\"{status} Row {row_num}: {'MATCH' if match else 'MISMATCH'}\")\n                        if not match:\n                            print(f\"    Expected: {recorded['checksum']}\")\n                            print(f\"    Got:      {computed_hash}\")\n                        verified_rows.append({\n                            'row_number': row_num,\n                            'match': match\n                        })\n                        if not match:\n                            all_match = False\n        \n        self.verification_results['row_checksums'] = verified_rows\n        if not all_match:\n            self.verification_results['overall_status'] = 'FAIL'\n        \n        return all_match\n    \n    def run_verification(self):\n        \"\"\"Run complete verification.\"\"\"\n        print(\"=\" * 70)\n        print(\"TSV FIXITY VERIFICATION\")\n        print(\"=\" * 70)\n        \n        if not self.load_checksums():\n            return False\n        \n        print(\"\\n[1] Verifying output file checksum...\")\n        self.verify_file_checksum()\n        \n        print(\"\\n[2] Verifying row count...\")\n        self.verify_row_count()\n        \n        print(\"\\n[3] Verifying row-level checksums (sample)...\")\n        self.verify_row_checksums()\n        \n        print(\"\\n\" + \"=\" * 70)\n        if self.verification_results['overall_status'] == 'PASS':\n            print(\"✓ VERIFICATION PASSED - File integrity confirmed\")\n        else:\n            print(\"✗ VERIFICATION FAILED - File may be corrupted\")\n        print(\"=\" * 70)\n        \n        return self.verification_results['overall_status'] == 'PASS'\n\n\ndef main():\n    tsv_file = '/mnt/user-data/outputs/met_inventory_standardized.tsv'\n    checksums_file = '/mnt/user-data/outputs/checksums.json'\n    \n    verifier = TSVVerifier(tsv_file, checksums_file)\n    verifier.run_verification()\n\n\nif __name__ == '__main__':\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 1518
+  },
+  "cache_creation_input_tokens": 1518,
+  "cache_read_input_tokens": 15916,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1816,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

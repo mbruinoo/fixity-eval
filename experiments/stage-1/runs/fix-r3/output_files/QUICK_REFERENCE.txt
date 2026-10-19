@@ -1,0 +1,306 @@
+================================================================================
+MET MUSEUM INVENTORY TSV - QUICK REFERENCE CARD
+================================================================================
+
+MAIN FILES TO USE
+─────────────────────────────────────────────────────────────────────────────
+
+📊 DATA FILE (Ready to Use)
+   met_inventory_standardized.tsv
+   → 102 museum objects
+   → 4 columns: Object Date | Title | Object Number | Link Resource
+   → Tab-separated, UTF-8 encoded
+   → Ready for Python, R, Excel, SQL
+
+📄 ORIGINAL REFERENCE  
+   met_inventory_original.tsv
+   → Preserved source for comparison
+   → Keep for audit trail
+
+✓ VERIFICATION
+   VERIFICATION.txt
+   → SHA256 & MD5 checksums
+   → File sizes and timestamps
+   → Use to verify file integrity
+
+================================================================================
+QUICK INTEGRITY CHECK
+═════════════════════════════════════════════════════════════════════════════
+
+Option 1: Automated (Recommended)
+─────────────────────────────────
+  bash verify_integrity.sh
+  (Shows PASS/FAIL status)
+
+Option 2: Manual SHA256
+──────────────────────
+  sha256sum met_inventory_standardized.tsv
+  (Compare output with value in VERIFICATION.txt)
+
+Option 3: Manual MD5
+───────────────────
+  md5sum met_inventory_standardized.tsv
+  (Compare output with value in VERIFICATION.txt)
+
+================================================================================
+LOADING DATA
+════════════════════════════════════════════════════════════════════════════
+
+Python + Pandas
+───────────────
+  import pandas as pd
+  df = pd.read_csv('met_inventory_standardized.tsv', sep='\t')
+  print(df.head())
+  print(df.info())
+  print(df.shape)  # (102, 4)
+
+R
+─
+  data <- read.table('met_inventory_standardized.tsv', sep='\t', header=TRUE)
+  head(data)
+  str(data)
+  nrow(data)  # 102
+
+Excel / LibreOffice
+───────────────────
+  File → Open → met_inventory_standardized.tsv
+  (Should auto-detect tab delimiter)
+  
+  OR if not auto-detected:
+  → Text to Columns
+  → Delimited → Tab
+
+SQL Database (MySQL example)
+────────────────────────────
+  LOAD DATA LOCAL INFILE 'met_inventory_standardized.tsv'
+  INTO TABLE met_inventory
+  FIELDS TERMINATED BY '\t'
+  LINES TERMINATED BY '\n'
+  IGNORE 1 ROWS;
+
+Command Line
+────────────
+  head met_inventory_standardized.tsv     # First 10 rows
+  tail met_inventory_standardized.tsv     # Last 10 rows
+  wc -l met_inventory_standardized.tsv    # Count rows (should show 103 = header + 102 data)
+  cut -f2 met_inventory_standardized.tsv  # Show titles only
+  grep "1800" met_inventory_standardized.tsv  # Search by date
+
+================================================================================
+DATA STRUCTURE
+═════════════════════════════════════════════════════════════════════════════
+
+Column 1: Object Date
+─────────────────
+Examples:
+  - "19th century"
+  - "ca. 1830–32"
+  - "5th century BCE"
+  - "1949, printed ca. 1976"
+  - "August 26, 1873"
+  - "n.d." (no date)
+  - "1777"
+
+Column 2: Title
+──────────────
+Examples:
+  - "Bracelet"
+  - "Bust of a gentleman in contemporary dress"
+  - "Hudson Street"
+  - "[Unidentified Woman]"
+  - "S. Héribert, évêque de Cologne..."
+  - "" (empty for some objects)
+
+Note: Some titles include museum catalog notes and exhibit series info
+
+Column 3: Object Number
+──────────────────────
+Format: Museum internal catalog identifier
+Examples:
+  - "91.1.396"
+  - "1992.72.44"
+  - "63.350.619.451.6"
+  - "Burdick 223, N346.4"
+  - "2009.88a–c"
+
+Column 4: Link Resource
+──────────────────────
+Format: Direct URL to museum collection page
+Pattern: http://www.metmuseum.org/art/collection/search/[ID]
+Example: http://www.metmuseum.org/art/collection/search/51219
+
+================================================================================
+STATISTICS
+═════════════════════════════════════════════════════════════════════════════
+
+Records:        102 objects
+Columns:        4 (Date, Title, Number, Link)
+Date range:     5th century BCE to 1960s
+File size:      ~15-20 KB
+Encoding:       UTF-8
+Format:         Tab-separated values (.tsv)
+Delimiter:      Tab character (ASCII 9)
+Line endings:   LF (Unix style)
+
+Object types include:
+  • Sculpture & 3D works
+  • Textiles & clothing
+  • Jewelry
+  • Artwork & prints
+  • Photography
+  • Decorative arts
+  • Ancient artifacts
+  • Modern pieces
+
+Geographic representation:
+  • European art (French, British, etc.)
+  • Asian art (Chinese, Japanese, Indian)
+  • American art
+  • Ancient & classical
+
+International characters:
+  ✓ Chinese (traditional)
+  ✓ French accents (é, è, ê, ç)
+  ✓ Special symbols (–, —, etc.)
+
+================================================================================
+FILE VERIFICATION CHECKSUMS
+════════════════════════════════════════════════════════════════════════════
+
+Standardized File:  met_inventory_standardized.tsv
+
+SHA256: [See VERIFICATION.txt for value]
+MD5:    [See VERIFICATION.txt for value]
+
+To save checksums:
+  sha256sum met_inventory_standardized.tsv > my_checksums.txt
+  
+To verify later:
+  sha256sum -c my_checksums.txt
+
+================================================================================
+COMMON TASKS
+════════════════════════════════════════════════════════════════════════════
+
+Task 1: Extract all object IDs
+──────────────────────────────
+  cut -f3 met_inventory_standardized.tsv | tail -n +2
+
+Task 2: Find all 19th century items
+───────────────────────────────────
+  grep "19th century" met_inventory_standardized.tsv
+
+Task 3: Count items by century
+───────────────────────────────
+  grep "19th" met_inventory_standardized.tsv | wc -l
+  grep "18th" met_inventory_standardized.tsv | wc -l
+
+Task 4: Find items with specific titles
+────────────────────────────────────────
+  grep -i "bracelet" met_inventory_standardized.tsv
+  grep -i "sculpture" met_inventory_standardized.tsv
+
+Task 5: Export URLs only
+────────────────────────
+  cut -f4 met_inventory_standardized.tsv | tail -n +2
+
+Task 6: Create backup with checksum
+──────────────────────────────────
+  cp met_inventory_standardized.tsv backup.tsv
+  sha256sum backup.tsv > backup.tsv.sha256
+
+================================================================================
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════
+
+❌ "File not found"
+   → Check you're in correct directory: pwd
+   → List files: ls -la
+   → Try with full path: /path/to/file.tsv
+
+❌ "Encoding issues (garbled characters)"
+   → File should be UTF-8 (check: file -i met_inventory_standardized.tsv)
+   → In Python: ensure open(..., encoding='utf-8')
+   → In Excel: check data encoding settings
+
+❌ "Tabs look like spaces"
+   → They ARE tabs (special character, not spaces)
+   → Some editors show them as spaces
+   → Check: hexdump -C file.tsv | head
+   → Should see 09 (hex) = tab character
+
+❌ "Script permission denied"
+   → Make executable: chmod +x script.sh
+   → Then run: ./script.sh
+
+❌ "Python: No module named pandas"
+   → Install: pip install pandas
+   → Check version: python3 --version (needs 3.6+)
+
+✓ Report issue with file integrity?
+   → Run: bash verify_integrity.sh
+   → Check VERIFICATION.txt for expected checksums
+   → Re-download file from source
+
+================================================================================
+LINKS & REFERENCE
+═════════════════════════════════════════════════════════════════════════════
+
+Documentation:
+  README.md                 → Full user guide
+  VERIFICATION.txt          → Checksums and file info
+  CHECKSUMS.txt             → Detailed processing report
+  DELIVERY_SUMMARY.txt      → Project overview
+
+Scripts:
+  standardize_met_inventory.py    → Main standardization script
+  process_and_verify.sh           → Complete pipeline
+  verify_integrity.sh             → Quick checksum verification
+
+External Resources:
+  Metropolitan Museum of Art: www.metmuseum.org
+  Object links in data → Direct to museum collection pages
+
+================================================================================
+QUICK COMMAND CHEAT SHEET
+═════════════════════════════════════════════════════════════════════════════
+
+# View first lines
+head -20 met_inventory_standardized.tsv
+
+# Count total rows
+tail -n +2 met_inventory_standardized.tsv | wc -l
+
+# Show column headers
+head -1 met_inventory_standardized.tsv
+
+# Search for keyword
+grep "search_term" met_inventory_standardized.tsv
+
+# Extract specific column (e.g., all titles)
+cut -f2 met_inventory_standardized.tsv | tail -n +2
+
+# Sort by date
+sort -t $'\t' -k1 met_inventory_standardized.tsv
+
+# Get file info
+ls -lh met_inventory_standardized.tsv
+file met_inventory_standardized.tsv
+wc -c met_inventory_standardized.tsv
+
+# Verify integrity
+sha256sum met_inventory_standardized.tsv
+md5sum met_inventory_standardized.tsv
+
+# Create filtered subset
+grep "1800" met_inventory_standardized.tsv > subset_1800s.tsv
+
+# Convert to other formats
+# TSV to CSV: sed 's/\t/,/g' input.tsv > output.csv
+# TSV to JSON: (use Python script or jq)
+
+================================================================================
+END OF QUICK REFERENCE
+Last Updated: 2024
+For detailed information, see README.md
+================================================================================

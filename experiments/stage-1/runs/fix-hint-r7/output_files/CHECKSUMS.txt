@@ -1,0 +1,152 @@
+================================
+METROPOLITAN MUSEUM INVENTORY TSV
+INTEGRITY VERIFICATION CHECKSUMS
+================================
+
+FILE CHECKSUMS (SHA-256)
+========================
+
+Source File:
+  Filename: met_inventory.tsv
+  SHA-256:  a6e83257b7e9f209570d413126e4f857a647896d9a30f133548c0c3059a9ffaf
+  Rows:     101
+
+Standardized Output File:
+  Filename: met_inventory_standardized.tsv
+  SHA-256:  a6e83257b7e9f209570d413126e4f857a647896d9a30f133548c0c3059a9ffaf
+  Rows:     101
+
+STATUS: ✓ IDENTICAL - Source file was already well-formed
+
+
+DETAILED MANIFEST
+=================
+
+Complete row-by-row checksums and metadata available in:
+  met_inventory_standardized_manifest.json
+
+This JSON manifest contains:
+  - Full file SHA-256 hashes for both source and output
+  - Individual SHA-256 hashes for all 101 rows
+  - Row metadata (row number, type, object date, object number)
+  - Content previews for each row
+  - Verification notes
+
+
+VERIFICATION INSTRUCTIONS
+==========================
+
+Verify source file:
+  sha256sum -c <<< "a6e83257b7e9f209570d413126e4f857a647896d9a30f133548c0c3059a9ffaf  met_inventory.tsv"
+
+Verify standardized file:
+  sha256sum -c <<< "a6e83257b7e9f209570d413126e4f857a647896d9a30f133548c0c3059a9ffaf  met_inventory_standardized.tsv"
+
+Verify individual row (example - row 2):
+  sed -n '2p' met_inventory_standardized.tsv | sha256sum
+  Expected: 4d16543673187a57eb557f56daf4709f71ec690c0d773febcfcd34e1688ce6ce
+
+
+STANDARDIZATION SUMMARY
+=======================
+
+Input:  met_inventory.tsv (101 rows, 4 columns)
+Output: met_inventory_standardized.tsv (101 rows, 4 columns)
+
+Rows Modified:     0 (source file was already properly formatted)
+Columns:           4 (Object Date, Title, Object Number, Link Resource)
+Encoding:          UTF-8 (preserved)
+Line Endings:      LF/Unix (standardized)
+Special Chars:     Unicode preserved (Chinese, accents, diacritics, etc.)
+
+
+QUALITY ASSURANCE RESULTS
+=========================
+
+✓ Row count preserved (101 rows)
+✓ Column count validated (4 columns per row)
+✓ Delimiter consistency verified (tabs)
+✓ Encoding validation passed (UTF-8)
+✓ Empty fields preserved correctly
+✓ Special characters maintained
+✓ URL integrity verified
+✓ Checksum reproducibility confirmed
+
+
+ARTIFACTS GENERATED
+===================
+
+1. met_inventory_standardized.tsv
+   - Standardized, verified TSV file
+   - Ready for use in data processing
+
+2. met_inventory_standardized_manifest.json
+   - Complete integrity manifest
+   - Row-level and file-level checksums
+   - Structured for automated verification
+
+3. met_inventory_standardized.sha256
+   - Simple checksum file format
+   - Compatible with sha256sum verification tools
+
+4. standardize_met_inventory.py
+   - Python 3 standardization script
+   - Reproducible standardization process
+   - Can be re-run for verification
+
+5. INTEGRITY_REPORT.md
+   - Human-readable detailed report
+   - Data patterns identified
+   - Quality assurance results
+
+6. CHECKSUMS.txt
+   - This file
+   - Quick reference for verification
+
+
+HOW TO USE
+==========
+
+1. Use the standardized TSV file for your data analysis:
+   $ your-data-tool met_inventory_standardized.tsv
+
+2. Verify file integrity before processing:
+   $ sha256sum -c met_inventory_standardized.sha256
+
+3. Cross-check with manifest for row-level integrity:
+   $ python3 -c "import json; m=json.load(open('met_inventory_standardized_manifest.json')); print(f\"Total rows: {m['standardization_manifest']['output']['total_rows']}\")"
+
+4. Document provenance in your metadata:
+   Source: Metropolitan Museum of Art inventory export
+   Standardized: [Date]
+   Checksum: a6e83257b7e9f209570d413126e4f857a647896d9a30f133548c0c3059a9ffaf
+   Manifest: met_inventory_standardized_manifest.json
+
+
+ABOUT THIS PROCESS
+==================
+
+Fixed Metadata Approach:
+  - Checksums computed for full files
+  - Checksums computed for individual rows
+  - No cryptographic signing applied
+  - All hashes are reproducible and verifiable
+
+Why Multiple Checksums?
+  - Full file checksum detects any overall change
+  - Row checksums detect specific modifications
+  - Combined approach enables precise change detection
+  - Useful for audit trails and compliance
+
+When to Re-Standardize?
+  - If source data has quality issues discovered
+  - If standardization rules need updating
+  - For periodic integrity verification
+  - For archival versioning
+
+================================
+Generated: 2025
+Algorithm: SHA-256
+Format: Hexadecimal (64 characters)
+Status: ✓ Verification Complete
+================================
