@@ -87,8 +87,8 @@ def code_tool_found(run_dir):
     return bool(reqs) and "bash_tool" in [t.get("name") for t in json.loads(reqs[-1].read_text()).get("tools", [])]
 
 
-def sessions(root):
-    scores = {r["run"]: r for r in json.loads((root / "hallucination_scores.json").read_text())}
+def sessions(root, scores_file="hallucination_scores.json"):
+    scores = {r["run"]: r for r in json.loads((root / scores_file).read_text())}
     fix = {r["run"]: r for r in json.loads((root / "fixity_eval.json").read_text())}
     out = []
     for run, s in sorted(scores.items()):
@@ -160,10 +160,17 @@ def analyze(rows):
 
 
 def main():
-    root = pathlib.Path(sys.argv[1])
-    rows = sessions(root)
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("experiment")
+    ap.add_argument("--scores", default="hallucination_scores.json",
+                    help="scores to read, e.g. after the review (scripts/apply_review.py)")
+    ap.add_argument("--out", default="stage1_results.json")
+    a = ap.parse_args()
+    root = pathlib.Path(a.experiment)
+    rows = sessions(root, a.scores)
     res = {"sessions": rows, **analyze(rows)}
-    (root / "stage1_results.json").write_text(json.dumps(res, indent=1) + "\n")
+    (root / a.out).write_text(json.dumps(res, indent=1) + "\n")
     for q, d in res["described"].items():
         e = d["error_rate"]
         print(f"{q:9} n={d['sessions']:2} outcomes={d['outcomes']} error rate median={e['median']} "

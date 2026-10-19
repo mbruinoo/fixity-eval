@@ -1,0 +1,46 @@
+{
+ "id": "msg_011CgBapMET8NQ3ni61mg4wk",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me create a verification script that you can use to independently verify the checksums:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_019jMs42LeBWtAPneESaabrM",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_integrity.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nIntegrity Verification Script\nIndependently verifies checksums against source and output files\n\"\"\"\n\nimport csv\nimport hashlib\nimport json\nimport sys\nfrom pathlib import Path\n\ndef calculate_checksum(data, algorithm='sha256'):\n    \"\"\"Calculate checksum of data (string or bytes)\"\"\"\n    if isinstance(data, str):\n        data = data.encode('utf-8')\n    h = hashlib.new(algorithm)\n    h.update(data)\n    return h.hexdigest()\n\ndef calculate_row_checksum(row_dict, algorithm='sha256'):\n    \"\"\"Calculate checksum of a single row\"\"\"\n    canonical = json.dumps(row_dict, sort_keys=True, ensure_ascii=False, separators=(',', ':'))\n    return calculate_checksum(canonical, algorithm)\n\ndef calculate_cell_checksum(cell_value, algorithm='sha256'):\n    \"\"\"Calculate checksum of a single cell\"\"\"\n    if cell_value is None:\n        cell_value = \"\"\n    return calculate_checksum(str(cell_value), algorithm)\n\ndef verify_file(filepath, expected_checksums):\n    \"\"\"Verify a TSV file against expected checksums\"\"\"\n    if not Path(filepath).exists():\n        print(f\"ERROR: File not found: {filepath}\")\n        return False\n    \n    with open(filepath, 'r', encoding='utf-8') as f:\n        content = f.read()\n    \n    file_hash = calculate_checksum(content)\n    expected_file_hash = expected_checksums.get('file_full')\n    \n    print(f\"\\nVerifying: {filepath}\")\n    print(\"-\" * 80)\n    print(f\"Calculated SHA256: {file_hash}\")\n    print(f\"Expected SHA256:   {expected_file_hash}\")\n    \n    if file_hash == expected_file_hash:\n        print(\"✓ FILE INTEGRITY: VERIFIED\")\n    else:\n        print(\"✗ FILE INTEGRITY: FAILED\")\n        return False\n    \n    # Verify row-by-row\n    lines = content.split('\\n')\n    reader = csv.DictReader(\n        lines,\n        fieldnames=['Object Date', 'Title', 'Object Number', 'Link Resource'],\n        delimiter='\\t'\n    )\n    \n    rows = []\n    for row in reader:\n        if row['Object Date'] is None:\n            break\n        rows.append(row)\n    \n    print(f\"\\nRow-by-row verification ({len(rows)} rows):\")\n    failed_rows = []\n    \n    for idx, row in enumerate(rows, 1):\n        row_hash = calculate_row_checksum(row)\n        expected_row_hash = expected_checksums['rows'].get(str(idx), {}).get('full_row')\n        \n        if row_hash != expected_row_hash:\n            failed_rows.append(idx)\n            print(f\"  Row {idx}: ✗ MISMATCH\")\n        elif idx <= 5 or idx > len(rows) - 2:  # Show first 5 and last 2\n            print(f\"  Row {idx}: ✓ OK\")\n        elif idx == 6:\n            print(f\"  ... ({len(rows) - 7} more rows) ...\")\n    \n    if failed_rows:\n        print(f\"\\n✗ FAILED ROWS: {failed_rows}\")\n        return False\n    else:\n        print(f\"\\n✓ ALL {len(rows)} ROWS VERIFIED\")\n        return True\n\ndef main():\n    print(\"=\" * 80)\n    print(\"INTEGRITY VERIFICATION UTILITY\")\n    print(\"=\" * 80)\n    \n    # Load verification report\n    report_path = '/mnt/user-data/outputs/fixity_verification_report.json'\n    \n    if not Path(report_path).exists():\n        print(f\"ERROR: Verification report not found: {report_path}\")\n        print(\"Please run standardize_met_inventory.py first\")\n        sys.exit(1)\n    \n    with open(report_path, 'r', encoding='utf-8') as f:\n        report = json.load(f)\n    \n    print(f\"\\nVerification Report: {report_path}\")\n    print(f\"Report Timestamp: {report['metadata']['timestamp']}\")\n    print(f\"Rows Processed: {report['metadata']['rows_processed']}\")\n    \n    # Verify output file\n    output_path = '/mnt/user-data/outputs/met_inventory_standardized.tsv'\n    output_checksums = report['output']\n    \n    output_ok = verify_file(output_path, output_checksums)\n    \n    # Summary\n    print(\"\\n\" + \"=\" * 80)\n    print(\"VERIFICATION SUMMARY\")\n    print(\"=\" * 80)\n    \n    if output_ok:\n        print(\"✓ All integrity checks PASSED\")\n        print(\"✓ Output file is valid and matches expected checksums\")\n        print(\"✓ All rows verified\")\n        sys.exit(0)\n    else:\n        print(\"✗ Some integrity checks FAILED\")\n        print(\"✗ Please check the output above for details\")\n        sys.exit(1)\n\nif __name__ == '__main__':\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 8609
+  },
+  "cache_creation_input_tokens": 8609,
+  "cache_read_input_tokens": 11088,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1401,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

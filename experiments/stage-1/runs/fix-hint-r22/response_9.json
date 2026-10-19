@@ -1,0 +1,46 @@
+{
+ "id": "msg_011CgBbrq1iD2oBLcevmvY45",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Perfect! Now let me create one final verification script and a summary document:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01MUz8svkUwPuBbVXDJM8ax7",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_integrity.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nIntegrity verification script for standardized TSV file.\nDemonstrates how to verify checksums for individual cells and rows.\n\"\"\"\n\nimport json\nimport hashlib\nimport csv\nfrom pathlib import Path\n\n\ndef load_checksums(checksum_file: str) -> dict:\n    \"\"\"Load checksums from JSON file.\"\"\"\n    with open(checksum_file, 'r', encoding='utf-8') as f:\n        return json.load(f)\n\n\ndef read_standardized_file(tsv_file: str) -> list:\n    \"\"\"Read the standardized TSV file.\"\"\"\n    rows = []\n    with open(tsv_file, 'r', encoding='utf-8') as f:\n        reader = csv.reader(f, delimiter='\\t')\n        rows = list(reader)\n    return rows\n\n\ndef verify_cell(row_num: int, col_num: int, cell_value: str, checksums: dict) -> bool:\n    \"\"\"Verify a single cell's integrity.\"\"\"\n    calculated = hashlib.sha256(cell_value.encode('utf-8')).hexdigest()\n    \n    # Get column name\n    header = ['Object Date', 'Title', 'Object Number', 'Link Resource']\n    col_name = header[col_num]\n    \n    expected = checksums['cell_checksums'][str(row_num)][col_name]['checksum']\n    return calculated == expected\n\n\ndef verify_row(row_num: int, row: list, checksums: dict) -> bool:\n    \"\"\"Verify an entire row's integrity.\"\"\"\n    row_str = '\\t'.join(row)\n    calculated = hashlib.sha256(row_str.encode('utf-8')).hexdigest()\n    expected = checksums['standardized_rows'][str(row_num)]['checksum']\n    return calculated == expected\n\n\ndef main():\n    checksums_file = '/mnt/user-data/outputs/checksums.json'\n    tsv_file = '/mnt/user-data/outputs/met_inventory_standardized.tsv'\n    \n    print(\"=\" * 70)\n    print(\"INTEGRITY VERIFICATION REPORT\")\n    print(\"=\" * 70)\n    \n    # Load data\n    print(\"\\nLoading checksums and file...\")\n    checksums = load_checksums(checksums_file)\n    rows = read_standardized_file(tsv_file)\n    \n    # Overall statistics\n    total_rows = len(rows)\n    total_cells = total_rows * 4  # 4 columns\n    \n    print(f\"\\nFile Statistics:\")\n    print(f\"  Total rows (including header): {total_rows}\")\n    print(f\"  Data rows: {total_rows - 1}\")\n    print(f\"  Total cells: {total_cells}\")\n    print(f\"  Columns: 4 (Object Date, Title, Object Number, Link Resource)\")\n    \n    # Verify all rows\n    print(\"\\n\" + \"=\" * 70)\n    print(\"VERIFYING ALL ROWS\")\n    print(\"=\" * 70)\n    \n    all_valid = True\n    failed_rows = []\n    \n    for row_num in range(1, total_rows + 1):\n        row = rows[row_num - 1]\n        is_valid = verify_row(row_num, row, checksums)\n        \n        if not is_valid:\n            all_valid = False\n            failed_rows.append(row_num)\n            print(f\"\\n✗ Row {row_num} FAILED verification\")\n            print(f\"  Content preview: {row[0][:40] if row[0] else '(empty)'}...\")\n        elif row_num == 1 or row_num % 20 == 0 or row_num == total_rows:\n            print(f\"✓ Row {row_num}: OK\")\n    \n    # Verify sample cells\n    print(\"\\n\" + \"=\" * 70)\n    print(\"VERIFYING SAMPLE CELLS\")\n    print(\"=\" * 70)\n    \n    header = ['Object Date', 'Title', 'Object Number', 'Link Resource']\n    \n    # Sample from different parts of file\n    sample_rows = [2, 10, 50, 100, total_rows]\n    all_cells_valid = True\n    \n    for row_num in sample_rows:\n        if row_num > total_rows:\n            continue\n        \n        row = rows[row_num - 1]\n        print(f\"\\nRow {row_num}:\")\n        \n        for col_num, (col_name, cell_value) in enumerate(zip(header, row)):\n            is_valid = verify_cell(row_num, col_num, cell_value, checksums)\n            \n            # Display value preview\n            preview = cell_value[:50] + \"...\" if len(cell_value) > 50 else cell_value\n            preview = preview if preview else \"(empty)\"\n            \n            status = \"✓\" if is_valid else \"✗\"\n            print(f\"  {status} {col_name}: {preview}\")\n            \n            if not is_valid:\n                all_cells_valid = False\n                print(f\"     ERROR: Checksum mismatch!\")\n    \n    # Summary\n    print(\"\\n\" + \"=\" * 70)\n    print(\"VERIFICATION SUMMARY\")\n    print(\"=\" * 70)\n    \n    if all_valid and all_cells_valid:\n        print(\"\\n✓ ALL INTEGRITY CHECKS PASSED\")\n        print(\"  - All row checksums verified\")\n        print(\"  - All sample cell checksums verified\")\n        print(\"  - File integrity confirmed\")\n        return 0\n    else:\n        print(\"\\n✗ INTEGRITY CHECKS FAILED\")\n        if failed_rows:\n            print(f\"  - {len(failed_rows)} rows failed verification\")\n            print(f\"    Failed rows: {failed_rows}\")\n        if not all_cells_valid:\n            print(\"  - Some cell checksums did not match\")\n        return 1\n\n\nif __name__ == '__main__':\n    exit(main())\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 1457
+  },
+  "cache_creation_input_tokens": 1457,
+  "cache_read_input_tokens": 22583,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1588,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

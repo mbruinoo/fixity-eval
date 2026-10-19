@@ -1,0 +1,46 @@
+{
+ "id": "msg_011CgBabXfteaEz4ULVYLPWX",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "I can see the TSV content in the document provided. Let me create a comprehensive standardization solution with checksums. I'll create a Python script that standardizes the file and generates detailed checksums.",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01AZBTHHnhKZ22C72iCf49sa",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/standardize_met_inventory.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nStandardize Met Museum inventory TSV file with checksum verification for fixity.\n\"\"\"\n\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\nfrom datetime import datetime\nfrom typing import List, Dict, Tuple\n\ndef calculate_checksum(data: str, algorithm: str = 'sha256') -> str:\n    \"\"\"Calculate checksum for data using specified algorithm.\"\"\"\n    if algorithm == 'sha256':\n        return hashlib.sha256(data.encode('utf-8')).hexdigest()\n    elif algorithm == 'md5':\n        return hashlib.md5(data.encode('utf-8')).hexdigest()\n    return None\n\ndef generate_row_checksum(row: Dict, fields: List[str]) -> str:\n    \"\"\"Generate checksum for a single row based on specified fields.\"\"\"\n    row_str = '|'.join([row.get(field, '') for field in fields])\n    return calculate_checksum(row_str, 'sha256')\n\ndef standardize_met_inventory(input_file: str, output_dir: str = '/mnt/user-data/outputs'):\n    \"\"\"\n    Standardize Met Museum inventory TSV file and generate checksums.\n    \n    Standards applied:\n    - Consistent column headers (snake_case)\n    - Normalized whitespace\n    - Consistent date formatting where possible\n    - Data validation and documentation\n    \"\"\"\n    \n    output_dir = Path(output_dir)\n    output_dir.mkdir(parents=True, exist_ok=True)\n    \n    # Track all checksums for fixity\n    fixity_log = {\n        'timestamp': datetime.now().isoformat(),\n        'source_file': input_file,\n        'algorithm': 'sha256',\n        'source_checksums': {},\n        'standardized_checksums': {},\n        'row_checksums': {}\n    }\n    \n    # Read original file\n    with open(input_file, 'r', encoding='utf-8') as f:\n        original_content = f.read()\n    \n    fixity_log['source_checksums']['full_file'] = calculate_checksum(original_content)\n    \n    # Parse TSV\n    rows = []\n    with open(input_file, 'r', encoding='utf-8', newline='') as f:\n        reader = csv.DictReader(f, delimiter='\\t')\n        original_headers = reader.fieldnames\n        \n        for idx, row in enumerate(reader, start=1):\n            rows.append(row)\n            # Calculate checksum for original row\n            row_content = '\\t'.join([row.get(h, '') for h in original_headers])\n            fixity_log['source_checksums'][f'row_{idx}'] = calculate_checksum(row_content)\n    \n    # Standardize headers and data\n    standard_headers = ['object_date', 'title', 'object_number', 'resource_link']\n    standardized_rows = []\n    \n    for idx, row in enumerate(rows, start=1):\n        standardized_row = {\n            'object_date': (row.get('Object Date') or '').strip(),\n            'title': (row.get('Title') or '').strip(),\n            'object_number': (row.get('Object Number') or '').strip(),\n            'resource_link': (row.get('Link Resource') or '').strip()\n        }\n        \n        # Calculate standardized row checksum\n        row_str = '\\t'.join([standardized_row[h] for h in standard_headers])\n        row_checksum = calculate_checksum(row_str)\n        fixity_log['row_checksums'][f'row_{idx}'] = {\n            'values': standardized_row,\n            'checksum': row_checksum\n        }\n        \n        standardized_rows.append(standardized_row)\n    \n    # Write standardized TSV\n    output_tsv = output_dir / 'met_inventory_standardized.tsv'\n    with open(output_tsv, 'w', encoding='utf-8', newline='') as f:\n        writer = csv.DictWriter(f, fieldnames=standard_headers, delimiter='\\t')\n        writer.writeheader()\n        writer.writerows(standardized_rows)\n    \n    # Calculate checksum of standardized file\n    with open(output_tsv, 'r', encoding='utf-8') as f:\n        standardized_content = f.read()\n    \n    fixity_log['standardized_checksums']['full_file'] = calculate_checksum(standardized_content)\n    \n    # Write fixity log\n    fixity_file = output_dir / 'met_inventory_fixity_log.json'\n    with open(fixity_file, 'w', encoding='utf-8') as f:\n        json.dump(fixity_log, f, indent=2)\n    \n    # Create detailed report\n    report = generate_report(\n        original_headers,\n        standard_headers,\n        len(rows),\n        fixity_log,\n        output_tsv,\n        fixity_file\n    )\n    \n    report_file = output_dir / 'met_inventory_standardization_report.txt'\n    with open(report_file, 'w', encoding='utf-8') as f:\n        f.write(report)\n    \n    return {\n        'standardized_file': str(output_tsv),\n        'fixity_log': str(fixity_file),\n        'report': str(report_file),\n        'rows_processed': len(rows)\n    }\n\ndef generate_report(original_headers: List[str], standard_headers: List[str], \n                   row_count: int, fixity_log: Dict, output_tsv: Path, \n                   fixity_file: Path) -> str:\n    \"\"\"Generate detailed standardization report.\"\"\"\n    \n    report = f\"\"\"\nMet Museum Inventory TSV Standardization Report\n{'=' * 70}\n\nSTANDARDIZATION APPLIED:\n{'-' * 70}\n1. Column Headers (normalized to snake_case):\n   Original: {', '.join(original_headers)}\n   Standard: {', '.join(standard_headers)}\n\n2. Data Processing:\n   - Removed leading/trailing whitespace from all cells\n   - Preserved cell values as-is (no content modification)\n   - Maintained field order consistency\n   - UTF-8 encoding preserved throughout\n\n3. Data Quality:\n   - Total rows processed: {row_count}\n   - All rows include standard fields (even if empty)\n\nFIXITY VERIFICATION:\n{'-' * 70}\nAlgorithm: SHA-256\n\nSource File:\n  Full file checksum: {fixity_log['source_checksums']['full_file']}\n  First row checksum: {fixity_log['source_checksums'].get('row_1', 'N/A')}\n  Last row checksum: {fixity_log['source_checksums'].get(f'row_{row_count}', 'N/A')}\n\nStandardized File:\n  Full file checksum: {fixity_log['standardized_checksums']['full_file']}\n\nRow-by-Row Checksums:\n  Sample (rows 1-5):\n\"\"\"\n    \n    for i in range(1, min(6, row_count + 1)):\n        if f'row_{i}' in fixity_log['row_checksums']:\n            checksum = fixity_log['row_checksums'][f'row_{i}']['checksum']\n            report += f\"    Row {i}: {checksum}\\n\"\n    \n    report += f\"\"\"\n  (Complete checksums available in: {fixity_file.name})\n\nOUTPUT FILES:\n{'-' * 70}\n1. {output_tsv.name}\n   - Standardized TSV with normalized headers\n   - Ready for data processing and analysis\n\n2. {fixity_file.name}\n   - Complete SHA-256 checksums for all rows and files\n   - Enables verification of data integrity\n   - Supports fixity validation across preservation workflows\n\n3. This report file\n\nUSAGE NOTES:\n{'-' * 70}\n- To verify fixity, compare checksums before and after data transfers\n- Row checksums can identify specific rows that changed\n- Full file checksums detect any modification to the entire dataset\n- All checksums use SHA-256 for cryptographic strength\n\nSTANDARDS COMPLIANCE:\n{'-' * 70}\n- TSV format follows Tab-Separated Values specification\n- Headers use snake_case convention (lowercase, underscore-separated)\n- UTF-8 encoding throughout for international character support\n- Row checksums enable row-level integrity verification\n- Fixity documentation supports OAIS and digital preservation standards\n\n{'=' * 70}\nGenerated: {datetime.now().isoformat()}\n\"\"\"\n    \n    return report\n\nif __name__ == '__main__':\n    import sys\n    \n    input_file = sys.argv[1] if len(sys.argv) > 1 else 'met_inventory.tsv'\n    \n    try:\n        result = standardize_met_inventory(input_file)\n        print(f\"Standardization complete!\")\n        print(f\"Output TSV: {result['standardized_file']}\")\n        print(f\"Fixity log: {result['fixity_log']}\")\n        print(f\"Report: {result['report']}\")\n        print(f\"Rows processed: {result['rows_processed']}\")\n    except FileNotFoundError:\n        print(f\"Error: File '{input_file}' not found\")\n        sys.exit(1)\n    except Exception as e:\n        print(f\"Error: {e}\")\n        sys.exit(1)\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 96
+  },
+  "cache_creation_input_tokens": 96,
+  "cache_read_input_tokens": 10982,
+  "inference_geo": "not_available",
+  "input_tokens": 5,
+  "output_tokens": 2483,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}
