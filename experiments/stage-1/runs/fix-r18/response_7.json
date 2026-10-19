@@ -1,0 +1,46 @@
+{
+ "id": "msg_011CgB1pZkveSpZwSZARMhYr",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me create one more verification script that can be used independently:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01UpxYwKLhGfoL2KmhJxKd76",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_fixity.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nVerify the fixity of standardized files using checksums from the manifest.\nRun this script to verify that files haven't been corrupted or modified.\n\"\"\"\n\nimport json\nimport hashlib\nimport sys\nfrom pathlib import Path\n\ndef calculate_checksum(filepath, algorithm='sha256'):\n    \"\"\"Calculate cryptographic checksum of a file.\"\"\"\n    if not Path(filepath).exists():\n        print(f\"Error: File not found: {filepath}\")\n        return None\n    \n    hash_obj = hashlib.new(algorithm)\n    with open(filepath, 'rb') as f:\n        for chunk in iter(lambda: f.read(4096), b''):\n            hash_obj.update(chunk)\n    return hash_obj.hexdigest()\n\ndef verify_fixity(manifest_path='/mnt/user-data/outputs/fixity_manifest.json'):\n    \"\"\"Verify files against the fixity manifest.\"\"\"\n    \n    print(\"=\" * 70)\n    print(\"FIXITY VERIFICATION REPORT\")\n    print(\"=\" * 70)\n    print()\n    \n    # Load manifest\n    try:\n        with open(manifest_path, 'r', encoding='utf-8') as f:\n            manifest = json.load(f)\n    except FileNotFoundError:\n        print(f\"Error: Manifest not found at {manifest_path}\")\n        return False\n    except json.JSONDecodeError:\n        print(f\"Error: Invalid JSON in manifest at {manifest_path}\")\n        return False\n    \n    print(f\"Manifest file: {manifest_path}\")\n    print(f\"Manifest timestamp: {manifest['timestamp']}\")\n    print()\n    \n    all_valid = True\n    \n    # Verify source file\n    print(\"-\" * 70)\n    print(\"SOURCE FILE VERIFICATION\")\n    print(\"-\" * 70)\n    \n    source_info = manifest['source_file']\n    source_path = source_info['path']\n    source_expected_hash = source_info['sha256']\n    source_expected_size = source_info['size_bytes']\n    \n    print(f\"File: {source_path}\")\n    print(f\"Expected size: {source_expected_size} bytes\")\n    print(f\"Expected SHA-256: {source_expected_hash}\")\n    print()\n    \n    if Path(source_path).exists():\n        source_actual_hash = calculate_checksum(source_path, 'sha256')\n        source_actual_size = Path(source_path).stat().st_size\n        \n        print(f\"Actual size: {source_actual_size} bytes\")\n        print(f\"Actual SHA-256: {source_actual_hash}\")\n        \n        if source_actual_hash == source_expected_hash:\n            print(\"✓ PASS - Source file integrity verified\")\n        else:\n            print(\"✗ FAIL - Source file has been modified or corrupted\")\n            all_valid = False\n        \n        if source_actual_size != source_expected_size:\n            print(f\"⚠ WARNING - File size mismatch ({source_actual_size} vs {source_expected_size})\")\n            all_valid = False\n    else:\n        print(\"✗ FAIL - Source file not found\")\n        all_valid = False\n    \n    print()\n    \n    # Verify output file\n    print(\"-\" * 70)\n    print(\"OUTPUT FILE VERIFICATION\")\n    print(\"-\" * 70)\n    \n    output_info = manifest['output_file']\n    output_path = output_info['path']\n    output_expected_hash = output_info['sha256']\n    output_expected_size = output_info['size_bytes']\n    \n    print(f\"File: {output_path}\")\n    print(f\"Expected size: {output_expected_size} bytes\")\n    print(f\"Expected SHA-256: {output_expected_hash}\")\n    print()\n    \n    if Path(output_path).exists():\n        output_actual_hash = calculate_checksum(output_path, 'sha256')\n        output_actual_size = Path(output_path).stat().st_size\n        \n        print(f\"Actual size: {output_actual_size} bytes\")\n        print(f\"Actual SHA-256: {output_actual_hash}\")\n        \n        if output_actual_hash == output_expected_hash:\n            print(\"✓ PASS - Output file integrity verified\")\n        else:\n            print(\"✗ FAIL - Output file has been modified or corrupted\")\n            all_valid = False\n        \n        if output_actual_size != output_expected_size:\n            print(f\"⚠ WARNING - File size mismatch ({output_actual_size} vs {output_expected_size})\")\n            all_valid = False\n    else:\n        print(\"✗ FAIL - Output file not found\")\n        all_valid = False\n    \n    print()\n    print(\"-\" * 70)\n    print(\"STANDARDIZATION TRANSFORMATIONS APPLIED\")\n    print(\"-\" * 70)\n    print()\n    \n    for i, transformation in enumerate(manifest['standardization_applied'], 1):\n        print(f\"{i}. {transformation}\")\n    \n    print()\n    print(\"=\" * 70)\n    print(\"VERIFICATION SUMMARY\")\n    print(\"=\" * 70)\n    \n    if all_valid:\n        print(\"✓ All integrity checks passed - Files are valid and unmodified\")\n        return True\n    else:\n        print(\"✗ Some checks failed - Please investigate the issues above\")\n        return False\n\nif __name__ == '__main__':\n    success = verify_fixity()\n    sys.exit(0 if success else 1)\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 1421
+  },
+  "cache_creation_input_tokens": 1421,
+  "cache_read_input_tokens": 18360,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1491,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

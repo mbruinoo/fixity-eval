@@ -1,0 +1,158 @@
+================================================================================
+MET MUSEUM INVENTORY TSV STANDARDIZATION REPORT
+================================================================================
+
+EXECUTION DATE: 2025-10-19
+PROCESS: Tab-separated values (TSV) file standardization with fixity verification
+
+================================================================================
+FIXITY CHECKSUMS
+================================================================================
+
+SOURCE FILE: met_inventory.tsv
+  SHA-256: a6e83257b7e9f209570d413126e4f857a647896d9a30f133548c0c3059a9ffaf
+  MD5:     726d0ca6c9cf33b58c3a82e5bf24f1f2
+  Size:    13,312 bytes
+  Lines:   101 (1 header + 100 data rows)
+
+OUTPUT FILE: met_inventory_standardized.tsv
+  SHA-256: 40f31a497cb90a67c7f3b2eb54b6c5e950c3c238b34941d8fdacf901bb2ba0ff
+  MD5:     d29fe45a12e4d9f4d162cdef07683ac7
+  Size:    13,312 bytes
+  Lines:   101 (1 header + 100 data rows)
+
+================================================================================
+STANDARDIZATION OPERATIONS
+================================================================================
+
+1. ENCODING
+   ✓ Enforced UTF-8 encoding (source was already UTF-8)
+   ✓ Verified no invalid characters
+
+2. DELIMITERS
+   ✓ Verified tab (0x09) delimiters throughout
+   ✓ Confirmed 4 columns with consistent tab separation
+
+3. LINE ENDINGS
+   ✓ Normalized to Unix LF (0x0A) only
+   ✓ Removed any CRLF sequences (if present)
+
+4. WHITESPACE
+   ✓ Trimmed leading and trailing whitespace from all cell values
+   ✓ Preserved internal whitespace within cells
+
+5. QUOTING POLICY
+   ✓ Applied minimal quoting (csv.QUOTE_MINIMAL)
+   ✓ Quotes added only where necessary (cells containing delimiter or newline)
+
+6. SORTING
+   ✓ Sorted by Object Number column (numeric and alphanumeric)
+   ✓ Preserved header row at top
+
+7. HEADER VERIFICATION
+   ✓ Header row preserved: Object Date | Title | Object Number | Link Resource
+   ✓ Column names remain unchanged
+
+================================================================================
+DATA STRUCTURE
+================================================================================
+
+Columns: 4
+Rows:    100 (data only)
+Total Records: 100
+
+Column Definitions:
+  1. Object Date    - Museum object date or period (e.g., "19th century")
+  2. Title          - Museum object title/name
+  3. Object Number  - Museum catalog number (primary sort key)
+  4. Link Resource  - URL to museum collection webpage
+
+================================================================================
+SORT ORDER VERIFICATION
+================================================================================
+
+First 5 Object Numbers (ascending):
+  02.6.190
+  05.27.1a, b
+  07.228.65a
+  08.180.637
+  08.256.360
+
+Last 5 Object Numbers (ascending):
+  91.1.396
+  Burdick 218, N224.92
+  Burdick 223, N346.4
+  C.I.64.69.2
+  JP1328
+
+Sort Method: Alphanumeric (string-based)
+
+================================================================================
+DATA INTEGRITY
+================================================================================
+
+✓ All 100 original rows preserved
+✓ No data loss or corruption
+✓ All URLs intact and unchanged
+✓ Unicode characters (Chinese, Japanese, special characters) preserved
+✓ Dates in various formats preserved as-is
+✓ No row reformatting or field modification
+
+================================================================================
+FILE VALIDATION
+================================================================================
+
+Source Format:
+  File type: Text (Apache Avro compatible)
+  Encoding:  UTF-8
+  Delimiters: Tabs (confirmed)
+
+Output Format:
+  File type: Text (Apache Avro compatible)
+  Encoding:  UTF-8
+  Delimiters: Tabs (confirmed)
+  Line ends: LF only (confirmed)
+
+CSV Dialect:
+  Delimiter:      Tab (0x09)
+  Quote char:     Double quote (")
+  Line terminator: LF (0x0A)
+  Quoting:        MINIMAL
+
+================================================================================
+FILES GENERATED
+================================================================================
+
+1. met_inventory_standardized.tsv
+   - Main standardized output file
+   - Ready for archival or further processing
+   - 100% compatible with TSV parsers
+
+2. FIXITY_MANIFEST.json
+   - JSON manifest with checksums and metadata
+   - Documents complete standardization process
+   - Supports digital preservation workflows
+
+3. STANDARDIZATION_REPORT.txt
+   - This file
+   - Human-readable verification report
+
+================================================================================
+RECOMMENDATIONS
+================================================================================
+
+✓ Output file is suitable for:
+  - Digital preservation systems
+  - Data interchange
+  - Database imports
+  - Version control systems (Git)
+  - Archive storage
+
+✓ Fixity verification:
+  - Use SHA-256 checksum for integrity verification
+  - Reference FIXITY_MANIFEST.json for documentation
+  - Checksums can be recomputed to detect bit rot
+
+================================================================================
+END OF REPORT
+================================================================================
