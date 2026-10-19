@@ -158,3 +158,9 @@ which sessions count. Anything added later is reported as exploratory.
   a fault in our setup in the outcome table and leaves it out of the tests,
   as the rule requires. Prompted by four sessions stopped when the workspace
   spending limit was reached (decision record 22).
+- **2026-10-19, after scoring.** To apply the pre-registered review of
+  unverified added-column values reproducibly, `scripts/apply_review.py` and
+  two options of `scripts/analyze_stage1.py` (`--scores`, `--out`) were added:
+  the review is recorded in `experiments/stage-1/review.json` and applied to
+  copies of the scores. The tests themselves are unchanged, and results are
+  reported both before and after the review.
