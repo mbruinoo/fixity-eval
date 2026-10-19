@@ -282,6 +282,9 @@ def view(files, path, view_range, limit, mode="note"):
 
 
 CALLER = None  # a BatchCaller in batch mode
+# The date the session is told, when a condition doesn't set one: the day of
+# the run, written as claude.ai writes it ("Monday, October 19, 2026").
+TODAY = __import__("datetime").date.today().strftime("%A, %B %-d, %Y")
 
 
 def call_model(client, params):
@@ -409,7 +412,7 @@ def run_one(client, cfg, root, ledger, cond, rep):
             system = note
             if cond.get("system_file"):  # e.g. claude.ai's published prompt, then the file note
                 system = (pathlib.Path(cond["system_file"]).read_text(encoding="utf-8")
-                          .replace("{{currentDateTime}}", cond.get("current_date", "")) + "\n\n" + note)
+                          .replace("{{currentDateTime}}", cond.get("current_date") or TODAY) + "\n\n" + note)
             extra = ([BASH_TOOL] if box else []) + ([DOCS_TOOL] if cond.get("failing_docs_tool") else [])
             if cond.get("defer_tools"):  # listed by name only, loaded on request with tool_search
                 deferred = [t for t in extra if t["name"] in cond["defer_tools"]]
