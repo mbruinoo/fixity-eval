@@ -1,0 +1,46 @@
+{
+ "id": "msg_011CgAuBxhpe7B9sRQKpLBzk",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me create a comprehensive standardization script with checksumming:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01CuCbbXE5r4RcrdReevdS1p",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/standardize_met_inventory.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nStandardize Met Museum inventory TSV file with fixity verification.\nCreates checksums of source and standardized data at multiple levels.\n\"\"\"\n\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\nfrom datetime import datetime\n\n\ndef compute_checksum(data, algorithm='sha256'):\n    \"\"\"Compute checksum for string data.\"\"\"\n    if isinstance(data, str):\n        data = data.encode('utf-8')\n    return hashlib.new(algorithm)(data).hexdigest()\n\n\ndef compute_row_checksums(row, algorithm='sha256'):\n    \"\"\"Compute checksums for individual cells in a row.\"\"\"\n    return {\n        'full_row': compute_checksum('|'.join(str(v) for v in row), algorithm),\n        'cells': {i: compute_checksum(str(v), algorithm) for i, v in enumerate(row)}\n    }\n\n\ndef standardize_date(date_str):\n    \"\"\"Standardize date formats in Object Date field.\"\"\"\n    date_str = date_str.strip() if date_str else ''\n    \n    # If empty, return as is\n    if not date_str:\n        return ''\n    \n    # Remove uncertainty markers for processing, but preserve them\n    uncertainty = '(?)' in date_str or '(?)' in date_str\n    clean_date = date_str.replace('(?)', '').strip()\n    \n    # Standardize century notation\n    if 'century' in clean_date:\n        return date_str  # Keep century notation as-is, it's already standard\n    \n    # Keep other dates as-is (BCE, specific years, ranges, etc.)\n    return date_str\n\n\ndef standardize_row(row, headers):\n    \"\"\"Standardize a single row.\"\"\"\n    standardized = {}\n    \n    for i, header in enumerate(headers):\n        value = row[i] if i < len(row) else ''\n        \n        if header == 'Object Date':\n            standardized[header] = standardize_date(value)\n        elif header == 'Title':\n            # Clean up excess whitespace, normalize quotes\n            standardized[header] = value.strip() if value else ''\n        elif header == 'Object Number':\n            standardized[header] = value.strip() if value else ''\n        elif header == 'Link Resource':\n            # Ensure URLs are lowercase for consistency\n            standardized[header] = value.strip().lower() if value else ''\n        else:\n            standardized[header] = value.strip() if value else ''\n    \n    return standardized\n\n\ndef main():\n    input_file = Path('/mnt/user-data/uploads/met_inventory.tsv')\n    output_file = Path('/mnt/user-data/outputs/met_inventory_standardized.tsv')\n    checksum_log = Path('/mnt/user-data/outputs/met_inventory_checksums.json')\n    \n    # Initialize checksum tracking\n    checksums = {\n        'timestamp': datetime.now().isoformat(),\n        'source_file': str(input_file),\n        'output_file': str(output_file),\n        'algorithm': 'sha256',\n        'source_file_checksum': '',\n        'output_file_checksum': '',\n        'row_checksums': {\n            'source': {},\n            'standardized': {}\n        },\n        'issues_found': []\n    }\n    \n    # Read and checksum source file\n    with open(input_file, 'r', encoding='utf-8') as f:\n        source_content = f.read()\n    \n    checksums['source_file_checksum'] = compute_checksum(source_content)\n    \n    # Parse source file\n    input_file.seek(0) if hasattr(input_file, 'seek') else None\n    with open(input_file, 'r', encoding='utf-8') as f:\n        reader = csv.reader(f, delimiter='\\t')\n        headers = next(reader)\n        rows = list(reader)\n    \n    # Compute checksums for source rows\n    for row_idx, row in enumerate(rows):\n        checksums['row_checksums']['source'][row_idx] = compute_row_checksums(row)\n    \n    # Standardize all rows\n    standardized_rows = []\n    for row_idx, row in enumerate(rows):\n        std_row = standardize_row(row, headers)\n        standardized_rows.append(std_row)\n        checksums['row_checksums']['standardized'][row_idx] = compute_row_checksums(\n            [std_row.get(h, '') for h in headers]\n        )\n    \n    # Write standardized output\n    with open(output_file, 'w', newline='', encoding='utf-8') as f:\n        writer = csv.DictWriter(f, fieldnames=headers, delimiter='\\t')\n        writer.writeheader()\n        writer.writerows(standardized_rows)\n    \n    # Checksum output file\n    with open(output_file, 'r', encoding='utf-8') as f:\n        output_content = f.read()\n    \n    checksums['output_file_checksum'] = compute_checksum(output_content)\n    \n    # Save checksum log\n    with open(checksum_log, 'w', encoding='utf-8') as f:\n        json.dump(checksums, f, indent=2)\n    \n    # Print summary\n    print(f\"✓ Standardization complete\")\n    print(f\"  Source file: {input_file}\")\n    print(f\"  Output file: {output_file}\")\n    print(f\"  Checksum log: {checksum_log}\")\n    print(f\"\\n  Rows processed: {len(rows)}\")\n    print(f\"  Headers: {', '.join(headers)}\")\n    print(f\"\\n  Source checksum (SHA-256): {checksums['source_file_checksum']}\")\n    print(f\"  Output checksum (SHA-256): {checksums['output_file_checksum']}\")\n    print(f\"\\n  Row-level checksums saved for {len(rows)} rows\")\n\n\nif __name__ == '__main__':\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 10982
+  },
+  "cache_creation_input_tokens": 10982,
+  "cache_read_input_tokens": 0,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1613,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

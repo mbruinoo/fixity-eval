@@ -1,0 +1,46 @@
+{
+ "id": "msg_011CgAuuTu947XXvZ847mwsM",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me create a verification script that can be used to validate the checksums:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_013MGj58ovNiA6v7eQtJEyg3",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_checksums.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nMet Inventory TSV Checksum Verification Script\n\nThis script validates the integrity of the standardized met_inventory.tsv file\nby computing SHA256 checksums for each row and comparing them against stored values.\n\nUsage:\n    python3 verify_checksums.py met_inventory_standardized.tsv\n\"\"\"\n\nimport sys\nimport hashlib\nimport os\nfrom pathlib import Path\n\n\ndef compute_row_checksum(row_data):\n    \"\"\"\n    Compute SHA256 checksum for a row (first 4 tab-separated fields).\n    \n    Args:\n        row_data: List of field values [date, title, object_number, url]\n    \n    Returns:\n        Hexadecimal SHA256 hash string\n    \"\"\"\n    # Join the first 4 fields with tabs and encode\n    row_string = '\\t'.join(str(field) for field in row_data[:4])\n    row_bytes = row_string.encode('utf-8')\n    \n    # Compute SHA256\n    hash_obj = hashlib.sha256(row_bytes)\n    return hash_obj.hexdigest()\n\n\ndef verify_file(filepath):\n    \"\"\"\n    Verify all checksums in the TSV file.\n    \n    Args:\n        filepath: Path to the standardized TSV file\n    \n    Returns:\n        Dictionary with verification results\n    \"\"\"\n    results = {\n        'total_rows': 0,\n        'valid_rows': 0,\n        'invalid_rows': 0,\n        'errors': []\n    }\n    \n    try:\n        with open(filepath, 'r', encoding='utf-8') as f:\n            lines = f.readlines()\n    except FileNotFoundError:\n        results['errors'].append(f\"File not found: {filepath}\")\n        return results\n    except Exception as e:\n        results['errors'].append(f\"Error reading file: {str(e)}\")\n        return results\n    \n    # Skip header row\n    for line_num, line in enumerate(lines[1:], start=2):\n        line = line.rstrip('\\n\\r')\n        if not line.strip():  # Skip empty lines\n            continue\n        \n        fields = line.split('\\t')\n        \n        # Should have exactly 5 fields\n        if len(fields) != 5:\n            results['errors'].append(\n                f\"Line {line_num}: Expected 5 fields, got {len(fields)}\"\n            )\n            results['total_rows'] += 1\n            results['invalid_rows'] += 1\n            continue\n        \n        date_field, title_field, object_num, url, stored_checksum = fields\n        \n        # Compute expected checksum\n        computed_checksum = compute_row_checksum(\n            [date_field, title_field, object_num, url]\n        )\n        \n        results['total_rows'] += 1\n        \n        # Verify\n        if computed_checksum == stored_checksum:\n            results['valid_rows'] += 1\n        else:\n            results['invalid_rows'] += 1\n            results['errors'].append(\n                f\"Line {line_num}: Checksum mismatch\\n\"\n                f\"  Object: {object_num}\\n\"\n                f\"  Expected: {computed_checksum}\\n\"\n                f\"  Stored:   {stored_checksum}\"\n            )\n    \n    return results\n\n\ndef print_report(results):\n    \"\"\"Print verification report to console.\"\"\"\n    print(\"\\n\" + \"=\"*70)\n    print(\"MET INVENTORY TSV CHECKSUM VERIFICATION REPORT\")\n    print(\"=\"*70 + \"\\n\")\n    \n    print(f\"Total Rows Checked:  {results['total_rows']}\")\n    print(f\"Valid Rows:          {results['valid_rows']}\")\n    print(f\"Invalid Rows:        {results['invalid_rows']}\")\n    \n    if results['invalid_rows'] > 0:\n        print(\"\\n⚠️  INTEGRITY ISSUES DETECTED:\\n\")\n        for error in results['errors'][:10]:  # Show first 10 errors\n            print(f\"  {error}\\n\")\n        if len(results['errors']) > 10:\n            print(f\"  ... and {len(results['errors']) - 10} more errors\")\n    else:\n        print(\"\\n✓ All rows verified successfully!\")\n    \n    print(\"\\n\" + \"=\"*70 + \"\\n\")\n\n\ndef create_test_row(date, title, obj_num, url):\n    \"\"\"\n    Utility function to compute checksum for a new row (for creating new records).\n    \"\"\"\n    checksum = compute_row_checksum([date, title, obj_num, url])\n    return f\"{date}\\t{title}\\t{obj_num}\\t{url}\\t{checksum}\"\n\n\nif __name__ == '__main__':\n    if len(sys.argv) < 2:\n        print(\"Usage: python3 verify_checksums.py <path_to_tsv_file>\")\n        print(\"\\nExample:\")\n        print(\"  python3 verify_checksums.py met_inventory_standardized.tsv\")\n        sys.exit(1)\n    \n    filepath = sys.argv[1]\n    \n    # Verify file exists\n    if not os.path.exists(filepath):\n        print(f\"Error: File not found: {filepath}\")\n        sys.exit(1)\n    \n    # Run verification\n    results = verify_file(filepath)\n    print_report(results)\n    \n    # Exit with appropriate code\n    sys.exit(0 if results['invalid_rows'] == 0 else 1)\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 1292
+  },
+  "cache_creation_input_tokens": 1292,
+  "cache_read_input_tokens": 22383,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1482,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

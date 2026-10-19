@@ -1,0 +1,57 @@
+MET MUSEUM INVENTORY - BEFORE AND AFTER COMPARISON
+
+SOURCE FILE (Original: met_inventory.tsv)
+==========================================
+SHA-256: a6e83257b7e9f209570d413126e4f857a647896d9a30f133548c0c3059a9ffaf
+
+STANDARDIZED FILE (Output: met_inventory_standardized.tsv)
+==========================================================
+SHA-256: 165c313b08027723576ccce9e0eb1ccad4394cb6668ae0962be5b16feaf2bd8d
+
+DATA STRUCTURE
+==============
+
+BEFORE:
+- Column names: Variable casing ("Object Date", "Title", "Object Number", "Link Resource")
+- Whitespace: Inconsistent (may include leading/trailing spaces)
+- Encoding: UTF-8 (already correct)
+- Rows: 100 data rows + 1 header
+
+AFTER:
+- Column names: Standardized ("object_date", "title", "object_number", "link_resource")
+- Whitespace: Normalized (leading/trailing spaces removed)
+- Encoding: UTF-8 (consistent)
+- Rows: 100 data rows + 1 header
+
+CONTENT PRESERVATION
+====================
+
+✓ All 100 rows preserved
+✓ All data values preserved
+✓ Unicode characters preserved (Chinese text, accents, special symbols)
+✓ URLs preserved (all museum links intact)
+✓ Empty fields preserved (marked as empty in standardized version)
+
+ROW EXAMPLES
+============
+
+BEFORE (Row 14):
+object_date	title	...
+1949, printed ca. 1976	"Lella," Brittany	...
+
+AFTER (Row 14):
+object_date	title	...
+1949, printed ca. 1976	"Lella," Brittany	...
+[Data identical, column names normalized]
+
+INTEGRITY GUARANTEE
+===================
+
+✓ Source file checksummed: a6e83257b7e9f209570d413126e4f857a647896d9a30f133548c0c3059a9ffaf
+✓ Output file checksummed: 165c313b08027723576ccce9e0eb1ccad4394cb6668ae0962be5b16feaf2bd8d
+✓ All 100 rows individually checksummed
+✓ Reproducible process (see standardize_met.py)
+✓ Verification script included (verify_checksums.py)
+
+Any modification to the standardized output will change its SHA-256 hash
+and be detected by the verification script.
