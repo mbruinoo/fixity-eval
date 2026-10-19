@@ -43,6 +43,8 @@ uploaded files as reconstructed from a session's own summary (UPLOAD_GUIDANCE).
 "debrief": text sent once the session is over and its files are saved (so it
 can't change what is graded): a brief account of the experiment and thanks.
 Tools are switched off for that call; the reply is saved to debrief.md.
+Config "input_sha256": {input key: SHA-256} refuses to start unless each
+named input file has that checksum (for the held-out file).
 Config "batch": true sends every model call through the Message Batches API
 (half price; sessions advance in lockstep, BatchCaller), priced at half by the
 cost guard. Config "cache": true adds prompt-caching breakpoints (with_cache); the prompt
@@ -57,6 +59,7 @@ Usage:
 """
 import argparse
 import concurrent.futures as cf
+import hashlib
 import json
 import os
 import pathlib
@@ -645,6 +648,12 @@ def main():
     cfg_path = pathlib.Path(a.config)
     cfg = json.loads(cfg_path.read_text())
     root = cfg_path.parent
+    # A frozen input (the held-out file) must be byte for byte the recorded
+    # one before anything is spent (decisions/2026-10-18-04-held-out-file.md).
+    for key, want in cfg.get("input_sha256", {}).items():
+        got = hashlib.sha256(pathlib.Path(cfg["inputs"][key]).read_bytes()).hexdigest()
+        if got != want:
+            sys.exit(f"input {key}: SHA-256 {got} doesn't match the recorded {want}; not starting")
     ledger = Ledger(root / "cost_ledger.json", cfg)
     conds = [c for c in cfg["conditions"] if not a.only or c["id"] in a.only]
     jobs = [(c, r) for c in conds for r in range(1, (a.repeats or c.get("repeats", cfg["repeats"])) + 1)]
