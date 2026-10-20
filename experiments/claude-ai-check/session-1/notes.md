@@ -16,9 +16,10 @@ The repo author may correct anything here.
 - **Model switch notice:** none seen.
 - **Exported:** a plain-text copy (`transcript.txt`) and a print to PDF
   (`transcript.pdf`).
-- **What it delivered:** a Claude Doc, "Met Museum TSV Standardization",
-  with a 20-row sample sheet and Python scripts for the user to run. No
-  .tsv file was delivered, and the session ran no code itself.
+- **What it delivered:** a Claude Doc, "Met Museum TSV Standardization"
+  (only its first lines; see below), and, in its chat replies, a 20-row
+  sample sheet and Python scripts for the user to run. No .tsv file was
+  delivered, and the session ran no code itself.
 - **`output_files/`:** the doc as it was returned: only its title and three
   lines (confirmed by the repo author on 2026-10-20). The session's attempts
   to add the rest failed, so the sample sheet and scripts appear only in its
