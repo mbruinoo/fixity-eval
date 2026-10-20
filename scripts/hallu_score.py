@@ -63,8 +63,9 @@ import datespec  # noqa: E402
 # counts: "Nocturne" or "Untitled (study of a horse)" are titles like any other.
 PLACEHOLDER = re.compile(
     r"[\[(]?\s*(?:untitled|unknown|unknown title|title unknown|no title|no date|date unknown|unknown date"
-    r"|not dated|undated|n\.?\s?d\.?|n/?a|none|blank|(?:title|date) not (?:provided|available|given|listed"
-    r"|specified|known))\s*[\])]?\.?|[-‐-―−]", re.I)
+    r"|not dated|undated|n\.?\s?d\.?|n/?a|none|blank"
+    r"|(?:(?:title|date) not|no (?:title|date)) (?:provided|available|given|listed|specified|known))"
+    r"\s*[\])]?\.?|[-‐-―−]", re.I)
 
 
 def is_placeholder(s):
@@ -427,8 +428,9 @@ def extra_cell(header, value, src_row, out_row, ctx):
         return False if typed else None
     # Years, as spans: "1850" is 1850, "1850s" 1850-1859, "1800s" 1800-1899.
     spans = []
-    for y, s in re.findall(r"(?<![\d.])(\d{3,4})(s?)(?![\d.])", v):
-        y = int(y)
+    # A minus sign at the start of a word is a year BCE: "-0400 to -0300".
+    for neg, y, s in re.findall(r"(?<![\d.])((?<![^\s(])-)?(\d{3,4})(s?)(?![\d.])", v):
+        y = -int(y) if neg else int(y)
         spans.append((y, y + (99 if y % 100 == 0 else 9)) if s else (y, y))
     if re.search(r"\b(?:bce|b\.c\.?|bc)(?:\W|$)", v, re.I):
         spans = [(-b, -a) for a, b in spans]

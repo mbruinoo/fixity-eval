@@ -143,7 +143,7 @@ def test_c2_dropping_one_side_of_the_bar_counts(tmp_path):
     assert r["rows_by_tier"]["tier1_content"] == 1
 
 
-@pytest.mark.parametrize("placeholder", ["[No title]", "Untitled", "Unknown"])
+@pytest.mark.parametrize("placeholder", ["[No title]", "Untitled", "Unknown", "[No title provided]"])
 def test_d_placeholder_in_blank_title_is_slight(tmp_path, placeholder):
     r = score(tmp_path, changed(SPEC_ROWS, 3, "Title", placeholder))
     n = len(placeholder)
@@ -444,7 +444,11 @@ def test_fuzzy_columns_prefer_the_original_and_skip_row_numbers():
 
 
 @pytest.mark.parametrize("value,src,ok", [("4th-3rd century BCE", "4th–3rd century BCE", True),
-                                          ("-600", "600 BCE", True), ("1000 BCE", "600 BCE", False)])
+                                          ("-600", "600 BCE", True), ("1000 BCE", "600 BCE", False),
+                                          ("-4500 to -4000", "ca. 4500–4000 B.C. (?)", True),
+                                          ("4500 to 4000", "ca. 4500–4000 B.C. (?)", False),
+                                          ("1814-1822", "1814–21/2", True), ("1814-1825", "1814–21/2", False),
+                                          ("1930-1939", "Datable to the 1930s", True)])
 def test_added_date_column_with_an_era(value, src, ok):
     row = [src, "Bowl", "1.1", "x"]
     ctx = {"events": [], "reply": "", "known": set()}

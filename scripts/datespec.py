@@ -93,8 +93,13 @@ def _years(t):
         s, e = (-int(a) if abce else int(a)), (-int(b_full) if bbce else int(b_full))
         if bdec:
             e += 9
+        alt = re.search(r"\d/(\d{1,2})\b", parts[1])
+        if alt and e > 0:  # "1814–21/2": 1821 or 1822
+            e = max(e, _expand(str(e), alt.group(1)))
         return [{**base, "start": (s, s), "end": (e, e + (1 if bdec else 0))}]
     m = re.fullmatch(r"(?:ca\.\s*)?(early|mid-?|late)?\s*(\d{3,4})s(?: \(\?\))?", t)
+    if not m and len(re.findall(r"\d+", t)) == 1:  # "datable to the 1930s"
+        m = re.search(r"(?:ca\.\s*)?\b(early|mid-?|late)?\s*(\d{3,4})s\b", t)
     if m:
         y = int(m.group(2))
         if m.group(1):  # "early 1980s": anywhere in the decade

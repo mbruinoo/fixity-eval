@@ -41,9 +41,10 @@ python scripts/classify_traceability.py experiments/stage-3
   with a unique row ID", then asks what to do next (summaries, exports, …).
   Read by the research coordinator as finished without a sheet (it describes
   work it didn't deliver), not a genuine clarifying question.
-- Error rates of the 9 sheets: median 1.4% (from 0.0% to 6.7%); for
+- Error rates of the 9 sheets: median 0.9% (from 0.0% to 3.3%); for
   comparison, stage 1's base request had a median of 2.3% in the same
-  setting. Some replies claim more than the files show: `traceable-r7` says
+  setting. (Re-scored on 2026-10-21; first reported as median 1.4%, highest
+  6.7%: see the second scorer fix below.) Some replies claim more than the files show: `traceable-r7` says
   "No information was removed or altered" (0.9% lost or changed);
   `traceable-r2` says it "Preserved all original data" (1.4%).
 
@@ -91,6 +92,19 @@ scored the sheet at 27.9%. It now prefers a header naming the object number
 sheet scores 2.2%. The sheet does have a real fault the score now shows:
 rows with a blank title lost a field, so some values moved into the wrong
 column. Re-scoring stage 1 and both smoke tests with the fix changed no
+score.
+
+## A second scorer fix (2026-10-21)
+
+The claude.ai check turned up a placeholder the scorer didn't recognize:
+"[No title provided]" (and "[No date provided]") for a blank cell. The
+scorer counted it as invented text, at full weight, instead of as a
+placeholder (decision record 02: a quarter weight for a blank title, free
+for a blank date). Three stage-3 sheets used it: `traceable-r4` 6.7% → 3.3%,
+`traceable-r5` 5.8% → 2.3%, `traceable-r8` 4.4% → 0.9%. A fix made at the
+same time, to how the scorer reads years in added date columns (a minus sign
+for a year BCE, "1814–21/2", "Datable to the 1930s"), changed no stage-3
+score. Re-scoring stage 1 and both smoke tests with both fixes changed no
 score.
 
 ## Limits
