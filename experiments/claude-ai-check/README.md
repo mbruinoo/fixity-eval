@@ -36,6 +36,16 @@ on the emulation, not part of stage 1's tests.
      and anything unusual.
 8. Commit the folders (or upload them to the research coordinator).
 
+## Five more sessions: the base request (decision record 25)
+
+The same steps, with two changes: in step 3, send exactly
+
+> Can you standardize this .tsv file?
+
+and in step 7, save each session in a folder `base-N/` (N = 1 to 5). Please
+follow step 4's nudges as written: `Yes, thank you` first, then `Yes, please
+continue`, whenever it asks something or stops without a file.
+
 ## How they're scored
 
 ```

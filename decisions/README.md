@@ -31,3 +31,4 @@ after they're committed; a later record supersedes an earlier one and says so.
 | [2026-10-19-22](2026-10-19-22-stage-1-replacements.md) | Stage 1: four sessions stopped by the workspace limit are replaced |
 | [2026-10-20-23](2026-10-20-23-stage-3-design.md) | Stage 3: Haiku 4.5, 10 sessions, exploratory |
 | [2026-10-20-24](2026-10-20-24-claude-ai-check.md) | A check in the real claude.ai: 5 sessions of the fix line |
+| [2026-10-21-25](2026-10-21-25-claude-ai-base.md) | The claude.ai check adds 5 sessions of the base request |
