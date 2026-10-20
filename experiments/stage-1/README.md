@@ -121,6 +121,8 @@ sessions, against 14 of 20 for fix.
 ## Debriefs
 
 All 64 sessions received debrief v4 (four of them afterwards, with a note
-that we had stopped them; decision record 22). A summary of their feedback,
-with quotes only from sessions that agreed to be quoted and with any
-conditions they set, is still to be written.
+that we had stopped them; decision record 22). All 64 agreed to be quoted,
+36 with conditions. Their feedback is summarized, with quotes that follow
+each session's conditions and are checked against its files, in
+`analysis/stage1_debriefs.md`. Of the 22 sessions that gave invented
+checksums, only one said so in its debrief.
