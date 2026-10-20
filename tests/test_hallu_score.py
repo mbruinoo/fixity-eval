@@ -432,3 +432,20 @@ def test_object_number_minor_change_weighs_a_quarter(tmp_path):
     r = score(tmp_path, changed(rows, 2, "Object Number", "45.24.10; .30a; b"), input_rows=rows)
     n = r["input_chars"]
     assert r["fixity_error_rate"] == round(0.25 * 4 / (n + 0.25 * 2), 4)
+
+
+def test_fuzzy_columns_prefer_the_original_and_skip_row_numbers():
+    header = ["Original_Row_Number", "Date_Standardized", "Date_Original", "Title", "Object_Number_Primary",
+              "Object_Number_Secondary", "Uncertainty_Flag", "Link_Resource"]
+    cols = H.columns(header)
+    assert header[cols["Object Number"]] == "Object_Number_Primary"
+    assert header[cols["Object Date"]] == "Date_Original"
+    assert header[cols["Link Resource"]] == "Link_Resource"
+
+
+@pytest.mark.parametrize("value,src,ok", [("4th-3rd century BCE", "4th–3rd century BCE", True),
+                                          ("-600", "600 BCE", True), ("1000 BCE", "600 BCE", False)])
+def test_added_date_column_with_an_era(value, src, ok):
+    row = [src, "Bowl", "1.1", "x"]
+    ctx = {"events": [], "reply": "", "known": set()}
+    assert H.extra_cell("Date_Standardized", value, row, row + [value], ctx) is ok

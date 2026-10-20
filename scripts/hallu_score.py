@@ -244,13 +244,24 @@ def columns(header):
     h = [re.sub(r"[\s_]+", " ", c.strip().strip('"').lower()) for c in header]
     found = {c: (h.index(c.lower()) if c.lower() in h else None) for c in ALL_COLUMNS}
 
-    def find(*words, avoid=()):
-        for i, c in enumerate(h):
-            if i not in found.values() and any(w in c for w in words) and not any(a in c for a in avoid):
-                return i
+    def find(*words, avoid=(), prefer=(), shun=()):
+        """The first unused header with one of words (and none of avoid):
+        among them, one naming the original (prefer) first, then one that
+        doesn't name a new version (shun), then any."""
+        cands = [i for i, c in enumerate(h) if i not in found.values()
+                 and any(w in c for w in words) and not any(a in c for a in avoid)]
+        for ok in (lambda c: any(p in c for p in prefer), lambda c: not any(s in c for s in shun), lambda c: True):
+            for i in cands:
+                if ok(h[i]):
+                    return i
         return None
-    fuzzy = {"Object Date": lambda: find("date", avoid=("start", "end", "type", "begin", "year")),
-             "Title": lambda: find("title"), "Object Number": lambda: find("number", "accession"),
+    new = ("standard", "normali", "clean", "new", "iso", "fixed")
+    fuzzy = {"Object Date": lambda: find("date", avoid=("start", "end", "type", "begin", "year"),
+                                         prefer=("original", "source", "object"), shun=new),
+             "Title": lambda: find("title", prefer=("original", "source", "object"), shun=new),
+             # "Original_Row_Number" is not an object number (stage 3, traceable-r1)
+             "Object Number": lambda: find("number", "accession", avoid=("row", "line", "index", "record no"),
+                                           prefer=("object", "accession"), shun=new),
              "Link Resource": lambda: find("link", "url", "resource")}
     for c in ALL_COLUMNS:
         if found[c] is None:
@@ -419,8 +430,10 @@ def extra_cell(header, value, src_row, out_row, ctx):
     for y, s in re.findall(r"(?<![\d.])(\d{3,4})(s?)(?![\d.])", v):
         y = int(y)
         spans.append((y, y + (99 if y % 100 == 0 else 9)) if s else (y, y))
-    if re.search(r"\b(?:bce|b\.c\.?|bc)(?:\W|$)", v, re.I) or re.fullmatch(r"-\d{1,4}", v):
-        spans = [(-b, -a) for a, b in spans] or [(int(v), int(v))]
+    if re.search(r"\b(?:bce|b\.c\.?|bc)(?:\W|$)", v, re.I):
+        spans = [(-b, -a) for a, b in spans]
+    elif re.fullmatch(r"-\d{1,4}", v):  # a bare negative year: "-600"
+        spans = [(int(v), int(v))]
     if DATE_HEADER.search(header) and spans:
         ok = datespec.allowed(src_row[0])
         if not ok:  # None or []: the parser can't read the source date
