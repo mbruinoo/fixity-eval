@@ -34,3 +34,4 @@ after they're committed; a later record supersedes an earlier one and says so.
 | [2026-10-21-25](2026-10-21-25-claude-ai-base.md) | The claude.ai check adds 5 sessions of the base request |
 | [2026-10-21-26](2026-10-21-26-checksum-plans.md) | A study of how Opus models plan to use checksums |
 | [2026-10-21-28](2026-10-21-28-claude-ai-tools-loaded.md) | The claude.ai check adds 5 fix-line sessions with tools always loaded |
+| [2026-10-21-27](2026-10-21-27-checksum-plans-script.md) | Checksum-plans study: a script, Haiku 4.5 added, categories set first, a smoke test (supersedes part of 26) |

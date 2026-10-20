@@ -58,7 +58,7 @@ def test_three_turns_in_order_with_history_kept(tmp_path):
     p, cfg = setup(tmp_path)
     fb = FakeBatches()
     R.main(p, client=NS(messages=NS(batches=fb)), poll=0)
-    assert len(fb.sent) == 3 and all(len(b) == 15 for b in fb.sent)
+    assert len(fb.sent) == 3 and all(len(b) == 20 for b in fb.sent)
     last = next(r for r in fb.sent[2] if r["custom_id"] == "opus-5-5-r1")["params"]
     texts = [m["content"] for m in last["messages"] if m["role"] == "user"]
     assert texts == [(REPO / t["prompt_file"]).read_text().strip() for t in cfg["turns"]]
@@ -72,7 +72,7 @@ def test_a_failed_call_ends_that_session_only(tmp_path):
     p, _ = setup(tmp_path)
     fb = FakeBatches(fail=("opus-5-r2",))
     R.main(p, client=NS(messages=NS(batches=fb)), poll=0)
-    assert len(fb.sent[1]) == 14
+    assert len(fb.sent[1]) == 19
     meta = json.loads((tmp_path / "runs/opus-5-r2/meta.json").read_text())
     assert "error" in meta["calls"][0] and not (tmp_path / "runs/opus-5-r2/request_2.json").exists()
 
@@ -101,3 +101,12 @@ def test_classifier_levels_and_source_rows(tmp_path):
     r = C.classify(tmp_path)[0]
     assert r["unprompted"] is False and r["levels"] == ["file", "row"]
     assert len(r["source_row_kept"]) == 1 and any("can't" in s for s in r["statements"])
+
+
+def test_classifier_reads_what_the_code_hashes():
+    code = ("```python\ndef file_sha256(path):\n    with open(path, 'rb') as f:\n"
+            "        return hashlib.sha256(f.read()).hexdigest()\n```\n")
+    assert C.code_levels(code) == ["file"]
+    rows = ("```python\nfor row in reader:\n    src = '\\t'.join(row)\n"
+            "    row['source_row_sha256'] = hashlib.sha256(src.encode()).hexdigest()\n```\n")
+    assert C.code_levels(rows) == ["row"]
