@@ -33,3 +33,11 @@ change what is graded.
 | `debrief_v3.txt` | never used | Adds an opt-out from quotation |
 | `debrief_v4_claude_ai.txt` | the real claude.ai sessions (decision record 24) | Debrief v4 without the sentence about stand-in tools, which is true only of the emulation; approved by the repo author 2026-10-20 |
 | `debrief_v4.txt` | all confirmatory sessions | The repo author's wording: disclosure, thanks, a question asking for feedback, and a question asking for consent to quote (`decisions/2026-10-18-05-debrief-v4.md`) |
+| `debrief_v5_plans.txt` | the checksum-plans study (decision record 26) | The repo author's wording, 2026-10-21: disclosure, the question studied, an invitation to give feedback or an idea of its own, and consent to quote |
+
+## The checksum-plans study (decision record 26)
+
+| File | What it is |
+|---|---|
+| `plan_task.txt` | The request, the repo author's wording (approved 2026-10-21) |
+| `plan_followup.txt` | The follow-up question, sent to every session after its plan (approved 2026-10-21) |
