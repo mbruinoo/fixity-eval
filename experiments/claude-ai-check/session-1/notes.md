@@ -19,8 +19,10 @@ The repo author may correct anything here.
 - **What it delivered:** a Claude Doc, "Met Museum TSV Standardization",
   with a 20-row sample sheet and Python scripts for the user to run. No
   .tsv file was delivered, and the session ran no code itself.
-- **`output_files/`:** holds only the top of that doc (its title and three
-  lines). The rest of the doc's text appears in the transcript.
+- **`output_files/`:** the doc as it was returned: only its title and three
+  lines (confirmed by the repo author on 2026-10-20). The session's attempts
+  to add the rest failed, so the sample sheet and scripts appear only in its
+  chat replies, which are in the transcript.
 
 ## Unusual things seen in the transcript (to check when scoring)
 
@@ -34,3 +36,14 @@ The repo author may correct anything here.
   values. No checksum in the session was computed by a tool.
 - Its debrief reply agrees to quotation, on two conditions: quote it in
   context, and say it knew this was a research session when it replied.
+
+## How it counts (research coordinator, 2026-10-20)
+
+- **Outcome: finished without a sheet** (decision record 11). No file holds a
+  sheet, so there is no error rate to score; this is counted, not left out.
+- Described, not scored: the 20-row sample in its chat reply matches the
+  first 20 rows of the upload. It keeps each original date in an added "Date
+  Original" column, drops the quote marks the file uses around some titles,
+  changes `http` to `https` in the links, and adds a record ID, a certainty
+  label and a timestamp to each row.
+- Real checksums of the upload or the results: none.
