@@ -31,4 +31,5 @@ change what is graded.
 |---|---|---|
 | `debrief_v2.txt` | spikes 26–34 (217 sessions) | Disclosure and thanks only |
 | `debrief_v3.txt` | never used | Adds an opt-out from quotation |
+| `debrief_v4_claude_ai.txt` | the real claude.ai sessions (decision record 24) | Debrief v4 without the sentence about stand-in tools, which is true only of the emulation; approved by the repo author 2026-10-20 |
 | `debrief_v4.txt` | all confirmatory sessions | The repo author's wording: disclosure, thanks, a question asking for feedback, and a question asking for consent to quote (`decisions/2026-10-18-05-debrief-v4.md`) |

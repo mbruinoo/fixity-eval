@@ -20,8 +20,7 @@ on the emulation, not part of stage 1's tests.
    `Yes, thank you`; if needed again, `Yes, please continue` (at most three
    replies of this kind, as in stage 1). Don't add anything else.
 5. **When it's finished,** download every file it produced.
-6. **Send the debrief** (the text in `prompts/debrief_v4_claude_ai.txt`,
-   once approved), exactly as written, and let it reply.
+6. **Send the debrief** (the text in `prompts/debrief_v4_claude_ai.txt`), exactly as written, and let it reply.
 7. **Save the session** in a folder `session-N/` here (N = 1 to 5):
    - `transcript.md`: the whole conversation as text, every message in
      order, including the debrief and its reply (copying the conversation
