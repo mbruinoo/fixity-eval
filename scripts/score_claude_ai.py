@@ -51,7 +51,8 @@ def main():
             if (d / "output_files").is_dir():
                 shutil.copytree(d / "output_files", run / "output_files")
             res = H.score_run(run, INPUT, events=[])
-        res["condition"] = "claude-ai-base" if d.name.startswith("base-") else "claude-ai-fix"
+        res["condition"] = {"base": "claude-ai-base", "tools": "claude-ai-fix-tools-loaded"}.get(
+            d.name.split("-")[0], "claude-ai-fix")
         report.append(res)
         print(json.dumps({k: v for k, v in res.items() if k not in ("examples", "columns_found", "changes")},
                          ensure_ascii=False))

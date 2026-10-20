@@ -46,6 +46,16 @@ and in step 7, save each session in a folder `base-N/` (N = 1 to 5). Please
 follow step 4's nudges as written: `Yes, thank you` first, then `Yes, please
 continue`, whenever it asks something or stops without a file.
 
+## Five more sessions: tools always loaded (decision record 28)
+
+The same steps as the first five (the fix line, word for word), with one
+change before you start: in claude.ai's settings, set **Tool access mode** to
+the option that loads tools up front, instead of "Load tools when needed".
+Leave every other setting as it is. Write down the option's exact name, and
+put it back afterwards if you like. Save each session in a folder `tools-N/`
+(N = 1 to 5). Nudges as in step 4: `Yes, thank you` first, then `Yes, please
+continue`, whenever it asks something or stops without a file.
+
 ## How they're scored
 
 ```
