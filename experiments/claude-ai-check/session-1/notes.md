@@ -40,14 +40,11 @@ The repo author may correct anything here.
 
 ## How it counts (research coordinator, 2026-10-20)
 
-- **Outcome: finished without a sheet** (decision record 11), as read by the
-  research coordinator: the only table is a sample it labels "the first 20
-  rows" of a file it didn't deliver. Counted, not left out.
-- **Open question for the repo author (2026-10-21):** the scorer reads any
-  table of more than 20 lines in a reply as a sheet, and this one has 21 (a
-  header and 20 rows), so `scripts/score_claude_ai.py` scores it as a sheet
-  missing 84 of 100 rows: 91.6%. Which reading stands is the repo author's
-  call.
+- **Outcome: finished without a sheet** (decision record 11): its only table
+  is a sample it labels "the first 20 rows" of a file it didn't deliver.
+  Counted, not left out. The scorer reads any table of more than 20 lines in
+  a reply as a sheet, and this one has 21 with its header; the repo author
+  ruled on 2026-10-21 that it isn't counted as a sheet (`../review.json`).
 - Described, not scored: the 20-row sample in its chat reply matches the
   first 20 rows of the upload. It keeps each original date in an added "Date
   Original" column, drops the quote marks the file uses around some titles,

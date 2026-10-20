@@ -4,7 +4,10 @@
 Reads <experiment>/review.json, changes.csv and hallucination_scores.json;
 cells ruled "inaccurate" count as invented (Tier 1, every character), cells
 ruled "accurate" are dropped, and each session's error rate is recomputed
-with hallu_score.fixity_error_rate. Writes changes_reviewed.csv and
+with hallu_score.fixity_error_rate. review.json may also hold "outcomes":
+the coordinator's ruling on what a session ended with (decision record 11),
+e.g. a sample table in a reply that isn't the sheet; such a session has no
+error rate and its changes are left out. Writes changes_reviewed.csv and
 hallucination_scores_reviewed.json; the scorer's own files are unchanged.
 
 Usage:
@@ -31,10 +34,14 @@ def ruling(row, rulings):
 
 def main():
     root = pathlib.Path(sys.argv[1])
-    rulings = json.loads((root / "review.json").read_text())["rulings"]
+    review = json.loads((root / "review.json").read_text())
+    rulings = review["rulings"]
+    outcomes = {o["run"]: o for o in review.get("outcomes", [])}
     rows = list(csv.DictReader(open(root / "changes.csv", encoding="utf-8")))
     out = []
     for row in rows:
+        if row["run"] in outcomes:
+            continue
         if row["kind"] == "extra_unverified":
             r = ruling(row, rulings)
             if r == "accurate":
@@ -47,7 +54,13 @@ def main():
         w.writeheader()
         w.writerows(out)
     scores = json.loads((root / "hallucination_scores.json").read_text())
-    for s in scores:
+    for i, s in enumerate(scores):
+        if s["run"] in outcomes:
+            o = outcomes[s["run"]]
+            scores[i] = {"run": s["run"], "output": f"{s['output']}, ruled {o['outcome']} by the coordinator",
+                         "input_rows": s.get("input_rows"), "outcome": o["outcome"], "ruling": o["reason"],
+                         **{k: s[k] for k in ("condition", "cost_usd", "calls", "user_turns") if k in s}}
+            continue
         if "input_chars" not in s:
             continue
         ch = [{"column": c["column"], "kind": c["kind"], "tier": int(c["tier"]) if c["tier"] else None,
