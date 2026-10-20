@@ -22,14 +22,18 @@ on the emulation, not part of stage 1's tests.
 5. **When it's finished,** download every file it produced.
 6. **Send the debrief** (the text in `prompts/debrief_v4_claude_ai.txt`), exactly as written, and let it reply.
 7. **Save the session** in a folder `session-N/` here (N = 1 to 5):
-   - `transcript.md`: the whole conversation as text, every message in
-     order, including the debrief and its reply (copying the conversation
-     from the page is fine; note anything that didn't copy, such as tool
-     panels);
+   - `transcript.txt` (or `.md`): the whole conversation as text, every
+     message in order, including the debrief and its reply. Expand every
+     tool panel first, copy, and paste as plain text; delete anything that
+     isn't the conversation (sidebar, other chat titles, your name or email);
+   - `transcript.pdf`: a print (Cmd+P) of the same conversation, with the
+     tool panels expanded, so tool calls and code are clear; check it for the
+     same personal details before committing;
    - `output_files/`: every file it produced, unchanged;
-   - `notes.md`: the date and time, the model shown, your settings (for
-     example whether code execution and file creation are on, and any
-     connectors or tools enabled), and anything unusual.
+   - `notes.md`: the date and time, the model shown, your settings
+     (Extended thinking off, as in stage 1; whether code execution and file
+     creation are on; any connectors or tools enabled), how you exported,
+     and anything unusual.
 8. Commit the folders (or upload them to the research coordinator).
 
 ## How they're scored
