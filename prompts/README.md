@@ -41,3 +41,11 @@ change what is graded.
 |---|---|
 | `plan_task.txt` | The request, the repo author's wording (approved 2026-10-21) |
 | `plan_followup.txt` | The follow-up question, sent to every session after its plan (approved 2026-10-21) |
+| `debrief_v6_wrappers.txt` | the 2×2 study (decision record 30) | v5 with its second sentence describing the 2×2 study; approved 2026-10-21 |
+
+## The 2×2 study (decision record 30)
+
+| File | What it is |
+|---|---|
+| `wrap_A.txt` … `wrap_D.txt` | The four requests: a file or records, with or without "Individual entries are sometimes corrected or withdrawn later." |
+| `wrap_followup.txt` | The follow-up, the repo author's wording |

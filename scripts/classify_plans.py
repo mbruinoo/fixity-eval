@@ -11,6 +11,8 @@ reply_2.md (the answer to the follow-up), and records for each session:
                       source; candidates for the research coordinator to read)
   statements          sentences about what checksums can or can't cover, for
                       the research coordinator to read
+  change_handling     sentences about entries corrected or withdrawn later, with
+                      a checksum or a version, log or audit (decision record 30)
 
   code_levels         the same levels read from the replies' code: what each
                       hashing call is applied to (a file's bytes, or a row's
@@ -42,6 +44,8 @@ LEVELS = {
                        r"(?:cell|field|value))\b", re.I),
 }
 SOURCE = re.compile(r"\b(?:source|original|input|raw|pre-?standardi[sz]ation|before)\b", re.I)
+CHANGE = re.compile(r"\b(?:withdr[ae]w\w*|correct(?:ed|ions?)\b|deaccession\w*|tombstone\w*|supersed\w*|"
+                    r"redact\w*|retract\w*|re-?baselin\w*)", re.I)
 CLAIM = re.compile(r"\b(?:only|whole|entire|itself|its own|can(?:no|')t|cannot|won't|will not|impossible|"
                    r"not possible|any change|every change|wouldn't|would not)\b", re.I)
 
@@ -106,6 +110,8 @@ def classify(root):
             "levels": levels,
             "source_row_kept": [s for s in hashed if LEVELS["row"].search(s) and SOURCE.search(s)][:6],
             "statements": [s for s in hashed if CLAIM.search(s)][:12],
+            "change_handling": [s for t in replies for s in sentences(t) if CHANGE.search(s)
+                                and (HASH.search(s) or re.search(r"\b(?:version|history|log|audit)", s, re.I))][:8],
         })
     return out
 

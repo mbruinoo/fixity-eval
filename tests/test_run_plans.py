@@ -128,3 +128,18 @@ def test_reply_limits_can_be_set_per_model(tmp_path):
     caps = {r["custom_id"]: r["params"]["max_tokens"] for r in fb.sent[0]}
     assert caps["opus-5-5-r1"] == 64000 and caps["opus-4-6-r1"] == 16000 and caps["haiku-4-5-r1"] == 16000
     assert {r["custom_id"]: r["params"]["max_tokens"] for r in fb.sent[2]}["opus-5-r1"] == 16000
+
+
+def test_variants_swap_the_first_prompt_only(tmp_path):
+    cfg = json.loads((REPO / "experiments/checksum-wrappers/config.json").read_text())
+    cfg["repeats"] = 1
+    p = tmp_path / "config.json"
+    p.write_text(json.dumps(cfg))
+    fb = FakeBatches()
+    R.main(p, client=NS(messages=NS(batches=fb)), poll=0)
+    first = {r["custom_id"]: r["params"]["messages"][0]["content"] for r in fb.sent[0]}
+    assert sorted(first) == ["A-haiku-4-5-r1", "B-haiku-4-5-r1", "C-haiku-4-5-r1", "D-haiku-4-5-r1"]
+    assert first["C-haiku-4-5-r1"].endswith("corrected or withdrawn later.")
+    assert first["A-haiku-4-5-r1"] == (REPO / "prompts/wrap_A.txt").read_text().strip()
+    second = {r["params"]["messages"][2]["content"] for r in fb.sent[1]}
+    assert second == {(REPO / "prompts/wrap_followup.txt").read_text().strip()}

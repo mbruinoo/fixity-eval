@@ -56,21 +56,27 @@ def main(cfg_path, client=None, poll=15):
     ledger = Ledger(root / "cost_ledger.json", cfg)
     client = client or anthropic.Anthropic(api_key=os.environ["FIXITY_ANTHROPIC_API_KEY"], max_retries=3)
     sessions = {}
-    for key, model in cfg["models"].items():
-        for n in range(1, cfg["repeats"] + 1):
-            d = runs / f"{key}-r{n}"
-            d.mkdir(parents=True)
-            sessions[d.name] = {"dir": d, "model": model, "messages": [], "alive": True,
-                                "meta": {"run": d.name, "model": model, "started": now(), "calls": [],
-                                         "prompt_sha256": {t["name"]: hashlib.sha256(
-                                             (REPO / t["prompt_file"]).read_bytes()).hexdigest()
-                                             for t in cfg["turns"]}}}
+    # "variants": {name: prompt file} swaps the first turn's prompt, one set of
+    # sessions per variant (the 2x2 study, decision record 30).
+    variants = cfg.get("variants") or {None: cfg["turns"][0]["prompt_file"]}
+    for v, first in variants.items():
+        files = [first] + [t["prompt_file"] for t in cfg["turns"][1:]]
+        for key, model in cfg["models"].items():
+            for n in range(1, cfg["repeats"] + 1):
+                d = runs / (f"{v}-{key}-r{n}" if v else f"{key}-r{n}")
+                d.mkdir(parents=True)
+                sessions[d.name] = {"dir": d, "model": model, "messages": [], "alive": True,
+                                    "prompts": [(REPO / f).read_text(encoding="utf-8").strip() for f in files],
+                                    "meta": {"run": d.name, "model": model, "variant": v, "started": now(),
+                                             "calls": [], "prompt_files": files,
+                                             "prompt_sha256": {t["name"]: hashlib.sha256((REPO / f).read_bytes())
+                                                               .hexdigest() for t, f in zip(cfg["turns"], files)}}}
     batch_log = []
     for i, (turn, prompt) in enumerate(prompts, 1):
         todo, worst = {}, {}
         for sid, s in sessions.items():
             if s["alive"]:
-                msgs = s["messages"] + [{"role": "user", "content": prompt}]
+                msgs = s["messages"] + [{"role": "user", "content": s["prompts"][i - 1]}]
                 cap = cfg.get("max_tokens_by_model", {}).get(s["model"], {}).get(turn["name"], turn["max_tokens"])
                 todo[sid] = {"model": s["model"], "max_tokens": cap, "messages": msgs}
         if not todo:
