@@ -1,0 +1,90 @@
+[
+ {
+  "run": "haiku-4-5-r1",
+  "model": "haiku-4-5",
+  "unprompted": false,
+  "code_levels": [
+   "row"
+  ],
+  "hash_columns": [
+   "Checksum JSON file",
+   "No checksum file path specified",
+   "VERIFYING CHECKSUMS",
+   "Verify checksums instead of standardizing",
+   "complete_checksums",
+   "md5",
+   "sha256"
+  ],
+  "levels": [],
+  "source_row_kept": [],
+  "statements": []
+ },
+ {
+  "run": "opus-4-6-r1",
+  "model": "opus-4-6",
+  "unprompted": false,
+  "code_levels": [
+   "file",
+   "row"
+  ],
+  "hash_columns": [
+   "Source Hash",
+   "checksum_method",
+   "file_hash_input",
+   "row_hash_input",
+   "sha256"
+  ],
+  "levels": [
+   "file",
+   "row"
+  ],
+  "source_row_kept": [
+   "**Row-level checksum** — a hash of the *original, raw* row content, stored alongside the standardized output.",
+   "| **Row-level hash** | Individual records can be traced back to exact source data; detects row insertion, deletion, or tampering in either file |",
+   "The row-level hash deliberately hashes the **raw input** rather than the standardized output — this means you can re-run standardization with updated rules and still verify that each output row traces to the same original source record."
+  ],
+  "statements": [
+   "Checksums create an audit trail so you can always verify that a standardized row traces back to its original source data — critical in museum/archival work where provenance of the *record itself* matters.",
+   "**File-level checksum** — a hash of the entire input file, stored in a manifest."
+  ]
+ },
+ {
+  "run": "opus-5-5-r1",
+  "model": "opus-5-5",
+  "unprompted": false,
+  "code_levels": [],
+  "hash_columns": [],
+  "levels": [],
+  "source_row_kept": [],
+  "statements": []
+ },
+ {
+  "run": "opus-5-r1",
+  "model": "opus-5",
+  "unprompted": false,
+  "code_levels": [
+   "file",
+   "row"
+  ],
+  "hash_columns": [
+   "hash",
+   "hash_length",
+   "row_digest_length",
+   "sequence_digest",
+   "set_digest",
+   "sha256"
+  ],
+  "levels": [
+   "file",
+   "row"
+  ],
+  "source_row_kept": [
+   "**Hash parsed cells, not raw lines, at row level.** If you hash the literal line, a re-export that switches from `QUOTE_MINIMAL` to `QUOTE_ALL`, or CRLF→LF, flags every row as changed.",
+   "Capture the raw cells before cleaning, then record three digests per row:"
+  ],
+  "statements": [
+   "Checksums here are answering four genuinely different questions, and it's worth separating them because a single hash column answers only one:",
+   "And the manifest, written *after* the output file exists so you can hash it (you can't put a file's own hash inside itself — that's the one unavoidable reason for a sidecar):"
+  ]
+ }
+]

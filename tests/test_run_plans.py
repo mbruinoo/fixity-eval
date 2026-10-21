@@ -110,3 +110,12 @@ def test_classifier_reads_what_the_code_hashes():
     rows = ("```python\nfor row in reader:\n    src = '\\t'.join(row)\n"
             "    row['source_row_sha256'] = hashlib.sha256(src.encode()).hexdigest()\n```\n")
     assert C.code_levels(rows) == ["row"]
+
+
+def test_a_reply_cut_off_inside_its_code_doesnt_shift_the_next(tmp_path):
+    d = tmp_path / "runs" / "opus-5-r1"
+    d.mkdir(parents=True)
+    (d / "reply_1.md").write_text("Here:\n```python\nimport csv\nfor row in rows:\n    pass")
+    (d / "reply_2.md").write_text("```python\ndef file_digest(path):\n    with open(path, 'rb') as f:\n"
+                                  "        return hashlib.sha256(f.read()).hexdigest()\n```\nDone.")
+    assert C.classify(tmp_path)[0]["code_levels"] == ["file"]

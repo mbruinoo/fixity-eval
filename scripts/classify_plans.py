@@ -47,6 +47,8 @@ CLAIM = re.compile(r"\b(?:only|whole|entire|itself|its own|can(?:no|')t|cannot|w
 
 
 def sentences(text):
+    if len(re.findall(r"^\s*```", text, flags=re.M)) % 2:  # cut off inside its code
+        text += "\n```"
     text = re.sub(r"```.*?```", " ", text, flags=re.S)  # code shows how, the prose says what
     return [s.strip() for s in re.split(r"(?<=[.!?:])\s+|\n+", text) if s.strip()]
 
@@ -61,19 +63,24 @@ HASH_NAME = re.compile(r"['\"]([A-Za-z_ ]*(?:hash|checksum|sha256|sha_256|md5|di
 
 
 def code_blocks(text):
+    if len(re.findall(r"^\s*```", text, flags=re.M)) % 2:  # a reply cut off inside its code
+        text += "\n```"
     return re.findall(r"```[^\n]*\n(.*?)```", text, flags=re.S)
 
 
 def code_levels(text):
-    """Levels of the hashing in the code: for each hashing call, its line and
-    the four before it decide whether it hashes a file or a row."""
+    """Levels of the hashing in the code: for each hashing call, its line, the
+    four before it, and the signature of the function it sits in (hashing is
+    often in a helper, "def row_digest(fields):") decide whether it hashes a
+    file or a row."""
     levels = set()
     for block in code_blocks(text):
         lines = block.splitlines()
         for i, ln in enumerate(lines):
             if not HASH_CALL.search(ln) or ln.lstrip().startswith("#"):
                 continue
-            near = "\n".join(lines[max(0, i - 4): i + 1])
+            sig = next((l for l in reversed(lines[:i]) if re.match(r"\s*(?:async\s+)?def\s", l)), "")
+            near = "\n".join([sig] + lines[max(0, i - 4): i + 1])
             if CODE_ROW.search(ln) or (CODE_ROW.search(near) and not CODE_FILE.search(ln)):
                 levels.add("row")
             if CODE_FILE.search(near):
@@ -86,14 +93,15 @@ def classify(root):
     for d in sorted((pathlib.Path(root) / "runs").iterdir()):
         plan = (d / "reply_1.md").read_text(encoding="utf-8") if (d / "reply_1.md").exists() else ""
         answer = (d / "reply_2.md").read_text(encoding="utf-8") if (d / "reply_2.md").exists() else ""
-        hashed = [s for s in sentences(plan + "\n" + answer) if HASH.search(s)]
+        replies = [plan, answer]  # read one by one: a reply cut off mid-code mustn't shift the next one's fences
+        hashed = [s for t in replies for s in sentences(t) if HASH.search(s)]
         levels = sorted(k for k, rx in LEVELS.items() if any(rx.search(s) for s in hashed))
         out.append({
             "run": d.name,
             "model": re.sub(r"-r\d+$", "", d.name),
             "unprompted": bool(HASH.search(plan)),
-            "code_levels": code_levels(plan + "\n" + answer),
-            "hash_columns": sorted({m.group(1) for b in code_blocks(plan + "\n" + answer)
+            "code_levels": sorted(set(code_levels(plan)) | set(code_levels(answer))),
+            "hash_columns": sorted({m.group(1) for t in replies for b in code_blocks(t)
                                     for m in HASH_NAME.finditer(b)})[:12],
             "levels": levels,
             "source_row_kept": [s for s in hashed if LEVELS["row"].search(s) and SOURCE.search(s)][:6],
