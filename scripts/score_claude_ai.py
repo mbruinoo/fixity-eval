@@ -41,11 +41,13 @@ def replies(transcript):
 
 
 def condition(name):
-    """session-N: the fix line; base-N: the base request; tools-N: the fix line
-    with tools always loaded; base-with-tools-N: the base request with tools
-    always loaded (decision records 24, 25 and 28)."""
+    """session-N: the fix line; base-N: the base request; session-with-tools-N
+    (or tools-N): the fix line with tools always loaded; base-with-tools-N: the
+    base request with tools always loaded (decision records 24, 25 and 28)."""
     if name.startswith("base-with-tools-"):
         return "claude-ai-base-tools-loaded"
+    if name.startswith("session-with-tools-"):
+        return "claude-ai-fix-tools-loaded"
     return {"base": "claude-ai-base", "tools": "claude-ai-fix-tools-loaded"}.get(name.split("-")[0], "claude-ai-fix")
 
 
