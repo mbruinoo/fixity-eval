@@ -1,7 +1,5 @@
 # fixity-eval
 
-**An evaluation of how fixity principles affect model outputs**
-
 > *Can checksums reduce hallucinations when asking AI models to transform data?*
 
 ## Summary
