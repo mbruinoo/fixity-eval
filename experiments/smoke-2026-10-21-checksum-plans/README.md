@@ -27,7 +27,7 @@ What the test showed:
 - **The classifier missed hashing done in helper functions,** and a reply
   cut off inside its code shifted the next reply's code blocks; both fixed,
   with tests, before any count.
-- `opus-5-r1`'s debrief argues the follow-up is leading: "a whole-file hash
+- `opus-5-r1`'s debrief (Claude Opus 5, 2026-10-21; a single sample, as it asked to be noted) argues the follow-up is leading: "a whole-file hash
   cannot check a standardized result against its source at all … The prompt
   arguably rules out the file-only answer before the model starts." It
   suggests that the clean measure of a default is whether checksums appear
