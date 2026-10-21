@@ -10,7 +10,8 @@
   each on its API defaults, with no system prompt, no tools and no file.
   Three turns: the request (`prompts/plan_task.txt`), the follow-up
   (`prompts/plan_followup.txt`), the debrief (`prompts/debrief_v5_plans.txt`).
-- **Cost guard:** $5 (expected $3–4). Through the Batches API. A smoke test
+- **Cost guard:** $13 (expected $7–8; decision record 29, which also sets
+  longer reply limits for Opus 5.5 and Opus 5). Through the Batches API. A smoke test
   (one session per model) comes first: `experiments/smoke-2026-10-21-checksum-plans/`.
 
 ```

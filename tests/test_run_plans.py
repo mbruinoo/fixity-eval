@@ -46,7 +46,7 @@ class FakeBatches:
             yield NS(custom_id=cid, result=NS(type="succeeded", message=msg))
 
 
-def setup(tmp_path, budget=5.0):
+def setup(tmp_path, budget=30.0):
     cfg = json.loads((REPO / "experiments/checksum-plans/config.json").read_text())
     cfg["budget_stop_usd"] = budget
     p = tmp_path / "config.json"
@@ -119,3 +119,12 @@ def test_a_reply_cut_off_inside_its_code_doesnt_shift_the_next(tmp_path):
     (d / "reply_2.md").write_text("```python\ndef file_digest(path):\n    with open(path, 'rb') as f:\n"
                                   "        return hashlib.sha256(f.read()).hexdigest()\n```\nDone.")
     assert C.classify(tmp_path)[0]["code_levels"] == ["file"]
+
+
+def test_reply_limits_can_be_set_per_model(tmp_path):
+    p, cfg = setup(tmp_path, budget=20.0)
+    fb = FakeBatches()
+    R.main(p, client=NS(messages=NS(batches=fb)), poll=0)
+    caps = {r["custom_id"]: r["params"]["max_tokens"] for r in fb.sent[0]}
+    assert caps["opus-5-5-r1"] == 64000 and caps["opus-4-6-r1"] == 16000 and caps["haiku-4-5-r1"] == 16000
+    assert {r["custom_id"]: r["params"]["max_tokens"] for r in fb.sent[2]}["opus-5-r1"] == 16000

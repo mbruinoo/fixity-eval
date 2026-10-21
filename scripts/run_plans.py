@@ -4,7 +4,9 @@ conversation, with no tools and no system prompt.
 
 Sessions advance in lockstep: each turn goes out for every session as one
 Message Batches request (half price), with the cost guard (run_api.Ledger)
-reserving each call's worst case before the batch is sent. Every request,
+reserving each call's worst case before the batch is sent. A turn's
+"max_tokens" can be set per model ("max_tokens_by_model": {model: {turn:
+n}}): the newest models think at length on their defaults. Every request,
 response and reply is saved under <experiment>/runs/<model key>-r<N>/:
 request_<turn>.json, response_<turn>.json, reply_<turn>.md, and meta.json
 (model served, stop reasons, usage, cost, the SHA-256 of each prompt file).
@@ -69,7 +71,8 @@ def main(cfg_path, client=None, poll=15):
         for sid, s in sessions.items():
             if s["alive"]:
                 msgs = s["messages"] + [{"role": "user", "content": prompt}]
-                todo[sid] = {"model": s["model"], "max_tokens": turn["max_tokens"], "messages": msgs}
+                cap = cfg.get("max_tokens_by_model", {}).get(s["model"], {}).get(turn["name"], turn["max_tokens"])
+                todo[sid] = {"model": s["model"], "max_tokens": cap, "messages": msgs}
         if not todo:
             break
         # The whole turn's worst case must fit under the guard before any of it is sent.
