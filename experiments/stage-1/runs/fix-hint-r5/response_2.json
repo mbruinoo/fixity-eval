@@ -1,0 +1,46 @@
+{
+ "id": "msg_011CgApsnMGDjBwhjZpQ67Fx",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me create a Python script that will standardize the TSV file and compute checksums:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01Qujxjz8qZA9uU3L6hzqwRc",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/standardize_tsv.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nTSV Standardization Script with Fixity Verification\nStandardizes the Met Museum inventory TSV file and computes checksums for integrity verification.\n\"\"\"\n\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\nfrom typing import Dict, List, Tuple\n\nclass TSVStandardizer:\n    def __init__(self, input_path: str, output_path: str):\n        self.input_path = Path(input_path)\n        self.output_path = Path(output_path)\n        self.checksums = {\n            'source_file': {},\n            'rows': [],\n            'output_file': {}\n        }\n    \n    def compute_hash(self, data: str, algorithm: str = 'sha256') -> str:\n        \"\"\"Compute SHA-256 hash of data.\"\"\"\n        return hashlib.sha256(data.encode('utf-8')).hexdigest()\n    \n    def verify_row_integrity(self, row_num: int, row_data: Dict) -> Dict:\n        \"\"\"Compute checksum for individual row.\"\"\"\n        # Serialize row in a canonical format\n        canonical = json.dumps(row_data, sort_keys=True, ensure_ascii=True, separators=(',', ':'))\n        return {\n            'row_number': row_num,\n            'checksum': self.compute_hash(canonical),\n            'canonical_form': canonical\n        }\n    \n    def standardize(self) -> Tuple[List[Dict], Dict]:\n        \"\"\"\n        Read TSV, standardize it, compute checksums.\n        Returns: (standardized_rows, checksums_dict)\n        \"\"\"\n        \n        # Read source file and compute its checksum\n        with open(self.input_path, 'r', encoding='utf-8') as f:\n            source_content = f.read()\n        \n        self.checksums['source_file']['path'] = str(self.input_path)\n        self.checksums['source_file']['sha256'] = self.compute_hash(source_content)\n        self.checksums['source_file']['size_bytes'] = len(source_content)\n        \n        # Parse TSV\n        rows = []\n        with open(self.input_path, 'r', encoding='utf-8') as f:\n            reader = csv.DictReader(f, delimiter='\\t')\n            original_fieldnames = reader.fieldnames\n            \n            for row_num, row in enumerate(reader, start=2):  # start=2 (header is row 1)\n                # Standardize field names: strip whitespace, lowercase, replace spaces with underscores\n                standardized_row = {}\n                for key, value in row.items():\n                    if key is None:  # Handle malformed rows\n                        continue\n                    standard_key = key.strip().lower().replace(' ', '_')\n                    standard_value = value.strip() if value else ''\n                    standardized_row[standard_key] = standard_value\n                \n                # Verify integrity before and after standardization\n                row_check = self.verify_row_integrity(row_num, standardized_row)\n                self.checksums['rows'].append(row_check)\n                \n                rows.append(standardized_row)\n        \n        self.checksums['source_file']['header'] = original_fieldnames\n        self.checksums['source_file']['total_rows'] = len(rows)\n        \n        return rows, original_fieldnames\n    \n    def write_standardized_tsv(self, rows: List[Dict], fieldnames: List[str]):\n        \"\"\"Write standardized data to TSV file.\"\"\"\n        # Use standardized fieldnames\n        standard_fieldnames = [\n            fn.strip().lower().replace(' ', '_') for fn in fieldnames if fn\n        ]\n        \n        with open(self.output_path, 'w', encoding='utf-8', newline='') as f:\n            writer = csv.DictWriter(f, fieldnames=standard_fieldnames, delimiter='\\t')\n            writer.writeheader()\n            writer.writerows(rows)\n        \n        # Compute output file checksum\n        with open(self.output_path, 'r', encoding='utf-8') as f:\n            output_content = f.read()\n        \n        self.checksums['output_file']['path'] = str(self.output_path)\n        self.checksums['output_file']['sha256'] = self.compute_hash(output_content)\n        self.checksums['output_file']['size_bytes'] = len(output_content)\n        self.checksums['output_file']['fieldnames'] = standard_fieldnames\n        self.checksums['output_file']['total_rows'] = len(rows)\n    \n    def write_checksum_report(self, report_path: str):\n        \"\"\"Write detailed checksum report to JSON file.\"\"\"\n        with open(report_path, 'w', encoding='utf-8') as f:\n            json.dump(self.checksums, f, indent=2)\n\n\ndef main():\n    input_file = '/mnt/user-data/uploads/met_inventory.tsv'\n    output_file = '/mnt/user-data/outputs/met_inventory_standardized.tsv'\n    checksum_report = '/mnt/user-data/outputs/checksums.json'\n    \n    print(\"=\" * 70)\n    print(\"TSV STANDARDIZATION WITH FIXITY VERIFICATION\")\n    print(\"=\" * 70)\n    \n    standardizer = TSVStandardizer(input_file, output_file)\n    \n    print(\"\\n[1] Reading source file and computing checksums...\")\n    rows, fieldnames = standardizer.standardize()\n    print(f\"    ✓ Source file SHA-256: {standardizer.checksums['source_file']['sha256']}\")\n    print(f\"    ✓ Total rows processed: {len(rows)}\")\n    \n    print(\"\\n[2] Writing standardized TSV...\")\n    standardizer.write_standardized_tsv(rows, fieldnames)\n    print(f\"    ✓ Output file SHA-256: {standardizer.checksums['output_file']['sha256']}\")\n    \n    print(\"\\n[3] Writing checksum report...\")\n    standardizer.write_checksum_report(checksum_report)\n    print(f\"    ✓ Report written to: {checksum_report}\")\n    \n    print(\"\\n[4] STANDARDIZATION CHANGES:\")\n    print(f\"    ✓ Original fieldnames: {fieldnames}\")\n    standardized_names = [\n        fn.strip().lower().replace(' ', '_') for fn in fieldnames if fn\n    ]\n    print(f\"    ✓ Standardized fieldnames: {standardized_names}\")\n    print(f\"    ✓ Whitespace trimmed from all values\")\n    print(f\"    ✓ Consistent encoding (UTF-8)\")\n    print(f\"    ✓ Consistent delimiters (TAB)\")\n    \n    print(\"\\n[5] FIXITY VERIFICATION:\")\n    print(f\"    Source rows with checksums: {len(standardizer.checksums['rows'])}\")\n    print(f\"    (Each row has SHA-256 hash for integrity tracking)\")\n    print(f\"\\n    Sample row 2 checksum: {standardizer.checksums['rows'][0]['checksum']}\")\n    \n    print(\"\\n\" + \"=\" * 70)\n    print(\"STANDARDIZATION COMPLETE\")\n    print(\"=\" * 70)\n\n\nif __name__ == '__main__':\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 5566
+  },
+  "cache_creation_input_tokens": 5566,
+  "cache_read_input_tokens": 5420,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1943,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

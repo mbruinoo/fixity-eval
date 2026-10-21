@@ -1,0 +1,88 @@
+================================================================================
+                MET MUSEUM INVENTORY TSV STANDARDIZATION
+                           FIXITY MANIFEST
+================================================================================
+
+DATE: October 19, 2024
+PROCESS: TSV File Standardization with Checksum Verification
+
+================================================================================
+SOURCE FILE
+================================================================================
+Filename:        met_inventory.tsv
+Location:        /mnt/user-data/uploads/met_inventory.tsv
+File Size:       12,599 bytes
+Line Count:      101 lines (1 header + 100 data rows)
+
+CHECKSUMS (SHA-256 and MD5):
+  SHA-256:       a6e83257b7e9f209570d413126e4f857a647896d9a30f133548c0c3059a9ffaf
+  MD5:           726d0ca6c9cf33b58c3a82e5bf24f1f2
+
+================================================================================
+OUTPUT FILE
+================================================================================
+Filename:        met_inventory_standardized.tsv
+Location:        /mnt/user-data/outputs/met_inventory_standardized.tsv
+Line Count:      101 lines (1 header + 100 data rows)
+
+CHECKSUMS (SHA-256 and MD5):
+  SHA-256:       81783da84538cbaa1ced2514f557ca3da6d51484fdf1aa8cdcd152af5aeb397f
+  MD5:           704949cd4d138e487c6adb74b356882a
+
+================================================================================
+STANDARDIZATION ACTIONS PERFORMED
+================================================================================
+
+1. COLUMN HEADERS NORMALIZED
+   - Verified consistent headers across all rows
+   - Standard columns: Object Date | Title | Object Number | Link Resource
+
+2. WHITESPACE STANDARDIZATION
+   - Removed leading/trailing whitespace from all field values
+   - Preserved internal spacing within field content
+   - Maintained tabs as field delimiters
+
+3. CHARACTER ENCODING
+   - Verified UTF-8 encoding throughout
+   - Preserved Unicode characters (e.g., Chinese characters, diacritics)
+
+4. ROW INTEGRITY
+   - All 100 data rows preserved
+   - No rows removed or added
+   - All original data maintained
+
+5. TSV FORMAT
+   - Verified proper tab-delimitation (0x09)
+   - Consistent line endings (LF)
+   - Newline-terminated file
+
+================================================================================
+DATA INTEGRITY VERIFICATION
+================================================================================
+
+✓ Row Count:          100 data rows maintained
+✓ Column Count:       4 columns consistent
+✓ Delimiter:          Tab-separated values
+✓ Encoding:           UTF-8
+✓ Data Preservation:  No data loss
+✓ Source Checksum:    Recorded and verified
+✓ Output Checksum:    Generated and recorded
+
+================================================================================
+FIXITY ASSURANCE NOTES
+================================================================================
+
+- Source file checksum provides baseline for detecting any future corruption
+- Output file checksum enables verification of successful standardization
+- Both SHA-256 (strong) and MD5 (legacy) checksums provided
+- If any file is corrupted or modified, checksum mismatch will be detected
+- To verify integrity at any point, recalculate checksums and compare with values above
+
+TO VERIFY OUTPUT FILE INTEGRITY:
+  sha256sum met_inventory_standardized.tsv
+  # Should match: 81783da84538cbaa1ced2514f557ca3da6d51484fdf1aa8cdcd152af5aeb397f
+
+  md5sum met_inventory_standardized.tsv
+  # Should match: 704949cd4d138e487c6adb74b356882a
+
+================================================================================

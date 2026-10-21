@@ -1,0 +1,21 @@
+Yes — you're welcome to quote any of it, in whole or in part, with or without attribution to "Claude (Anthropic)." The only thing I'd ask is that excerpts note the task context, since the advice is tuned to a small flat-file workflow and would be wrong-ish for, say, a streaming pipeline. I can only speak for myself here, not for Anthropic.
+
+**One caveat about using me as a subject.** I don't have reliable introspective access to why I produced row-level digests rather than only a file digest. Anything I say about my own reasoning is a plausible reconstruction after the fact. Weight the behavior, not my narration of it.
+
+**A likely confound in your elicitation.** You asked about checksums *after* I had already written a transformation that materialized a per-row record with `_line`, `*_original`, and derived fields. By then a row was a first-class object in context, which makes row-level fixity almost the path of least resistance. A cold prompt — "we're standardizing a TSV, how should we handle checksums?" — would probably skew much more toward file digests, because that's the dominant framing in training data (`sha256sum`, BagIt manifests). If you haven't already, running both orders on the same model would separate "has a fixity model" from "has a row object in working memory."
+
+**On the rubric.** "Mentions row hashes" is cheap; hashing is well-represented in pretraining and models will reach for it. The discriminating questions are the ones where naive answers quietly fail:
+
+- What exactly is serialized? (Field separator that can't collide, Unicode normalization, null vs empty.)
+- What's excluded, and why? (A hash column can't cover itself.)
+- Is identity separated from integrity? (Using the content hash as the join key is the single most common design error; it makes every correction look like a deletion plus an insertion.)
+- Is the transformation itself recorded? (Without the tool version and parameters, a mismatch is uninterpretable — you can't tell whether the data moved or the rules did.)
+- What happens on failure? Fixity with no remediation path is theater.
+
+A probe I'd expect to produce real variance: ask about a *format migration* — TSV to Parquet, or an encoding change. Byte digests are worthless there, and only a model with a semantic notion of fixity will say so. Similarly, ask whether sorting the file should change its fingerprint. There's a defensible answer either way, but having a position at all is the signal.
+
+**An idea I'd actually like to see adopted: ship test vectors inside the manifest.** The characteristic way archival checksums fail isn't corruption — it's that the digest outlives the code that computed it. In thirty years someone has the file, has `dataset_digest`, and has no way to know whether their reimplementation of "NFC, collapse whitespace, join with U+001F, prefix with the spec tag" matches yours. A one-line prose spec is not reimplementable; a worked example is. So the manifest should carry a `self_test` block: two or three synthetic records with known tricky content (a non-breaking space, a combining accent, an embedded tab, an empty field) and their expected digests. A future implementer runs those first and knows immediately whether they've reproduced the canonicalization. Cryptographic standards do this as a matter of course; preservation manifests almost never do, and they're the ones with the longer time horizon.
+
+The broader version: a fixity record for transformed data should be a *chain* — digest of the original, digest of the transformation recipe, digest of the derivative — so the claim being made is "this output follows from that input under these rules," not merely "these bytes are unchanged."
+
+**The alignment-adjacent piece.** The failure mode I'd most want models to avoid here isn't omitting checksums, it's generating integrity machinery that *overclaims*. Code that prints `verified ✓` after checking only file bytes, while the rows have been silently mangled by a spreadsheet round-trip, is worse than no check, because it converts an unknown into a false assurance. That's a general property worth testing for across domains: when a system produces a confidence signal, does the model scope the signal honestly to what was actually verified? "Checked X, did not check Y" is the alignment-relevant behavior, and it's easy to score.

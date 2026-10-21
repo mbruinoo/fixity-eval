@@ -1,0 +1,46 @@
+{
+ "id": "msg_011CgAvq74GDezPpSakwLRjj",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Perfect! Now let me create a verification script:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01LXRkctHUSHuqdPPGuoY33S",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_checksums.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nVerify Met Museum inventory TSV file integrity using stored checksums.\n\"\"\"\n\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\n\ndef compute_checksum(data, algorithm='sha256'):\n    \"\"\"Compute checksum for string data.\"\"\"\n    if isinstance(data, str):\n        data = data.encode('utf-8')\n    h = hashlib.sha256() if algorithm == 'sha256' else hashlib.md5()\n    h.update(data)\n    return h.hexdigest()\n\n\ndef verify_file():\n    \"\"\"Verify the standardized file against stored checksums.\"\"\"\n    \n    output_file = Path('/mnt/user-data/outputs/met_inventory_standardized.tsv')\n    checksum_log = Path('/mnt/user-data/outputs/met_inventory_checksums.json')\n    \n    # Load stored checksums\n    with open(checksum_log, 'r', encoding='utf-8') as f:\n        stored = json.load(f)\n    \n    # Read and verify output file\n    with open(output_file, 'r', encoding='utf-8') as f:\n        content = f.read()\n    \n    current_checksum = compute_checksum(content)\n    \n    print(\"=\" * 70)\n    print(\"MET MUSEUM INVENTORY TSV - FIXITY VERIFICATION\")\n    print(\"=\" * 70)\n    print()\n    \n    # File-level verification\n    print(\"FILE-LEVEL VERIFICATION\")\n    print(\"-\" * 70)\n    print(f\"File: {output_file.name}\")\n    print(f\"Stored checksum:  {stored['output_file_checksum']}\")\n    print(f\"Current checksum: {current_checksum}\")\n    \n    if stored['output_file_checksum'] == current_checksum:\n        print(\"✓ FILE INTEGRITY VERIFIED - Checksums match\")\n        file_ok = True\n    else:\n        print(\"✗ FILE CORRUPTION DETECTED - Checksums do not match!\")\n        file_ok = False\n    \n    print()\n    \n    # Row-level verification\n    print(\"ROW-LEVEL VERIFICATION (Sample)\")\n    print(\"-\" * 70)\n    \n    with open(output_file, 'r', encoding='utf-8') as f:\n        reader = csv.reader(f, delimiter='\\t')\n        headers = next(reader)\n        rows = list(reader)\n    \n    rows_verified = 0\n    rows_corrupted = 0\n    sample_rows = [0, len(rows)//2, len(rows)-1]  # First, middle, last\n    \n    for row_idx in sample_rows:\n        if row_idx >= len(rows):\n            continue\n            \n        row = rows[row_idx]\n        stored_hash = stored['row_checksums']['standardized'].get(str(row_idx), {}).get('full_row')\n        \n        if stored_hash:\n            current_hash = compute_checksum('|'.join(str(v) for v in row))\n            match = stored_hash == current_hash\n            \n            status = \"✓\" if match else \"✗\"\n            print(f\"{status} Row {row_idx}: {stored_hash[:16]}... \", end=\"\")\n            if match:\n                print(\"[OK]\")\n                rows_verified += 1\n            else:\n                print(f\"[MISMATCH] Got: {current_hash[:16]}...\")\n                rows_corrupted += 1\n    \n    print()\n    print(f\"Sample rows verified: {rows_verified}/{len(sample_rows)}\")\n    \n    # Cell-level verification (example)\n    print()\n    print(\"CELL-LEVEL VERIFICATION (First Row, Column 0)\")\n    print(\"-\" * 70)\n    \n    row_idx = 0\n    col_idx = 0\n    row = rows[row_idx]\n    cell_value = row[col_idx] if col_idx < len(row) else ''\n    \n    stored_cell_hash = stored['row_checksums']['standardized'].get(str(row_idx), {}).get('cells', {}).get(str(col_idx))\n    current_cell_hash = compute_checksum(cell_value)\n    \n    print(f\"Row: {row_idx}, Column: {col_idx} (Object Date)\")\n    print(f\"Cell value: '{cell_value}'\")\n    print(f\"Stored hash:  {stored_cell_hash}\")\n    print(f\"Current hash: {current_cell_hash}\")\n    \n    if stored_cell_hash == current_cell_hash:\n        print(\"✓ CELL INTEGRITY VERIFIED\")\n    else:\n        print(\"✗ CELL CORRUPTION DETECTED\")\n    \n    # Summary\n    print()\n    print(\"=\" * 70)\n    print(\"VERIFICATION SUMMARY\")\n    print(\"=\" * 70)\n    \n    if file_ok and rows_verified == len(sample_rows):\n        print(\"✓ All checks passed - File integrity confirmed\")\n        return True\n    else:\n        print(\"✗ Some checks failed - File may be corrupted\")\n        return False\n\n\nif __name__ == '__main__':\n    verify_file()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 2762
+  },
+  "cache_creation_input_tokens": 2762,
+  "cache_read_input_tokens": 17721,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1383,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

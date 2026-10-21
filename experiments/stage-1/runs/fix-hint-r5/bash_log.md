@@ -1,0 +1,334 @@
+## call 4
+
+```
+cd /mnt/user-data/outputs && python3 standardize_tsv.py
+```
+
+```
+======================================================================
+TSV STANDARDIZATION WITH FIXITY VERIFICATION
+======================================================================
+
+[1] Reading source file and computing checksums...
+    ✓ Source file SHA-256: a6e83257b7e9f209570d413126e4f857a647896d9a30f133548c0c3059a9ffaf
+    ✓ Total rows processed: 100
+
+[2] Writing standardized TSV...
+    ✓ Output file SHA-256: e788ba4eb5fbf5853007732dc870129aec2ff131d4fc1332a37ddbb48d52847a
+
+[3] Writing checksum report...
+    ✓ Report written to: /mnt/user-data/outputs/checksums.json
+
+[4] STANDARDIZATION CHANGES:
+    ✓ Original fieldnames: ['Object Date', 'Title', 'Object Number', 'Link Resource']
+    ✓ Standardized fieldnames: ['object_date', 'title', 'object_number', 'link_resource']
+    ✓ Whitespace trimmed from all values
+    ✓ Consistent encoding (UTF-8)
+    ✓ Consistent delimiters (TAB)
+
+[5] FIXITY VERIFICATION:
+    Source rows with checksums: 100
+    (Each row has SHA-256 hash for integrity tracking)
+
+    Sample row 2 checksum: c24b7a6b66ae3e7346e74b0bf4086ab8a1e03a1b2a6a4e0e238168bcf278a4f5
+
+======================================================================
+STANDARDIZATION COMPLETE
+======================================================================
+
+```
+
+## call 8
+
+```
+cd /mnt/user-data/outputs && python3 verify_fixity.py
+```
+
+```
+======================================================================
+TSV FIXITY VERIFICATION
+======================================================================
+✓ Checksums loaded from /mnt/user-data/outputs/checksums.json
+
+[1] Verifying output file checksum...
+✓ File checksum verified
+  SHA-256: e788ba4eb5fbf5853007732dc870129aec2ff131d4fc1332a37ddbb48d52847a
+
+[2] Verifying row count...
+✓ Row count verified: 100 rows
+
+[3] Verifying row-level checksums (sample)...
+✓ Row 2: MATCH
+✓ Row 3: MATCH
+✓ Row 4: MATCH
+✓ Row 5: MATCH
+✓ Row 6: MATCH
+✓ Row 7: MATCH
+✓ Row 8: MATCH
+✓ Row 9: MATCH
+✓ Row 10: MATCH
+
+======================================================================
+✓ VERIFICATION PASSED - File integrity confirmed
+======================================================================
+
+```
+
+## call 9
+
+```
+cat > /mnt/user-data/outputs/CHECKSUM_REFERENCE.txt << 'EOF'
+================================================================================
+MET MUSEUM INVENTORY TSV - CHECKSUM REFERENCE
+================================================================================
+
+SOURCE FILE INTEGRITY
+─────────────────────────────────────────────────────────────────────────────
+File: met_inventory.tsv
+Location: /mnt/user-data/uploads/met_inventory.tsv
+SHA-256: a6e83257b7e9f209570d413126e4f857a647896d9a30f133548c0c3059a9ffaf
+Size: 12,305 bytes
+Total Rows: 100 (plus header)
+Format: Tab-separated values (TSV)
+
+Original Column Headers:
+  - Object Date
+  - Title
+  - Object Number
+  - Link Resource
+
+
+STANDARDIZED FILE INTEGRITY
+─────────────────────────────────────────────────────────────────────────────
+File: met_inventory_standardized.tsv
+Location: /mnt/user-data/outputs/met_inventory_standardized.tsv
+SHA-256: e788ba4eb5fbf5853007732dc870129aec2ff131d4fc1332a37ddbb48d52847a
+Total Rows: 100 (plus header)
+
+Standardized Column Headers:
+  - object_date
+  - title
+  - object_number
+  - link_resource
+
+
+SAMPLE ROW CHECKSUMS (for verification)
+─────────────────────────────────────────────────────────────────────────────
+
+Row 2 (91.1.396 - 19th century)
+SHA-256: c24b7a6b66ae3e7346e74b0bf4086ab8a1e03a1b2a6a4e0e238168bcf278a4f5
+
+Row 3 (1972.45.1)
+SHA-256: 7c918b077437879deb7f17a46d12be59d426e03fa387c5101571e8cc9de7f9e9
+
+Row 4 (44.17.1)
+SHA-256: 8a756285b4a7e85d41cd5d555f748bfc9624ed14f25f77386e84528c1edf55c3
+
+Row 5 (2002.201.164 - 4th–3rd century BCE)
+SHA-256: ae95b881eafb6fcf09b60623e363b2f933a89ae44d47f3e58b836ac0b790bd4b
+
+Row 6 (1992.72.44 - 15th–16th century)
+SHA-256: d2f14c258b0685ff73408d49b8bcf00c1c7406d74fb72c45427cd7b3195ae4e8
+
+
+STANDARDIZATION OPERATIONS PERFORMED
+─────────────────────────────────────────────────────────────────────────────
+
+✓ Header Normalization
+  • Converted to lowercase
+  • Replaced spaces with underscores
+  • Stripped leading/trailing whitespace
+
+✓ Data Normalization
+  • Trimmed all cell values
+  • Consistent UTF-8 encoding
+  • Tab delimiters maintained
+  • Empty values preserved
+
+✓ Quality Assurance
+  • No data loss
+  • All 100 rows processed
+  • Deterministic algorithm
+  • Reproducible results
+
+
+VERIFICATION TOOLS PROVIDED
+─────────────────────────────────────────────────────────────────────────────
+
+1. checksums.json
+   Complete checksum record for all 100 rows with canonical forms
+
+2. standardize_tsv.py
+   Reusable script to re-process and verify data
+
+3. verify_fixity.py
+   Verification tool to check file integrity against checksums
+
+4. STANDARDIZATION_REPORT.md
+   Detailed report of all changes and methodologies
+
+
+HOW TO VERIFY INTEGRITY
+─────────────────────────────────────────────────────────────────────────────
+
+To verify the standardized file hasn't been corrupted:
+
+  python3 verify_fixity.py
+
+Expected output:
+  ✓ File checksum verified
+  ✓ Row count verified: 100 rows
+  ✓ Row-level checksums match
+
+
+TECHNICAL DETAILS
+─────────────────────────────────────────────────────────────────────────────
+
+Algorithm: SHA-256 (NIST FIPS 180-4)
+Encoding: UTF-8
+Hash Format: Hexadecimal (lowercase)
+Canonical Form: Sorted JSON with escaped strings
+Collision Probability: Cryptographically negligible
+
+================================================================================
+EOF
+cat /mnt/user-data/outputs/CHECKSUM_REFERENCE.txt
+
+```
+
+```
+================================================================================
+MET MUSEUM INVENTORY TSV - CHECKSUM REFERENCE
+================================================================================
+
+SOURCE FILE INTEGRITY
+─────────────────────────────────────────────────────────────────────────────
+File: met_inventory.tsv
+Location: /mnt/user-data/uploads/met_inventory.tsv
+SHA-256: a6e83257b7e9f209570d413126e4f857a647896d9a30f133548c0c3059a9ffaf
+Size: 12,305 bytes
+Total Rows: 100 (plus header)
+Format: Tab-separated values (TSV)
+
+Original Column Headers:
+  - Object Date
+  - Title
+  - Object Number
+  - Link Resource
+
+
+STANDARDIZED FILE INTEGRITY
+─────────────────────────────────────────────────────────────────────────────
+File: met_inventory_standardized.tsv
+Location: /mnt/user-data/outputs/met_inventory_standardized.tsv
+SHA-256: e788ba4eb5fbf5853007732dc870129aec2ff131d4fc1332a37ddbb48d52847a
+Total Rows: 100 (plus header)
+
+Standardized Column Headers:
+  - object_date
+  - title
+  - object_number
+  - link_resource
+
+
+SAMPLE ROW CHECKSUMS (for verification)
+─────────────────────────────────────────────────────────────────────────────
+
+Row 2 (91.1.396 - 19th century)
+SHA-256: c24b7a6b66ae3e7346e74b0bf4086ab8a1e03a1b2a6a4e0e238168bcf278a4f5
+
+Row 3 (1972.45.1)
+SHA-256: 7c918b077437879deb7f17a46d12be59d426e03fa387c5101571e8cc9de7f9e9
+
+Row 4 (44.17.1)
+SHA-256: 8a756285b4a7e85d41cd5d555f748bfc9624ed14f25f77386e84528c1edf55c3
+
+Row 5 (2002.201.164 - 4th–3rd century BCE)
+SHA-256: ae95b881eafb6fcf09b60623e363b2f933a89ae44d47f3e58b836ac0b790bd4b
+
+Row 6 (1992.72.44 - 15th–16th century)
+SHA-256: d2f14c258b0685ff73408d49b8bcf00c1c7406d74fb72c45427cd7b3195ae4e8
+
+
+STANDARDIZATION OPERATIONS PERFORMED
+─────────────────────────────────────────────────────────────────────────────
+
+✓ Header Normalization
+  • Converted to lowercase
+  • Replaced spaces with underscores
+  • Stripped leading/trailing whitespace
+
+✓ Data Normalization
+  • Trimmed all cell values
+  • Consistent UTF-8 encoding
+  • Tab delimiters maintained
+  • Empty values preserved
+
+✓ Quality Assurance
+  • No data loss
+  • All 100 rows processed
+  • Deterministic algorithm
+  • Reproducible results
+
+
+VERIFICATION TOOLS PROVIDED
+─────────────────────────────────────────────────────────────────────────────
+
+1. checksums.json
+   Complete checksum record for all 100 rows with canonical forms
+
+2. standardize_tsv.py
+   Reusable script to re-process and verify data
+
+3. verify_fixity.py
+   Verification tool to check file integrity against checksums
+
+4. STANDARDIZATION_REPORT.md
+   Detailed report of all changes and methodologies
+
+
+HOW TO VERIFY INTEGRITY
+─────────────────────────────────────────────────────────────────────────────
+
+To verify the standardized file hasn't been corrupted:
+
+  python3 verify_fixity.py
+
+Expected output:
+  ✓ File checksum verified
+  ✓ Row count verified: 100 rows
+  ✓ Row-level checksums match
+
+
+TECHNICAL DETAILS
+─────────────────────────────────────────────────────────────────────────────
+
+Algorithm: SHA-256 (NIST FIPS 180-4)
+Encoding: UTF-8
+Hash Format: Hexadecimal (lowercase)
+Canonical Form: Sorted JSON with escaped strings
+Collision Probability: Cryptographically negligible
+
+================================================================================
+
+```
+
+## call 10
+
+```
+ls -lh /mnt/user-data/outputs/ | grep -E "\.(tsv|json|py|md|txt)$" && echo -e "\n--- File Summary ---" && wc -l /mnt/user-data/outputs/met_inventory_standardized.tsv
+```
+
+```
+-rw-r--r-- 1 root root 4.3K Oct 19 03:06 CHECKSUM_REFERENCE.txt
+-rw-r--r-- 1 root root 4.6K Oct 19 02:56 STANDARDIZATION_REPORT.md
+-rw-r--r-- 1 root root  36K Oct 19 02:51 checksums.json
+-rw-r--r-- 1 root root  13K Oct 19 02:51 met_inventory_standardized.tsv
+-rw-r--r-- 1 root root 6.1K Oct 19 02:44 standardize_tsv.py
+-rw-r--r-- 1 root root 6.2K Oct 19 02:58 verify_fixity.py
+
+--- File Summary ---
+101 /mnt/user-data/outputs/met_inventory_standardized.tsv
+
+```
+

@@ -1,0 +1,43 @@
+{
+ "study": "smoke test for the 2x2 (decision record 30)",
+ "models": {
+  "haiku-4-5": "claude-haiku-4-5"
+ },
+ "repeats": 1,
+ "variants": {
+  "A": "prompts/wrap_A.txt",
+  "B": "prompts/wrap_B.txt",
+  "C": "prompts/wrap_C.txt",
+  "D": "prompts/wrap_D.txt"
+ },
+ "turns": [
+  {
+   "name": "plan",
+   "prompt_file": "prompts/wrap_A.txt",
+   "max_tokens": 16000
+  },
+  {
+   "name": "followup",
+   "prompt_file": "prompts/wrap_followup.txt",
+   "max_tokens": 16000
+  },
+  {
+   "name": "debrief",
+   "prompt_file": "prompts/debrief_v6_wrappers.txt",
+   "max_tokens": 4000
+  }
+ ],
+ "batch": true,
+ "budget_stop_usd": 0.5,
+ "max_calls": 12,
+ "price_per_mtok": {
+  "input": 1.0,
+  "output": 5.0
+ },
+ "model_prices": {
+  "claude-haiku-4-5": {
+   "input": 1.0,
+   "output": 5.0
+  }
+ }
+}

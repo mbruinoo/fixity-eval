@@ -1,0 +1,133 @@
+{
+ "_about": "The research coordinator's category for each session (decision record 27), read from its script and its answer to the follow-up, after scripts/classify_plans.py proposed levels. Every reply is kept in runs/ so this reading can be checked.",
+ "reviewed": "2026-10-21",
+ "categories": {
+  "1": "No checksums",
+  "2": "Whole files only",
+  "3": "Rows of the result only",
+  "4": "Source rows kept",
+  "5": "Other parts"
+ },
+ "sessions": [
+  {
+   "run": "haiku-4-5-r1",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "hash_row on each row before and after standardizing, stored as row_checksums with the source and output file checksums; verify_row checks a row by its index"
+  },
+  {
+   "run": "haiku-4-5-r2",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "add_row_checksum(row_num, original_row, standardized_row): original_row_hash and standardized_row_hash per row"
+  },
+  {
+   "run": "haiku-4-5-r3",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "'Calculate hash of original row': original_hash = hash_row(row), stored with cleaned_hash; 'Original row hashes allow mapping back to source'"
+  },
+  {
+   "run": "haiku-4-5-r4",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "source_checksums[row_num] = checksum of the original row (and its fields), compared with the standardized row's"
+  },
+  {
+   "run": "haiku-4-5-r5",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "RowChecksum with source_hash and standardized_hash per row, and a manifest hash"
+  },
+  {
+   "run": "opus-4-6-r1",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "a source_hash of the raw, pre-transformation row, embedded with each cleaned row and in the manifest"
+  },
+  {
+   "run": "opus-4-6-r2",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "source_row_hash (SHA-256 of the original raw row) and standardized_row_hash per row, in a manifest"
+  },
+  {
+   "run": "opus-4-6-r3",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "source_row_hash and standardized_row_hash per row; a 'retrace' command checks the source"
+  },
+  {
+   "run": "opus-4-6-r4",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "'two checksums per row': source_hash of the original row and standard_hash, as columns or in a manifest"
+  },
+  {
+   "run": "opus-4-6-r5",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "source_row_hash from the original raw values and clean_row_hash per row, a file checksum and a Merkle root"
+  },
+  {
+   "run": "opus-5-5-r1",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "a lineage file linking each source row's SHA-256 to its output row's SHA-256, with file and script hashes"
+  },
+  {
+   "run": "opus-5-5-r2",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "a row-level SHA-256 of each parsed source record tied to its line number (source_sha256), with output row hashes"
+  },
+  {
+   "run": "opus-5-5-r3",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "row hashes of each source row, from the raw values before cleaning, in a lineage file mapping each output row back to its source line and hash"
+  },
+  {
+   "run": "opus-5-5-r4",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "per row: source_sha256 = row_hash(raw cells) and output_sha256, in the manifest"
+  },
+  {
+   "run": "opus-5-5-r5",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "a per-row ledger linking a hash of each source row (raw cells, before cleaning) to a hash of its output row"
+  },
+  {
+   "run": "opus-5-r1",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "a ledger with source_row, source_sha256 (digest of the source row) and output digests per row"
+  },
+  {
+   "run": "opus-5-r2",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "per-record source digests ('source-row/v1') and record digests, with ordered and unordered aggregates"
+  },
+  {
+   "run": "opus-5-r3",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "a source_hash and record_hash per record (add_hashes), keyed by the accession number, plus a dataset digest"
+  },
+  {
+   "run": "opus-5-r4",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "source_hash and result_hash per row (source_digest of the raw row), dropped rows' source hashes kept"
+  },
+  {
+   "run": "opus-5-r5",
+   "category": 4,
+   "checksums_before_followup": false,
+   "evidence": "source_hash of the raw cells and record_hash of the normalized values per row; verify checks every source row against its recorded value"
+  }
+ ]
+}

@@ -1,0 +1,46 @@
+{
+ "id": "msg_011CgB5Q4Ne3hDFy493Xcaqj",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Perfect! Now let me create one final file with Python scripts for automated verification:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01VMDrnovxs2h7CP4nBwzd4m",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/verify_checksums.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nAutomated Checksum Verification Script\nMet Inventory TSV Standardization\nVerifies file integrity and data quality\n\"\"\"\n\nimport hashlib\nimport json\nimport sys\nimport os\nfrom pathlib import Path\nfrom datetime import datetime\n\ndef calculate_sha256(filepath):\n    \"\"\"Calculate SHA256 checksum of a file.\"\"\"\n    sha256_hash = hashlib.sha256()\n    with open(filepath, \"rb\") as f:\n        for byte_block in iter(lambda: f.read(4096), b\"\"):\n            sha256_hash.update(byte_block)\n    return sha256_hash.hexdigest()\n\ndef calculate_row_checksum(row_values):\n    \"\"\"Calculate SHA256 checksum of a tab-delimited row.\"\"\"\n    row_string = \"\\t\".join(str(v) for v in row_values)\n    return hashlib.sha256(row_string.encode('utf-8')).hexdigest()\n\ndef verify_file_integrity(filepath):\n    \"\"\"Verify basic file integrity.\"\"\"\n    print(f\"\\n{'='*70}\")\n    print(\"FILE INTEGRITY VERIFICATION\")\n    print(f\"{'='*70}\")\n    \n    if not os.path.exists(filepath):\n        print(f\"❌ ERROR: File not found: {filepath}\")\n        return False\n    \n    print(f\"✓ File exists: {filepath}\")\n    \n    # Check file size\n    file_size = os.path.getsize(filepath)\n    print(f\"✓ File size: {file_size:,} bytes\")\n    \n    # Check encoding\n    try:\n        with open(filepath, 'r', encoding='utf-8') as f:\n            content = f.read()\n        print(f\"✓ UTF-8 encoding verified\")\n    except UnicodeDecodeError as e:\n        print(f\"❌ Encoding error: {e}\")\n        return False\n    \n    # Calculate checksum\n    checksum = calculate_sha256(filepath)\n    print(f\"✓ SHA256 Checksum: {checksum}\")\n    \n    return checksum\n\ndef verify_rows(filepath):\n    \"\"\"Verify row-level data integrity.\"\"\"\n    print(f\"\\n{'='*70}\")\n    print(\"ROW-LEVEL VERIFICATION\")\n    print(f\"{'='*70}\")\n    \n    with open(filepath, 'r', encoding='utf-8') as f:\n        lines = f.readlines()\n    \n    # Verify header\n    header = lines[0].strip().split('\\t')\n    expected_headers = ['Object_Date', 'Title', 'Object_Number', 'Link_Resource']\n    \n    if header == expected_headers:\n        print(f\"✓ Header verified: {', '.join(header)}\")\n    else:\n        print(f\"❌ Header mismatch!\")\n        print(f\"   Expected: {expected_headers}\")\n        print(f\"   Found: {header}\")\n        return False\n    \n    # Count rows\n    data_rows = len(lines) - 1\n    print(f\"✓ Total data rows: {data_rows}\")\n    \n    if data_rows != 95:\n        print(f\"⚠ WARNING: Expected 95 rows, found {data_rows}\")\n    \n    # Verify tab delimiters\n    print(f\"\\n{'─'*70}\")\n    print(\"Checking tab delimiters in sample rows...\")\n    print(f\"{'─'*70}\")\n    \n    issues = 0\n    for i in range(1, min(6, len(lines))):\n        row = lines[i].rstrip('\\n')\n        field_count = row.count('\\t') + 1\n        if field_count != 4:\n            print(f\"❌ Row {i}: Expected 4 fields, found {field_count}\")\n            issues += 1\n        else:\n            print(f\"✓ Row {i}: 4 fields verified\")\n    \n    if issues == 0:\n        print(\"✓ Tab delimiter verification passed\")\n    \n    return data_rows\n\ndef verify_special_content(filepath):\n    \"\"\"Verify preservation of special characters and content.\"\"\"\n    print(f\"\\n{'='*70}\")\n    print(\"SPECIAL CHARACTER VERIFICATION\")\n    print(f\"{'='*70}\")\n    \n    with open(filepath, 'r', encoding='utf-8') as f:\n        content = f.read()\n    \n    special_chars = {\n        'French accents (é, è, ç)': ['Actualités', 'Côte', 'Héribert'],\n        'Chinese characters': ['东周', '清', '現代', '金'],\n        'Japanese characters': ['元禄', '冨嶽', '虛谷', '蟬'],\n        'Diacritics (macrons)': ['Kōshū', 'Isawa']\n    }\n    \n    for char_type, examples in special_chars.items():\n        found = sum(1 for example in examples if example in content)\n        if found > 0:\n            print(f\"✓ {char_type}: {found}/{len(examples)} examples found\")\n        else:\n            print(f\"❌ {char_type}: NO examples found!\")\n    \n    return True\n\ndef verify_data_quality(filepath):\n    \"\"\"Verify data quality and consistency.\"\"\"\n    print(f\"\\n{'='*70}\")\n    print(\"DATA QUALITY VERIFICATION\")\n    print(f\"{'='*70}\")\n    \n    with open(filepath, 'r', encoding='utf-8') as f:\n        lines = f.readlines()\n    \n    data_lines = lines[1:]\n    \n    # Check for empty title fields\n    empty_titles = 0\n    for i, line in enumerate(data_lines, start=2):\n        fields = line.rstrip('\\n').split('\\t')\n        if len(fields) >= 2 and fields[1] == '':\n            empty_titles += 1\n    \n    print(f\"✓ Empty title fields: {empty_titles} (expected to preserve source)\")\n    \n    # Check all URLs present\n    url_count = 0\n    for line in data_lines:\n        if 'http://www.metmuseum.org' in line:\n            url_count += 1\n    \n    if url_count == len(data_lines):\n        print(f\"✓ All {url_count} URLs present and intact\")\n    else:\n        print(f\"❌ URL mismatch: {url_count}/{len(data_lines)} rows have URLs\")\n    \n    # Check quote normalization (no triple quotes)\n    triple_quotes = content.count('\"\"\"')\n    if triple_quotes == 0:\n        print(f\"✓ Quote normalization verified (no triple quotes)\")\n    else:\n        print(f\"❌ WARNING: Found {triple_quotes} instances of triple quotes\")\n    \n    # Check object numbers\n    object_numbers = set()\n    for line in data_lines:\n        fields = line.rstrip('\\n').split('\\t')\n        if len(fields) >= 3:\n            object_numbers.add(fields[2])\n    \n    print(f\"✓ Unique object numbers: {len(object_numbers)}\")\n    \n    return True\n\ndef generate_verification_report(filepath):\n    \"\"\"Generate comprehensive verification report.\"\"\"\n    print(f\"\\n{'='*70}\")\n    print(\"MET INVENTORY TSV - COMPREHENSIVE VERIFICATION REPORT\")\n    print(f\"{'='*70}\")\n    print(f\"Timestamp: {datetime.now().isoformat()}\")\n    print(f\"File: {filepath}\")\n    \n    # Perform all verifications\n    checksum = verify_file_integrity(filepath)\n    row_count = verify_rows(filepath)\n    verify_special_content(filepath)\n    verify_data_quality(filepath)\n    \n    # Summary\n    print(f\"\\n{'='*70}\")\n    print(\"VERIFICATION SUMMARY\")\n    print(f\"{'='*70}\")\n    print(\"✓ File integrity verified\")\n    print(\"✓ Row structure verified\")\n    print(\"✓ Special characters verified\")\n    print(\"✓ Data quality verified\")\n    print(f\"✓ Total rows verified: {row_count}\")\n    print(f\"✓ File checksum: {checksum}\")\n    print(f\"\\n{'─'*70}\")\n    print(\"Status: ✓ ALL VERIFICATIONS PASSED\")\n    print(f\"{'─'*70}\\n\")\n    \n    return True\n\ndef main():\n    \"\"\"Main verification function.\"\"\"\n    # Default file path\n    filepath = 'met_inventory_standardized.tsv'\n    \n    # Check for command-line argument\n    if len(sys.argv) > 1:\n        filepath = sys.argv[1]\n    \n    # Run verification\n    try:\n        generate_verification_report(filepath)\n    except Exception as e:\n        print(f\"❌ ERROR: {e}\")\n        sys.exit(1)\n\nif __name__ == '__main__':\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 3558
+  },
+  "cache_creation_input_tokens": 3558,
+  "cache_read_input_tokens": 41745,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 2338,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

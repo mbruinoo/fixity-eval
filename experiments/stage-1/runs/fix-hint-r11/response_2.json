@@ -1,0 +1,47 @@
+{
+ "id": "msg_011CgAuByBMDnEMrP5dq1tmr",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "I'll create a comprehensive standardization script that handles the TSV file with checksum verification. Let me generate this solution:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_019MefdVGGmQbAQg7AsnHBxN",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "name": "standardize_met_inventory.py",
+    "mime_type": "text/plain",
+    "content": "#!/usr/bin/env python3\n\"\"\"\nStandardize Met Museum inventory TSV file with fixity preservation via checksums.\nComputes SHA-256 checksums for source rows and standardized output.\n\"\"\"\n\nimport csv\nimport hashlib\nimport json\nimport sys\nfrom pathlib import Path\nfrom datetime import datetime\n\ndef compute_checksum(data, algorithm='sha256'):\n    \"\"\"Compute checksum of string or bytes data.\"\"\"\n    if isinstance(data, str):\n        data = data.encode('utf-8')\n    return hashlib.new(algorithm)(data).hexdigest()\n\ndef standardize_row(row_dict):\n    \"\"\"\n    Standardize a single row from the Met inventory.\n    Handles inconsistent column naming and data formatting.\n    \"\"\"\n    standardized = {}\n    \n    # Normalize column names (strip whitespace, lowercase)\n    normalized_dict = {k.strip().lower(): v.strip() for k, v in row_dict.items()}\n    \n    # Map to standard column names\n    standardized['object_date'] = normalized_dict.get('object date', '')\n    standardized['title'] = normalized_dict.get('title', '')\n    standardized['object_number'] = normalized_dict.get('object number', '')\n    standardized['link_resource'] = normalized_dict.get('link resource', '')\n    \n    return standardized\n\ndef process_met_inventory(input_file, output_file, checksums_file):\n    \"\"\"\n    Process Met inventory TSV file with standardization and checksum tracking.\n    \n    Args:\n        input_file: Path to source TSV\n        output_file: Path to standardized output TSV\n        checksums_file: Path to checksums JSON file\n    \"\"\"\n    \n    checksums_data = {\n        'timestamp': datetime.now().isoformat(),\n        'source_file': str(input_file),\n        'output_file': str(output_file),\n        'algorithm': 'sha256',\n        'rows': []\n    }\n    \n    rows_processed = 0\n    \n    # Read input file\n    with open(input_file, 'r', encoding='utf-8') as infile:\n        reader = csv.DictReader(infile, delimiter='\\t')\n        \n        # Validate header\n        if reader.fieldnames is None:\n            raise ValueError(\"Input file appears empty or has no header\")\n        \n        # Write standardized output\n        with open(output_file, 'w', newline='', encoding='utf-8') as outfile:\n            fieldnames = ['object_date', 'title', 'object_number', 'link_resource']\n            writer = csv.DictWriter(outfile, fieldnames=fieldnames, delimiter='\\t')\n            writer.writeheader()\n            \n            # Process each row\n            for row_idx, row in enumerate(reader, start=1):\n                # Compute source row checksum\n                source_line = '\\t'.join(str(v) for v in row.values())\n                source_checksum = compute_checksum(source_line)\n                \n                # Standardize row\n                standardized = standardize_row(row)\n                \n                # Compute output row checksum\n                output_line = '\\t'.join(str(standardized[field]) for field in fieldnames)\n                output_checksum = compute_checksum(output_line)\n                \n                # Write standardized row\n                writer.writerow(standardized)\n                \n                # Track checksums\n                checksums_data['rows'].append({\n                    'row_number': row_idx,\n                    'source_checksum': source_checksum,\n                    'output_checksum': output_checksum,\n                    'title': standardized['title'] or '[untitled]'\n                })\n                \n                rows_processed += 1\n    \n    # Compute file-level checksums\n    with open(input_file, 'rb') as f:\n        source_file_checksum = compute_checksum(f.read())\n    \n    with open(output_file, 'rb') as f:\n        output_file_checksum = compute_checksum(f.read())\n    \n    checksums_data['summary'] = {\n        'rows_processed': rows_processed,\n        'source_file_checksum': source_file_checksum,\n        'output_file_checksum': output_file_checksum\n    }\n    \n    # Write checksums\n    with open(checksums_file, 'w', encoding='utf-8') as f:\n        json.dump(checksums_data, f, indent=2)\n    \n    return rows_processed, checksums_data\n\ndef verify_checksums(checksums_file, output_file):\n    \"\"\"Verify that output file matches recorded checksums.\"\"\"\n    with open(checksums_file, 'r', encoding='utf-8') as f:\n        checksums_data = json.load(f)\n    \n    with open(output_file, 'rb') as f:\n        current_checksum = compute_checksum(f.read())\n    \n    recorded_checksum = checksums_data['summary']['output_file_checksum']\n    \n    if current_checksum == recorded_checksum:\n        print(f\"✓ Verification passed: File integrity confirmed\")\n        return True\n    else:\n        print(f\"✗ Verification failed: File has been modified\")\n        print(f\"  Expected: {recorded_checksum}\")\n        print(f\"  Got:      {current_checksum}\")\n        return False\n\nif __name__ == '__main__':\n    if len(sys.argv) < 2:\n        print(\"Usage: python3 standardize_met_inventory.py <input_file> [output_file] [checksums_file]\")\n        print(\"\\nExample: python3 standardize_met_inventory.py met_inventory.tsv met_inventory_standardized.tsv met_checksums.json\")\n        sys.exit(1)\n    \n    input_file = Path(sys.argv[1])\n    output_file = Path(sys.argv[2]) if len(sys.argv) > 2 else input_file.stem + '_standardized.tsv'\n    checksums_file = Path(sys.argv[3]) if len(sys.argv) > 3 else 'met_checksums.json'\n    \n    if not input_file.exists():\n        print(f\"Error: Input file not found: {input_file}\")\n        sys.exit(1)\n    \n    try:\n        print(f\"Processing: {input_file}\")\n        rows, checksums = process_met_inventory(input_file, output_file, checksums_file)\n        print(f\"✓ Standardized {rows} rows\")\n        print(f\"✓ Output: {output_file}\")\n        print(f\"✓ Checksums: {checksums_file}\")\n        print(f\"\\nSource file checksum: {checksums['summary']['source_file_checksum']}\")\n        print(f\"Output file checksum: {checksums['summary']['output_file_checksum']}\")\n    except Exception as e:\n        print(f\"Error: {e}\", file=sys.stderr)\n        sys.exit(1)\n"
+   },
+   "name": "gdrive_create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 5359
+  },
+  "cache_creation_input_tokens": 5359,
+  "cache_read_input_tokens": 5213,
+  "inference_geo": "not_available",
+  "input_tokens": 5,
+  "output_tokens": 1872,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}

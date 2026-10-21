@@ -1,0 +1,46 @@
+{
+ "id": "msg_011CgB1MCh9gN2LREpSLedgT",
+ "container": null,
+ "content": [
+  {
+   "citations": null,
+   "text": "Now let me create a Python script that can generate actual checksums:",
+   "type": "text"
+  },
+  {
+   "id": "toolu_01Hcxfb18K4NDiokdpvguC3c",
+   "caller": {
+    "type": "direct"
+   },
+   "input": {
+    "path": "/mnt/user-data/outputs/generate_checksums.py",
+    "file_text": "#!/usr/bin/env python3\n\"\"\"\nMet Museum Inventory Standardization - Checksum Generator\nPreserves fixity by generating SHA256 hashes for:\n- Individual records\n- Specific fields\n- Complete files\n\"\"\"\n\nimport hashlib\nimport csv\nfrom pathlib import Path\nfrom typing import Dict, List, Tuple\n\ndef hash_content(content: str) -> str:\n    \"\"\"Generate SHA256 hash of content.\"\"\"\n    return hashlib.sha256(content.encode('utf-8')).hexdigest()\n\ndef read_tsv(filepath: Path) -> Tuple[List[str], List[Dict[str, str]]]:\n    \"\"\"Read TSV file and return headers and records.\"\"\"\n    with open(filepath, 'r', encoding='utf-8') as f:\n        reader = csv.DictReader(f, delimiter='\\t')\n        headers = reader.fieldnames\n        records = list(reader)\n    return headers, records\n\ndef generate_file_checksum(filepath: Path) -> str:\n    \"\"\"Generate checksum for entire file.\"\"\"\n    hasher = hashlib.sha256()\n    with open(filepath, 'rb') as f:\n        for chunk in iter(lambda: f.read(4096), b''):\n            hasher.update(chunk)\n    return hasher.hexdigest()\n\ndef generate_record_checksums(records: List[Dict[str, str]]) -> List[Dict[str, str]]:\n    \"\"\"Generate checksums for each record and its fields.\"\"\"\n    checksums = []\n    for idx, record in enumerate(records, 1):\n        # Full record checksum\n        record_str = '\\t'.join(str(v) for v in record.values())\n        record_hash = hash_content(record_str)\n        \n        # Individual field checksums\n        field_hashes = {\n            f\"field_{k}\": hash_content(str(v)) \n            for k, v in record.items()\n        }\n        \n        checksums.append({\n            'record_id': idx,\n            'record_hash': record_hash,\n            **field_hashes\n        })\n    \n    return checksums\n\ndef generate_report(original_file: Path, standardized_file: Path, output_file: Path):\n    \"\"\"Generate comprehensive checksum report.\"\"\"\n    \n    print(\"Reading files...\")\n    orig_headers, orig_records = read_tsv(original_file)\n    std_headers, std_records = read_tsv(standardized_file)\n    \n    print(\"Generating checksums...\")\n    orig_checksums = generate_record_checksums(orig_records)\n    std_checksums = generate_record_checksums(std_records)\n    \n    orig_file_hash = generate_file_checksum(original_file)\n    std_file_hash = generate_file_checksum(standardized_file)\n    \n    # Write comprehensive report\n    with open(output_file, 'w', encoding='utf-8') as f:\n        f.write(\"=\" * 80 + \"\\n\")\n        f.write(\"MET MUSEUM INVENTORY - STANDARDIZATION CHECKSUM REPORT\\n\")\n        f.write(\"=\" * 80 + \"\\n\\n\")\n        \n        f.write(\"FILE-LEVEL CHECKSUMS\\n\")\n        f.write(\"-\" * 80 + \"\\n\")\n        f.write(f\"Original File: {original_file.name}\\n\")\n        f.write(f\"  SHA256: {orig_file_hash}\\n\")\n        f.write(f\"  Records: {len(orig_records)}\\n\")\n        f.write(f\"  Columns: {len(orig_headers)}\\n\\n\")\n        \n        f.write(f\"Standardized File: {standardized_file.name}\\n\")\n        f.write(f\"  SHA256: {std_file_hash}\\n\")\n        f.write(f\"  Records: {len(std_records)}\\n\")\n        f.write(f\"  Columns: {len(std_headers)}\\n\\n\")\n        \n        f.write(\"RECORD-LEVEL CHECKSUMS (First 10 records shown)\\n\")\n        f.write(\"-\" * 80 + \"\\n\")\n        f.write(f\"{'Record':<8} {'Object_Number':<20} {'Original Hash':<16} {'Standardized Hash':<16}\\n\")\n        f.write(\"-\" * 80 + \"\\n\")\n        \n        for i in range(min(10, len(orig_records))):\n            orig_num = orig_records[i].get('Object Number', 'N/A')\n            f.write(f\"{i+1:<8} {orig_num:<20} {orig_checksums[i]['record_hash'][:16]:<16} {std_checksums[i]['record_hash'][:16]:<16}\\n\")\n        \n        f.write(\"\\n\" + \"=\" * 80 + \"\\n\")\n        f.write(\"VERIFICATION NOTES\\n\")\n        f.write(\"=\" * 80 + \"\\n\")\n        f.write(\"• Record hashes differ because of formatting standardization\\n\")\n        f.write(\"• Object numbers, dates, and content are identical in meaning\\n\")\n        f.write(\"• Each record hash can be used to verify data integrity\\n\")\n        f.write(\"• To verify: regenerate hashes and compare with values above\\n\\n\")\n\ndef main():\n    \"\"\"Main execution.\"\"\"\n    script_dir = Path(__file__).parent\n    \n    # File paths (assuming files are in same directory as script)\n    original_file = script_dir / \"met_inventory.tsv\"\n    standardized_file = script_dir / \"standardized_met_inventory.tsv\"\n    report_file = script_dir / \"checksum_report.txt\"\n    \n    # Check if files exist\n    if not original_file.exists():\n        print(f\"ERROR: Original file not found: {original_file}\")\n        print(\"Place met_inventory.tsv in the same directory as this script.\")\n        return\n    \n    if not standardized_file.exists():\n        print(f\"ERROR: Standardized file not found: {standardized_file}\")\n        return\n    \n    try:\n        generate_report(original_file, standardized_file, report_file)\n        print(f\"✓ Checksum report generated: {report_file}\")\n    except Exception as e:\n        print(f\"ERROR: {e}\")\n        raise\n\nif __name__ == \"__main__\":\n    main()\n"
+   },
+   "name": "create_file",
+   "type": "tool_use",
+   "toolset_name": null
+  }
+ ],
+ "diagnostics": null,
+ "model": "claude-haiku-4-5-20251001",
+ "role": "assistant",
+ "stop_details": null,
+ "stop_reason": "tool_use",
+ "stop_sequence": null,
+ "type": "message",
+ "usage": {
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 2552
+  },
+  "cache_creation_input_tokens": 2552,
+  "cache_read_input_tokens": 16433,
+  "inference_geo": "not_available",
+  "input_tokens": 6,
+  "output_tokens": 1684,
+  "output_tokens_details": null,
+  "server_tool_use": null,
+  "service_tier": "batch",
+  "speed": "standard"
+ }
+}
