@@ -453,3 +453,10 @@ def test_added_date_column_with_an_era(value, src, ok):
     row = [src, "Bowl", "1.1", "x"]
     ctx = {"events": [], "reply": "", "known": set()}
     assert H.extra_cell("Date_Standardized", value, row, row + [value], ctx) is ok
+
+
+def test_of_two_equal_tables_in_a_reply_the_later_is_the_result():
+    src = "\n".join(f"{i}\ta\t1.{i}\tx" for i in range(25))
+    out = "\n".join(f"{i}\tb\t1.{i}\tx" for i in range(25))
+    rows = H.table_from_text(f"```python\ndata = '''\n{src}\n'''\n```\nThe result:\n```\n{out}\n```\n")
+    assert rows[0][1] == "b"

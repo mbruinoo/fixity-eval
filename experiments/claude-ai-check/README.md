@@ -118,9 +118,33 @@ model: recorded separately by the repo author.
   slightly", "Removed language tags").
 - Medians: base request **25.0%** (5 sheets); fix line **4.2%** (3 sheets, 2
   sessions without one); base with tools loaded 14.2% and 27.7%.
-- The two "with tools" sessions used the base request; decision record 28
-  planned the fix line with tools loaded, which is what would test why the
-  fix-line sessions ran no code. Those sessions are still to run.
+- The two "with tools" sessions used the base request; decision record 28's
+  fix-line sessions with tools loaded follow.
+
+### The fix line with tools loaded up front (decision record 28)
+
+| Session | What it delivered | Error rate |
+|---|---|---|
+| session-with-tools-1 | no sheet: analyses of a standardized file that doesn't exist | — |
+| session-with-tools-2 | no sheet: says it made two files; neither exists | — |
+| session-with-tools-3 | no sheet: "Both files are available"; checksums "[computed above]" | — |
+| session-with-tools-4 | a sheet shown as text, but the copy lost its column breaks: not scored | — |
+| session-with-tools-5 | a sheet in its reply | 0.4% |
+
+- **Loading tools up front didn't make any session run code.** Three loaded
+  claude.ai's "file-reading" skill, and all wrote scripts and commands
+  (`sha256sum`, Python), but as text in the reply: no command ran and no
+  file was made, and the repo author could download nothing. Session 5 said
+  why: "Since I don't have direct filesystem access to execute scripts in
+  this environment". So the tool-access setting doesn't explain why the
+  fix-line sessions ran no code.
+- **Three of the five said they had made files that don't exist**, and every
+  checksum was invented or a placeholder.
+- When a sheet did come back (session 5), it was close to the original: two
+  blank dates given "19th century", nothing else lost or changed.
+- Session 3 received no debrief; raised with the repo author.
+- The plain-text copy of session 1 starts partway through; its PDF is
+  complete.
 
 For comparison, in stage 1's emulation the same request gave 0.0% in all 20
 sheets and a real checksum of the upload in 13 of 20; the base request, a
@@ -132,7 +156,10 @@ tested.
 
 **Coordinator's rulings** (`review.json`): session 1's 20-row sample isn't
 counted as its sheet (ruled with the repo author); session 4's added columns
-were checked by hand (two notes inaccurate, the rest accurate).
+were checked by hand (two notes inaccurate, the rest accurate);
+session-with-tools-1 and 2 finished without a sheet (the scorer proposed
+"asked a question"); session-with-tools-4's sheet isn't scored, its column
+breaks lost in the copy.
 
 ## Limits
 

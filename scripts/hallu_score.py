@@ -271,14 +271,16 @@ def columns(header):
 
 
 def table_from_text(text):
-    """The largest table in a reply: TSV lines, or a markdown table."""
+    """The largest table in a reply: TSV lines, or a markdown table. Of two
+    the same size, the later: a reply may paste the source in (into a
+    script, say) before the result."""
     best = []
     for block in re.split(r"```\w*\n?", text):
         tsv = [ln for ln in block.splitlines() if "\t" in ln]
-        if len(tsv) > len(best):
+        if tsv and len(tsv) >= len(best):
             best = [ln.split("\t") for ln in tsv]
         md = [ln for ln in block.splitlines() if ln.lstrip().startswith("|")]
-        if len(md) > len(best):
+        if md and len(md) >= len(best):
             rows = []
             for ln in md:
                 cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", ln.strip().strip("|"))]
