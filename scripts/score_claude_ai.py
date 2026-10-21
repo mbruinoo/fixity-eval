@@ -40,6 +40,15 @@ def replies(transcript):
     return "\n".join(out) + "\n"
 
 
+def condition(name):
+    """session-N: the fix line; base-N: the base request; tools-N: the fix line
+    with tools always loaded; base-with-tools-N: the base request with tools
+    always loaded (decision records 24, 25 and 28)."""
+    if name.startswith("base-with-tools-"):
+        return "claude-ai-base-tools-loaded"
+    return {"base": "claude-ai-base", "tools": "claude-ai-fix-tools-loaded"}.get(name.split("-")[0], "claude-ai-fix")
+
+
 def main():
     root = pathlib.Path(sys.argv[1])
     report = []
@@ -51,8 +60,7 @@ def main():
             if (d / "output_files").is_dir():
                 shutil.copytree(d / "output_files", run / "output_files")
             res = H.score_run(run, INPUT, events=[])
-        res["condition"] = {"base": "claude-ai-base", "tools": "claude-ai-fix-tools-loaded"}.get(
-            d.name.split("-")[0], "claude-ai-fix")
+        res["condition"] = condition(d.name)
         report.append(res)
         print(json.dumps({k: v for k, v in res.items() if k not in ("examples", "columns_found", "changes")},
                          ensure_ascii=False))

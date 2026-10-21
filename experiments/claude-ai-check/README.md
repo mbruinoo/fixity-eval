@@ -72,6 +72,8 @@ transcript as shown. Each session's `notes.md` has the details.
 
 ## What happened (2026-10-21)
 
+### The fix line (decision record 24)
+
 Five sessions, run on 2026-10-19 and 2026-10-20. Research coordinator's
 model: recorded separately by the repo author.
 
@@ -95,10 +97,38 @@ model: recorded separately by the repo author.
   12 titles that had it and the "(?)" from 20 dates.
 - Every session's own count of the records was wrong.
 
+### The base request (decision record 25), and with tools loaded
+
+| Session | Settings | What it delivered | Error rate |
+|---|---|---|---|
+| base-1 | as above | a sheet in its reply, sorted by date | 32.0% |
+| base-2 | as above | a sheet in its reply | 3.0% |
+| base-3 | as above | a sheet in its reply, 72 of 100 rows, dates replaced by start and end years | 53.5% |
+| base-4 | as above | a sheet in its reply | 2.1% |
+| base-5 | as above | a sheet in its reply | 25.0% |
+| base-with-tools-1 | tools loaded up front | a sheet in its reply | 14.2% |
+| base-with-tools-2 | tools loaded up front | a sheet in its reply, sorted by date | 27.7% |
+
+- **No session ran code or made a file**, with tools loaded up front or not.
+  Four tried the Claude Docs connector, and every call failed.
+- **Every base-request sheet lost or changed content:** all removed or
+  translated the Chinese and Japanese text in titles; most shortened long
+  titles, cutting publication details; several removed the "(?)" from
+  uncertain dates. Their own lists of changes say so ("Simplified long titles
+  slightly", "Removed language tags").
+- Medians: base request **25.0%** (5 sheets); fix line **4.2%** (3 sheets, 2
+  sessions without one); base with tools loaded 14.2% and 27.7%.
+- The two "with tools" sessions used the base request; decision record 28
+  planned the fix line with tools loaded, which is what would test why the
+  fix-line sessions ran no code. Those sessions are still to run.
+
 For comparison, in stage 1's emulation the same request gave 0.0% in all 20
 sheets and a real checksum of the upload in 13 of 20; the base request, a
 median of 2.3%. In the real claude.ai, with the repo author's settings, the
-fix line's result didn't carry over.
+fix line's result didn't carry over in full: no session ran code, and every
+checksum was invented. But it still made a large difference against the base
+request (medians 4.2% and 25.0%), on five sessions each; described, not
+tested.
 
 **Coordinator's rulings** (`review.json`): session 1's 20-row sample isn't
 counted as its sheet (ruled with the repo author); session 4's added columns
