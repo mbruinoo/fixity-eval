@@ -27,8 +27,8 @@ session. It sent nothing to claude.ai. Recorded here, not scored.
   - Reply 3 also ended with no file ("paste them back and I'll extend the parser"),
     so under README step 4 a third nudge (`Yes, please continue`) was due and wasn't
     sent.
-  - The repo author sent the whole session before the coordinator checked it. Why
-    the third nudge was left out wasn't recorded.
+  - The repo author left it out on purpose (said in chat on 2026-10-24): it was "a
+    choice after seeing that the session clearly was not going to run any code".
 
   So this session has 8 messages, against 10 in the other five sessions.
 - **Permission clicks:** none. No tool prompt appeared.
