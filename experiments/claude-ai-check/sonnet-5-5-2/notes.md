@@ -7,7 +7,7 @@ model Opus 5.5, `claude-opus-5-5`) set up the chat, watched the page and saved t
 session. It sent nothing to claude.ai. Recorded here, not scored.
 
 - **Date and time:** 2026-10-24. The chat was set up at 14:22 EDT. The whole session,
-  including the debrief reply, was finished by about 14:35. Exact send times weren't
+  including the debrief reply, was finished before 14:33. Exact send times weren't
   recorded.
 - **Model shown:** Sonnet 5.5, Effort Medium, Permission mode Manual. These are the
   labels beside the message box (screenshot 03).
