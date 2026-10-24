@@ -38,3 +38,4 @@ after they're committed; a later record supersedes an earlier one and says so.
 | [2026-10-21-29](2026-10-21-29-checksum-plans-limits.md) | Checksum-plans study: longer reply limits for Opus 5.5 and Opus 5, and a $13 guard |
 | [2026-10-21-30](2026-10-21-30-checksum-wrappers.md) | A 2×2 study: does describing the data, or how it will be used, change checksum plans? |
 | [2026-10-22-31](2026-10-22-31-claude-ai-other-models.md) | The claude.ai check: the fix line with Sonnet 4.5 and Opus 5.5 |
+| [2026-10-24-32](2026-10-24-32-sonnet-5-5-and-incognito.md) | The claude.ai check: Sonnet 5.5 in place of Sonnet 4.5, and the Incognito question |
