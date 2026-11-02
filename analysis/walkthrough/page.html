@@ -53,13 +53,11 @@
   .fx-prompt strong { font-weight: 600; }
   .fx-note { font-size: var(--cds-font-size-caption) !important; color: var(--color-fg-muted); }
 
-  .fx-tip { position: absolute; z-index: 2; pointer-events: none; width: max-content; max-width: 15rem; background: var(--cds-surface-popover); border: 1px solid var(--cds-border);
+  .fx-tip { position: absolute; z-index: 2; pointer-events: none; width: max-content; max-width: 19rem; background: var(--cds-surface-popover); border: 1px solid var(--cds-border);
     border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); line-height: 1.45; }
-  .fx-tip .t1, .fx-tip .t4 { color: var(--cds-text-secondary); }
-  .fx-tip .t2 { font-weight: 600; }
-  .fx-tip .t5 { display: flex; align-items: center; gap: .4rem; }
-  .fx-tip .t5:empty { display: none; }
-  .fx-tip .t5::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; border: 2px solid var(--fx-red); }
+  .fx-tip .t1 { font-weight: 600; }
+  .fx-tip .t2 span, .fx-tip .t3 { color: var(--color-fg-muted); }
+  .fx-tip .t3:empty { display: none; }
 
   .fx-detail { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: grid; gap: var(--cds-gap-sm); }
   .fx-detail[hidden] { display: none; }
@@ -272,33 +270,72 @@
 
   dash.calc('synopsis', {
     inputs: ['changes'],
-    title: 'What changed in each session',
-    description: 'For each session: how many titles, dates and object numbers were changed, how many rows went missing, were invented or shifted one column, and how many values were made up.',
+    title: 'Each session’s biggest error',
+    description: 'For each session: its single most telling error (made-up content first, then dropped rows, deleted Chinese, Japanese or Korean text, shifted rows, then the first other change) and how many other counted errors it has. A dropped, invented or shifted row counts as one error.',
     fn: (changes) => {
+      const CJK = /[　-〿぀-ヿ㐀-鿿가-힯豈-﫿]/;
+      const YEAR = /\b\d{3,4}\b/g;
+      const short = (t, n = 36) => (t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t);
+      const field = (f) => (f === 'Object Date' ? 'date' : f.startsWith('added: ') ? 'added ' + f.slice(7).replace(/_/g, ' ').toLowerCase() : f.toLowerCase());
       const by = {};
-      for (const c of changes) {
-        const s = by[c.session] || (by[c.session] = { title: 0, date: 0, num: 0, missing: new Set(), invented: new Set(), shifted: new Set(), added: 0, made: 0 });
-        if (c.made_up === 'yes') s.made++;
-        if (c.change === 'changed') {
-          if (c.field === 'Title') s.title++;
-          else if (c.field === 'Object Date') s.date++;
-          else if (c.field === 'Object Number') s.num++;
-        } else if (c.change === 'row missing') s.missing.add(c.row);
-        else if (c.change === 'row invented') s.invented.add(c.object_number);
-        else if (c.change === 'row shifted') { if (c.row) s.shifted.add(c.row); }
-        else s.added++;
-      }
-      const n = (k, one, many) => `${k} ${k === 1 ? one : many}`;
-      return Object.entries(by).map(([session, s]) => {
-        const parts = [];
-        if (s.title) parts.push(n(s.title, 'title', 'titles') + ' changed');
-        if (s.date) parts.push(n(s.date, 'date', 'dates') + ' changed');
-        if (s.num) parts.push(n(s.num, 'object number', 'object numbers') + ' changed');
-        if (s.missing.size) parts.push(n(s.missing.size, 'row', 'rows') + ' missing');
-        if (s.invented.size) parts.push(n(s.invented.size, 'row', 'rows') + ' invented');
-        if (s.shifted.size) parts.push(n(s.shifted.size, 'row', 'rows') + ' shifted one column (formatting)');
-        if (s.added) parts.push(n(s.added, 'added value', 'added values') + ' invented');
-        return { session, text: parts.join(', '), made: s.made ? `${n(s.made, 'value', 'values')} made up, not in the original` : '' };
+      for (const c of changes) (by[c.session] = by[c.session] || []).push(c);
+      return Object.entries(by).map(([session, cs]) => {
+        // Errors, with a whole dropped, invented or shifted row counted once.
+        const units = [], seen = new Set();
+        for (const c of cs) {
+          if (c.change === 'row missing' || c.change === 'row invented' || c.change === 'row shifted') {
+            const k = c.change + (c.row || c.object_number);
+            if (seen.has(k)) continue;
+            seen.add(k);
+          }
+          units.push(c);
+        }
+        const newYear = (c) => (c.after.match(YEAR) || []).some((y) => !c.before.includes(y));
+        // What changed in one cell, in a few words: brackets dropped, or the words that differ.
+        const describe = (c) => {
+          const f = field(c.field);
+          if (!c.before) return `Filled a blank ${f}: ${short(c.after)}`;
+          const bare = (t) => t.replace(/[\[\]()"]/g, '').trim();
+          if (bare(c.before) === bare(c.after) && /[\[\]()]/.test(c.before)) return `Dropped the brackets from a ${f}`;
+          let a = 0, z = 0;
+          while (a < c.before.length && c.before[a] === c.after[a]) a++;
+          while (z < c.before.length - a && z < c.after.length - a && c.before[c.before.length - 1 - z] === c.after[c.after.length - 1 - z]) z++;
+          while (a > 0 && /\S/.test(c.before[a - 1])) a--;
+          while (z > 0 && /\S/.test(c.before[c.before.length - z])) z--;
+          const gone = c.before.slice(a, c.before.length - z).trim(), put = c.after.slice(a, c.after.length - z).trim();
+          if (!put) return `Deleted “${short(gone, 30)}” from a ${f}`;
+          if (!gone) return `Added “${short(put, 30)}” to a ${f}`;
+          return `Changed “${short(gone, 22)}” to “${short(put, 22)}” in a ${f}`;
+        };
+        const madeUp = units.filter((c) => c.made_up === 'yes');
+        // A row counted missing whose link comes back in an invented row was rewritten, not dropped: not a headline.
+        const back = new Set(cs.filter((c) => c.change === 'row invented' && c.field === 'Link Resource').map((c) => c.after));
+        const rewrote = new Set(cs.filter((c) => c.change === 'row missing' && c.field === 'Link Resource' && back.has(c.before)).map((c) => c.row));
+        const missing = units.filter((c) => c.change === 'row missing' && !rewrote.has(c.row));
+        const cjk = units.filter((c) => c.change === 'changed' && CJK.test(c.before) && !CJK.test(c.after));
+        const shifted = units.filter((c) => c.change === 'row shifted' && c.row);
+        let lead = '', used = 1;
+        const yearOnly = (c) => /^\d{3,4}$/.test(c.after.trim());
+        const m = madeUp.find((c) => c.before && newYear(c)) || madeUp.find((c) => !c.field.startsWith('added: '))
+          || madeUp.find(yearOnly) || madeUp[0];
+        if (m) {
+          const what = yearOnly(m) ? 'year' : (m.field.startsWith('added: ') ? 'date' : field(m.field));
+          lead = m.before ? `Invented ${what}: ${short(m.after)} (was ${short(m.before, 24)})` : `Invented ${what}: ${short(m.after)}`;
+        } else if (missing.length) {
+          lead = missing.length === 1 ? `Dropped a whole row (${missing[0].object_number})` : `Dropped ${missing.length} whole rows`;
+          used = missing.length;
+        } else if (cjk.length) {
+          const c = cjk[0];
+          const gone = c.before.split(/[|\s]+/).filter((w) => CJK.test(w)).join(' ');
+          lead = `Deleted ${short(gone, 28)}`;
+        } else if (shifted.length) {
+          lead = shifted.length === 1 ? 'Shifted a row one column' : `Shifted ${shifted.length} rows one column`;
+          used = shifted.length;
+        } else if (units.length) {
+          lead = describe(units.find((x) => x.weight === 'full' && x.change === 'changed') || units[0]);
+        }
+        const others = Math.max(0, units.length - used);
+        return { session, lead, others: others ? `+ ${others} other error${others === 1 ? '' : 's'}` : '' };
       });
     },
   });
@@ -372,7 +409,7 @@
       const tip = document.createElement('div');
       tip.className = 'fx-tip';
       tip.hidden = true;
-      const lines = ['t1', 't2', 't3', 't5', 't4'].map((c) => { const e = document.createElement('div'); e.className = c; return e; });
+      const lines = ['t1', 't2', 't3'].map((c) => { const e = document.createElement('div'); e.className = c; return e; });
       tip.append(...lines);
       el.append(tip);
       const synRow = (id) => (syn.status === 'ok' ? syn.data.find((r) => r.session === id) : null) || {};
@@ -391,17 +428,18 @@
         .attr('x', (p) => p.x - step / 2).attr('width', step)
         .attr('y', PT - 10).attr('height', PH + 20)
         .on('pointerenter', (ev, p) => {
-          lines[0].textContent = p.r.setting === 'claude.ai' ? 'claude.ai' : 'Claude API';
-          lines[1].textContent = `Error rate ${pct(p.v)}`;
-          lines[2].textContent = p.v === 0 ? 'Nothing lost, changed or invented' : (synRow(p.r.session).text || 'Minor changes only');
-          lines[3].textContent = ck ? '' : (synRow(p.r.session).made || '');
-          if (ck) lines[0].textContent += made(p) ? ' · made-up checksums' : (p.r.checksum === 'real' ? ' · real checksum' : ' · no checksum');
-          lines[4].textContent = 'Click to see it beside the original';
+          // The session's single biggest error, with the rest as a count.
+          const row = synRow(p.r.session);
+          lines[0].textContent = `${p.r.setting === 'claude.ai' ? 'claude.ai' : 'Claude API'} — ${pct(p.v)} error rate`;
+          lines[1].replaceChildren(p.v === 0 || !row.lead ? 'Nothing lost, changed or invented' : row.lead);
+          if (p.v > 0 && row.others) { const more = document.createElement('span'); more.textContent = ` ${row.others}`; lines[1].append(more); }
+          lines[2].textContent = ck ? (made(p) ? 'Gave made-up checksums' : (p.r.checksum === 'real' ? 'Computed a real checksum' : 'Gave no checksum')) : '';
           tip.hidden = false;
           const box = el.getBoundingClientRect();
           const sx = box.width / W;
           tip.style.left = `${Math.min(Math.max(0, p.x * sx + 10), box.width - tip.offsetWidth)}px`;
-          tip.style.top = `${Math.max(0, y(p.v) * sx - tip.offsetHeight - 12)}px`;
+          const above = y(p.v) * sx - tip.offsetHeight - 12;
+          tip.style.top = `${above >= 0 ? above : y(p.v) * sx + 14}px`;  // below the dot when there's no room above
         })
         .on('pointerleave', () => { tip.hidden = true; })
         .on('click', (ev, p) => dash.setParams({ session: p.r.session, slot: (el.closest('[data-slot]') || {}).dataset?.slot || '1' }));
