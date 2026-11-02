@@ -115,7 +115,7 @@
           <p class="fx-ask"><span>“Can you standardize this spreadsheet?</span> <strong>Use fixity.”</strong></p>
         </div>
       </div>
-      <p class="fx-dek">We asked Claude to tidy a spreadsheet of museum records, with and without one extra line about fixity: keeping data provably unchanged. Error rate is the share of the sheet lost, changed or invented. Each dot is one session, sorted from lowest to highest error rate; hover over one to see its errors, or click it for every change.</p>
+      <p class="fx-dek">We asked Claude to tidy a spreadsheet of museum records, with and without one extra line about fixity: keeping data provably unchanged. Error rate is the share of the sheet lost, changed or invented. Each dot is one session, in the order they were run: the test setting first, then claude.ai. Hover over one to see its errors, or click it for every change.</p>
       <ul class="fx-legend">
         <li><span class="fx-key k-one"></span>One session:</li>
         <li><span class="fx-key k-test"></span>Test setting (Claude API)</li>
@@ -305,14 +305,14 @@
       const y = d3.scaleSqrt().domain([0, 0.55]).range([H - m.bottom, m.top]);
       const color = { 'Test setting': dash.colors[0], 'claude.ai': dash.colors[1] };
       const pts = d.data.filter((r) => r.request === req && r.error_rate !== '')
-        .map((r) => ({ r, v: Number(r.error_rate) }))
-        .sort((a, b) => a.v - b.v || a.r.setting.localeCompare(b.r.setting));
+        .map((r) => ({ r, v: Number(r.error_rate), k: Number((r.session.match(/(\d+)$/) || [0, 0])[1]) }))
+        .sort((a, b) => (a.r.setting === 'claude.ai') - (b.r.setting === 'claude.ai') || a.k - b.k);
       const n = pts.length;
       const x = (i) => m.left + (i + 0.5) * ((W - m.left - m.right) / Math.max(1, n));
       const R = Math.max(3.5, Math.min(5.5, ((W - m.left - m.right) / Math.max(1, n)) / 2 - 0.75));
 
       const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
-        .attr('aria-label', `Error rate of each session, ${req.toLowerCase()}, sorted from lowest to highest`);
+        .attr('aria-label', `Error rate of each session, ${req.toLowerCase()}, in the order they were run`);
       svg.append('g').attr('class', 'grid').selectAll('line').data(TICKS.slice(1)).join('line')
         .attr('x1', m.left).attr('x2', W - m.right).attr('y1', (t) => y(t)).attr('y2', (t) => y(t));
       svg.append('line').attr('class', 'base').attr('x1', m.left).attr('x2', W - m.right).attr('y1', y(0)).attr('y2', y(0));
