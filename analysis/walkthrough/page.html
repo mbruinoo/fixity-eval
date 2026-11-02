@@ -4,31 +4,35 @@
      Below it: the chapters, then every session in a table. Layout from the repo author's design canvas. */
   .fx { --fx-blue: #3b74d1; --fx-orange: #d9703f; --fx-red: #b3261e; max-width: 80rem; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); }
   @media (prefers-color-scheme: dark) { .fx { --fx-blue: #6a9be6; --fx-orange: #e8875a; --fx-red: #ef6b62; } }
-  .fx-slide { display: grid; gap: 40px; padding-block: var(--cds-pad-xl); }
-  .fx-slide h1 { margin: 0; max-width: 62rem; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 38px; line-height: 1.2; }
+  .fx-slide { display: grid; gap: 0; padding-block: var(--cds-pad-xl); }
+  .fx-slide h1 { margin: 0; max-width: 58rem; font-family: var(--font-anthropic-sans); font-weight: 600; font-size: 40px; line-height: 1.2; letter-spacing: -0.005em; }
   .fx-slide h1 span { font-variant-numeric: tabular-nums; }
-  .fx-chart { display: grid; grid-template-columns: minmax(0, calc(50% + 34px)) minmax(0, 1fr); row-gap: 24px; }
-  .fx-col { display: grid; gap: 16px; align-content: start; min-width: 0; }
-  .fx-ask { margin: 0; padding-left: 68px; font-size: var(--cds-font-size-body); line-height: 1.45; color: var(--color-fg-muted); }
-  .fx-col-2 .fx-ask { padding-left: 24px; }
-  .fx-ask span { color: color-mix(in srgb, var(--color-fg-muted) 70%, var(--color-bg)); }
-  .fx-plot { position: relative; min-height: 200px; }
+  /* The chart: two equal halves on one scale, the axis title turned on its side in the left margin. */
+  .fx-chart { position: relative; margin-top: 64px; padding-left: 32px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; }
+  .fx-axis { position: absolute; left: 0; top: 20px; height: 240px; display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); margin: 0; font-size: var(--cds-font-size-body); color: var(--color-fg); white-space: nowrap; }
+  .fx-col { display: grid; gap: 8px; align-content: start; min-width: 0; }
+  .fx-ask { margin: 0 0 0 56px; display: grid; justify-items: center; gap: 6px; text-align: center; }
+  .fx-ask q { quotes: "“" "”"; font-size: 21px; line-height: 28px; color: var(--color-fg); text-wrap: balance; }
+  .fx-file { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border: 1px solid var(--color-border-line); border-radius: 4px; font-size: var(--cds-font-size-body); color: var(--color-fg); }
+  .fx-file svg { flex: none; fill: none; stroke: var(--color-fg-muted); stroke-width: 1.5; }
+  .fx-plot { position: relative; min-height: 180px; }
   .fx-plot svg { display: block; overflow: visible; }
   .fx-plot .grid line { stroke: var(--color-border-line); stroke-width: 1; }
-  .fx-plot .zero { stroke: var(--cds-chart-axis); stroke-width: 1; }
-  .fx-plot .divider { stroke: var(--color-border-line); stroke-width: 1; }
-  .fx-plot text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-body); font-family: var(--font-anthropic-sans); }
-  .fx-plot .med line { stroke: var(--color-fg-muted); stroke-width: 1; stroke-dasharray: 4 3; }
-  .fx-dot.is-picked { stroke: var(--color-fg); stroke-width: 2; }
+  .fx-plot .zero { stroke: var(--color-fg-muted); stroke-width: 1; }
+  .fx-plot text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-body); font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; }
+  .fx-dot { stroke: var(--color-bg); stroke-width: 2; }
+  .fx-dot.is-picked { stroke: var(--color-fg); }
   .fx-ring { fill: none; stroke: var(--fx-red); stroke-width: 2; }
   .fx-hit { fill: transparent; cursor: pointer; }
-  .fx-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin: 0; padding: 0; list-style: none; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); }
-  .fx-legend li { display: inline-flex; align-items: center; gap: 6px; }
+  .fx-bottom { margin-top: 48px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
+  .fx-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin: 0; padding: 0; list-style: none; font-size: var(--cds-font-size-body); color: var(--color-fg); }
+  .fx-legend li { display: inline-flex; align-items: center; gap: 8px; }
   .fx-key { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; forced-color-adjust: none; }
   .fx-key.k-test { background: var(--fx-blue); }
   .fx-key.k-ai { background: var(--fx-orange); }
-  .fx-key.k-ring { box-sizing: border-box; border: 2px solid var(--fx-red); }
+  .fx-key.k-ring { background: var(--color-border-line); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--fx-red); margin-inline: 4px; }
   .fx-foot { margin: 0; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); }
+  .fx-slide .fx-detail { margin-top: 24px; }
   .fx-foot a, .fx-note a { color: inherit; }
 
   .fx-chapters { display: grid; gap: var(--cds-gap-xl); max-width: 46rem; padding-block: var(--cds-pad-xl); border-top: 1px solid var(--color-border-line); }
@@ -86,11 +90,13 @@
   .fx-table th, .fx-table td { text-align: left; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
   .fx-table th { position: sticky; top: 0; background: var(--color-panel); font-weight: var(--cds-font-weight-medium); }
   .fx-table tbody tr { cursor: pointer; }
-  @media (max-width: 700px) {
-    .fx-chart { grid-template-columns: minmax(0, 1fr); }
-    .fx-col-2 .fx-ask { padding-left: 68px; }
-    .fx-slide { gap: 28px; }
+  @media (max-width: 760px) {
     .fx-slide h1 { font-size: 28px; }
+    .fx-chart { margin-top: 32px; padding-left: 0; grid-template-columns: minmax(0, 1fr); row-gap: 32px; }
+    .fx-axis { position: static; height: auto; writing-mode: horizontal-tb; transform: none; justify-content: flex-start; margin-bottom: -16px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+    .fx-ask { margin-left: 40px; }
+    .fx-ask q { font-size: 17px; line-height: 24px; }
+    .fx-bottom { margin-top: 32px; }
     .d-pane { max-height: 13rem; }
   }
   @media (forced-colors: active) { .fx-key { background: CanvasText; } .fx-key.k-ring { background: none; border-color: CanvasText; } }
@@ -101,22 +107,27 @@
     <h1>When asked to use <em>fixity</em>, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-with">—</span>.</h1>
 
     <div class="fx-chart" id="chart">
+      <p class="fx-axis">Error rate (log scale)</p>
       <div class="fx-col">
-        <div class="fx-plot" data-draw="panel" data-request="Without the fixity line" data-side="left" data-source="sessions summary synopsis"></div>
-        <p class="fx-ask">“Can you standardize this .tsv file?”</p>
+        <div class="fx-plot" data-draw="panel" data-request="Without the fixity line" data-source="sessions synopsis"></div>
+        <p class="fx-ask"><q>Can you standardize this .tsv file?</q>
+          <span class="fx-file"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M2 1h7l3 3v11H2z"></path><path d="M9 1v3h3"></path></svg>met_inventory.tsv</span></p>
       </div>
-      <div class="fx-col fx-col-2">
-        <div class="fx-plot" data-draw="panel" data-request="With the fixity line" data-side="right" data-source="sessions summary synopsis"></div>
-        <p class="fx-ask"><span>“Can you standardize this .tsv file?</span> Preserve fixity: use scripts on the uploaded file, and checksum the sources and the results.”</p>
+      <div class="fx-col">
+        <div class="fx-plot" data-draw="panel" data-request="With the fixity line" data-source="sessions synopsis"></div>
+        <p class="fx-ask"><q>Can you standardize this .tsv file? Preserve fixity: use scripts on the uploaded file, and checksum the sources and the results.</q>
+          <span class="fx-file"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M2 1h7l3 3v11H2z"></path><path d="M9 1v3h3"></path></svg>met_inventory.tsv</span></p>
       </div>
     </div>
 
-    <ul class="fx-legend">
-      <li>Error rate (log scale)</li>
-      <li><span class="fx-key k-test"></span>Claude API</li>
-      <li><span class="fx-key k-ai"></span>claude.ai</li>
-      <li><span class="fx-key k-ring"></span>Includes hallucinated content</li>
-    </ul>
+    <div class="fx-bottom">
+      <ul class="fx-legend">
+        <li><span class="fx-key k-test"></span>Claude API</li>
+        <li><span class="fx-key k-ai"></span>claude.ai</li>
+        <li><span class="fx-key k-ring"></span>Includes hallucinated content</li>
+      </ul>
+      <p class="fx-foot"><a href="https://github.com/mbruinoo/fixity-eval">github.com/mbruinoo/fixity-eval</a> · October 2026 · <a href="https://github.com/mbruinoo/fixity-eval">Method &amp; data</a></p>
+    </div>
 
     <div class="fx-detail" id="detail" hidden>
       <div class="fx-detail-bar">
@@ -125,8 +136,6 @@
       </div>
       <div class="fx-changes" data-draw="detail" data-source="sheets changes sessions">—</div>
     </div>
-
-    <p class="fx-foot"><a href="https://github.com/mbruinoo/fixity-eval">github.com/mbruinoo/fixity-eval</a> · October 2026 · <a href="https://github.com/mbruinoo/fixity-eval">Method &amp; data</a></p>
   </section>
 
   <div class="fx-chapters">
@@ -282,59 +291,41 @@
     const REPO = 'https://github.com/mbruinoo/fixity-eval/tree/main/experiments/';
     const folder = (id) => REPO + (id.startsWith('stage-1/') ? 'stage-1/runs/' + id.slice(8) : id);
 
-    // One half of the chart: the sessions given one request, in the order run (the test setting, then claude.ai).
-    // Error rate on a log scale (log of 1 + the percentage, so 0% sits on the baseline). The left half carries the axis;
-    // a thin line marks the divide between halves. Stacked on a narrow screen, each half carries its own axis.
+    // One half of the chart: the sessions given one request, in the order run (Claude API, a gap, then claude.ai),
+    // spread across the half. Error rate on a log scale (log of 1 + the percentage, so 0% sits on the baseline);
+    // each half carries its own percentages. No median is drawn: the headline states it.
     const TICKS = [0, 0.01, 0.02, 0.05, 0.1, 0.25, 0.5];
     dash.draw('panel', (el) => {
       const d = dash.data('sessions');
-      const s = dash.data('summary');
       const syn = dash.data('synopsis');
       el.replaceChildren();
       if (d.status !== 'ok') { el.textContent = '—'; return; }
       const req = el.getAttribute('data-request');
-      const left = el.getAttribute('data-side') === 'left';
-      const narrow = window.matchMedia('(max-width: 700px)').matches;
+      const narrow = window.matchMedia('(max-width: 760px)').matches;
       const picked = dash.params().session;
       const W = Math.max(200, el.clientWidth);
-      const axis = left || narrow;
-      const x0 = axis ? 68 : 24;
-      const pw = W - x0 - (left && !narrow ? 24 : 0);
-      const PH = narrow ? 200 : 330, TOP = 20, BOT = 22, H = TOP + PH + BOT;
-      const y = (v) => TOP + PH - (PH * Math.log10(1 + v * 100)) / Math.log10(61);
+      const x0 = narrow ? 40 : 56;
+      const PT = 20, PH = narrow ? 200 : 240, H = PT + PH + 12;
+      const y = (v) => PT + PH - (PH * Math.log10(1 + v * 100)) / Math.log10(61);
       const cs = getComputedStyle(el);
       const color = { 'Test setting': cs.getPropertyValue('--fx-blue').trim(), 'claude.ai': cs.getPropertyValue('--fx-orange').trim() };
 
       const pts = d.data.filter((r) => r.request === req && r.error_rate !== '')
         .map((r) => ({ r, v: Number(r.error_rate), k: Number((r.session.match(/(\d+)$/) || [0, 0])[1]) }))
         .sort((a, b) => (a.r.setting === 'claude.ai') - (b.r.setting === 'claude.ai') || a.k - b.k);
-      const GAP = narrow ? 14 : 28;
-      const step = (pw - GAP) / Math.max(1, pts.length);
-      const x = (p, i) => x0 + step * (i + 0.5) + (p.r.setting === 'claude.ai' ? GAP : 0);
-      const R = Math.max(3, Math.min(6, step / 2 - 1));
+      // One slot per session plus one empty slot between the settings, 12px in from each end.
+      const step = (W - x0 - 24) / Math.max(1, pts.length);
+      let slot = -1, prev = null;
+      pts.forEach((p) => { if (prev !== null && p.r.setting !== prev) slot++; prev = p.r.setting; p.x = x0 + 12 + (++slot) * step; });
+      const R = narrow ? 4 : 5;
 
       const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
         .attr('aria-label', `Error rate of each session, ${req.toLowerCase()}, in the order they were run`);
-      const grid = svg.append('g').attr('class', 'grid');
-      grid.selectAll('line').data(TICKS.slice(1)).join('line')
-        .attr('x1', axis ? 52 : 0).attr('x2', W).attr('y1', (t) => y(t)).attr('y2', (t) => y(t));
-      svg.append('line').attr('class', 'zero').attr('x1', axis ? 52 : 0).attr('x2', W).attr('y1', y(0)).attr('y2', y(0));
-      if (!left && !narrow) svg.append('line').attr('class', 'divider').attr('x1', 0.5).attr('x2', 0.5).attr('y1', 0).attr('y2', H);
-      if (axis) {
-        svg.append('g').selectAll('text').data(TICKS).join('text')
-          .attr('x', 40).attr('y', (t) => y(t)).attr('dy', '0.32em').attr('text-anchor', 'end')
-          .text((t) => `${Math.round(t * 100)}%`);
-      }
-
-      // The median: a dashed line, left out where it would lie on the baseline, and its value above it.
-      if (s.status === 'ok') {
-        const row = s.data.find((g) => g.group === (req === 'With the fixity line' ? 'all-with' : 'all-without'));
-        if (row) {
-          const g = svg.append('g').attr('class', 'med');
-          if (row.median_value > 0) g.append('line').attr('x1', x0).attr('x2', x0 + pw).attr('y1', y(row.median_value)).attr('y2', y(row.median_value));
-          g.append('text').attr('x', x0).attr('y', y(row.median_value) - 10).text(`Median ${row.median}`);
-        }
-      }
+      svg.append('g').attr('class', 'grid').selectAll('line').data(TICKS.slice(1)).join('line')
+        .attr('x1', x0).attr('x2', W).attr('y1', (t) => y(t)).attr('y2', (t) => y(t));
+      svg.append('line').attr('class', 'zero').attr('x1', x0).attr('x2', W).attr('y1', y(0)).attr('y2', y(0));
+      svg.append('g').selectAll('text').data(TICKS).join('text')
+        .attr('x', 0).attr('y', (t) => y(t)).attr('dy', '0.32em').text((t) => `${Math.round(t * 100)}%`);
 
       const tip = document.createElement('div');
       tip.className = 'fx-tip';
@@ -344,16 +335,16 @@
       el.append(tip);
       const synRow = (id) => (syn.status === 'ok' ? syn.data.find((r) => r.session === id) : null) || {};
 
-      const dots = svg.append('g').selectAll('g').data(pts.map((p, i) => ({ ...p, i }))).join('g');
+      const dots = svg.append('g').selectAll('g').data(pts).join('g');
       dots.append('circle')
         .attr('class', (p) => `fx-dot${p.r.session === picked ? ' is-picked' : ''}`)
-        .attr('cx', (p) => x(p, p.i)).attr('cy', (p) => y(p.v)).attr('r', R).attr('fill', (p) => color[p.r.setting]);
+        .attr('cx', (p) => p.x).attr('cy', (p) => y(p.v)).attr('r', R).attr('fill', (p) => color[p.r.setting]);
       // A red ring marks a sheet with made-up content (made_up in the sessions file).
       dots.filter((p) => Number(p.r.made_up) > 0).append('circle').attr('class', 'fx-ring')
-        .attr('cx', (p) => x(p, p.i)).attr('cy', (p) => y(p.v)).attr('r', R + 3);
+        .attr('cx', (p) => p.x).attr('cy', (p) => y(p.v)).attr('r', R + 3);
       dots.append('rect').attr('class', 'fx-hit')
-        .attr('x', (p) => x(p, p.i) - step / 2).attr('width', step)
-        .attr('y', TOP - 10).attr('height', PH + 20)
+        .attr('x', (p) => p.x - step / 2).attr('width', step)
+        .attr('y', PT - 10).attr('height', PH + 20)
         .on('pointerenter', (ev, p) => {
           lines[0].textContent = p.r.setting === 'claude.ai' ? 'claude.ai' : 'Claude API';
           lines[1].textContent = `Error rate ${pct(p.v)}`;
@@ -363,7 +354,7 @@
           tip.hidden = false;
           const box = el.getBoundingClientRect();
           const sx = box.width / W;
-          tip.style.left = `${Math.min(Math.max(0, x(p, p.i) * sx + 10), box.width - tip.offsetWidth)}px`;
+          tip.style.left = `${Math.min(Math.max(0, p.x * sx + 10), box.width - tip.offsetWidth)}px`;
           tip.style.top = `${Math.max(0, y(p.v) * sx - tip.offsetHeight - 12)}px`;
         })
         .on('pointerleave', () => { tip.hidden = true; })
