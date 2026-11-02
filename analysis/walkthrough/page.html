@@ -37,7 +37,9 @@
   .fx-key.k-one { background: var(--color-fg-muted); } .fx-key.k-test { background: var(--fx-c0); } .fx-key.k-ai { background: var(--fx-c1); }
   .fx-key.k-made { background: var(--cds-chart-status-critical); }
   .fx-key.k-med { width: 1.1rem; height: 0; border-radius: 0; border-top: 2px dashed var(--color-fg-muted); }
+  .fx-key.k-ring { background: none; width: .55rem; height: .55rem; border: 2px solid var(--cds-chart-status-critical); }
   .fx-legend .only-3 { display: none; }
+  .fx-story.at-3 .fx-legend .not-3 { display: none; }
   .fx-story.at-3 .fx-legend .only-3 { display: inline-flex; }
 
   .fx-plot svg { display: block; overflow: visible; }
@@ -51,6 +53,8 @@
   .fx-plot .peak { fill: var(--color-fg); font-variant-numeric: tabular-nums; }
   .fx-dot { fill: var(--c); stroke: var(--color-panel); stroke-width: 1.5; }
   .fx-dot.is-picked { stroke: var(--color-fg); stroke-width: 2.5; }
+  .fx-ring { fill: none; stroke: var(--cds-chart-status-critical); stroke-width: 2; }
+  .fx-story.at-3 .fx-ring { opacity: 0; }
   .fx-hit { fill: transparent; cursor: pointer; }
   .fx-story.at-3 .fx-dot.ck-none { opacity: .15; }
   .fx-story.at-3 .fx-dot.ck-made { fill: var(--cds-chart-status-critical); }
@@ -58,6 +62,11 @@
     border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); line-height: 1.45; }
   .fx-tip .t1, .fx-tip .t4 { color: var(--cds-text-secondary); }
   .fx-tip .t2 { font-weight: 600; }
+  .fx-tip .t5 { display: flex; align-items: center; gap: .4rem; }
+  .fx-tip .t5:empty { display: none; }
+  .fx-tip .t5::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; border: 2px solid var(--cds-chart-status-critical); }
+  .fx-changes li.is-made { box-shadow: inset 3px 0 0 var(--cds-chart-status-critical); padding-left: .6rem; }
+  .fx-changes .made-tag { font-weight: 600; }
 
   .fx-detail { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: grid; gap: var(--cds-gap-sm); }
   .fx-detail-bar { display: flex; justify-content: space-between; align-items: baseline; gap: var(--cds-gap-sm); }
@@ -124,6 +133,7 @@
         <li><span class="fx-key k-test"></span>Test setting (Claude API)</li>
         <li><span class="fx-key k-ai"></span>claude.ai, run by hand</li>
         <li><span class="fx-key k-med"></span>Median of all sessions</li>
+        <li class="not-3"><span class="fx-key k-ring"></span>Made up: a date or value that isn't in the original</li>
         <li class="only-3"><span class="fx-key k-made"></span>Made-up checksum</li>
       </ul>
       <div class="fx-detail" id="detail" hidden>
@@ -230,17 +240,19 @@
   dash.calc('synopsis', {
     inputs: ['changes'],
     title: 'What changed in each session',
-    description: 'For each session: how many titles, dates and object numbers were changed, and how many rows went missing or were invented.',
+    description: 'For each session: how many titles, dates and object numbers were changed, how many rows went missing, were invented or shifted one column, and how many values were made up.',
     fn: (changes) => {
       const by = {};
       for (const c of changes) {
-        const s = by[c.session] || (by[c.session] = { title: 0, date: 0, num: 0, missing: new Set(), invented: new Set(), added: 0 });
+        const s = by[c.session] || (by[c.session] = { title: 0, date: 0, num: 0, missing: new Set(), invented: new Set(), shifted: new Set(), added: 0, made: 0 });
+        if (c.made_up === 'yes') s.made++;
         if (c.change === 'changed') {
           if (c.field === 'Title') s.title++;
           else if (c.field === 'Object Date') s.date++;
           else if (c.field === 'Object Number') s.num++;
         } else if (c.change === 'row missing') s.missing.add(c.row);
         else if (c.change === 'row invented') s.invented.add(c.object_number);
+        else if (c.change === 'row shifted') { if (c.row) s.shifted.add(c.row); }
         else s.added++;
       }
       const n = (k, one, many) => `${k} ${k === 1 ? one : many}`;
@@ -251,8 +263,9 @@
         if (s.num) parts.push(n(s.num, 'object number', 'object numbers') + ' changed');
         if (s.missing.size) parts.push(n(s.missing.size, 'row', 'rows') + ' missing');
         if (s.invented.size) parts.push(n(s.invented.size, 'row', 'rows') + ' invented');
+        if (s.shifted.size) parts.push(n(s.shifted.size, 'row', 'rows') + ' shifted one column (formatting)');
         if (s.added) parts.push(n(s.added, 'added value', 'added values') + ' invented');
-        return { session, text: parts.join(', ') };
+        return { session, text: parts.join(', '), made: s.made ? `${n(s.made, 'value', 'values')} made up, not in the original` : '' };
       });
     },
   });
@@ -357,15 +370,19 @@
       const tip = document.createElement('div');
       tip.className = 'fx-tip';
       tip.hidden = true;
-      const lines = ['t1', 't2', 't3', 't4'].map((c) => { const e = document.createElement('div'); e.className = c; return e; });
+      const lines = ['t1', 't2', 't3', 't5', 't4'].map((c) => { const e = document.createElement('div'); e.className = c; return e; });
       tip.append(...lines);
       el.append(tip);
-      const synopsis = (id) => (syn.status === 'ok' ? (syn.data.find((r) => r.session === id) || {}).text : '') || '';
+      const synRow = (id) => (syn.status === 'ok' ? syn.data.find((r) => r.session === id) : null) || {};
+      const synopsis = (id) => synRow(id).text || '';
 
       const dots = svg.append('g').selectAll('g').data(pts.map((p, i) => ({ ...p, i }))).join('g');
       dots.append('circle')
         .attr('class', (p) => `fx-dot ck-${p.r.checksum === 'made up' ? 'made' : p.r.checksum}${p.r.session === picked ? ' is-picked' : ''}`)
         .attr('cx', (p) => x(p.i)).attr('cy', (p) => y(p.v)).attr('r', R).style('--c', (p) => color[p.r.setting]);
+      // A red ring marks a session whose sheet has made-up content (made_up in the sessions file).
+      dots.filter((p) => Number(p.r.made_up) > 0).append('circle').attr('class', 'fx-ring')
+        .attr('cx', (p) => x(p.i)).attr('cy', (p) => y(p.v)).attr('r', R + 3.5);
       dots.append('rect').attr('class', 'fx-hit')
         .attr('x', (p) => x(p.i) - (W - m.left - m.right) / n / 2).attr('width', (W - m.left - m.right) / n)
         .attr('y', m.top).attr('height', H - m.top - m.bottom + R)
@@ -373,7 +390,8 @@
           lines[0].textContent = p.r.setting;
           lines[1].textContent = `Error rate ${pct(p.v)}`;
           lines[2].textContent = p.v === 0 ? 'Nothing lost, changed or invented' : (synopsis(p.r.session) || 'Minor changes only');
-          lines[3].textContent = p.v === 0 ? '' : 'Click for every change';
+          lines[3].textContent = synRow(p.r.session).made || '';
+          lines[4].textContent = p.v === 0 ? '' : 'Click for every change';
           tip.hidden = false;
           const box = el.getBoundingClientRect();
           const sx = box.width / W;
@@ -396,7 +414,7 @@
       const meta = document.createElement('p');
       meta.className = 'meta';
       meta.style.margin = '0';
-      meta.append(`Session ${id}. Struck through: the original. Formatting changes that weren't counted are left out. `);
+      meta.append(`Session ${id}. Struck through: the original. Marked in red: made up, not in the original. Formatting changes that weren't counted are left out. `);
       const a = document.createElement('a');
       a.href = folder(id);
       a.textContent = 'All of its files';
@@ -409,7 +427,14 @@
         const where = document.createElement('span');
         where.className = 'where';
         const what = document.createElement('span');
-        if (r.change === 'row missing' || r.change === 'row invented') {
+        if (r.change === 'row shifted') {
+          if (!r.row) continue;  // the same row, as the scorer read it after the shift
+          const key = 'shift' + r.row;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          where.textContent = r.object_number || `Row ${r.row}`;
+          what.textContent = 'Formatting: an empty cell was dropped, so the row shifted one column. Each value in the wrong column counts as an error.';
+        } else if (r.change === 'row missing' || r.change === 'row invented') {
           const key = r.change + r.row + r.object_number;
           if (seen.has(key)) continue;
           seen.add(key);
@@ -424,6 +449,13 @@
           now.className = 'now';
           now.textContent = ` ${r.after || '(blank)'}${r.weight === 'quarter' ? ' (minor)' : ''}`;
           what.append(was, now);
+        }
+        if (r.made_up === 'yes') {
+          li.className = 'is-made';
+          const tag = document.createElement('span');
+          tag.className = 'made-tag';
+          tag.textContent = ' Made up.';
+          what.append(tag);
         }
         li.append(where, what);
         list.append(li);
