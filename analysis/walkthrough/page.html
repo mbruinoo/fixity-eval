@@ -17,10 +17,15 @@
   .fx-stage [data-at="2"] { visibility: hidden; opacity: 0; }
   .fx-stage.at-2 [data-at="1"] { visibility: hidden; opacity: 0; }
   .fx-stage.at-2 [data-at="2"] { visibility: visible; opacity: 1; }
-  .fx-spacer[data-at="1"] { height: 45vh; }
-  .fx-spacer[data-at="2"] { height: 85vh; }
-  .fx-notes-in { flex: 1 1 22rem; max-width: 34rem; }
-  .fx-scroll { color: var(--color-fg-muted); }
+  /* Each step holds for a while before the next: about a screen of scrolling per step. */
+  .fx-spacer[data-at="1"] { height: 100vh; }
+  .fx-spacer[data-at="2"] { height: 140vh; }
+  .fx-light { font-weight: 400; }
+  .fx-light strong { font-weight: 600; }
+  .fx-dots { position: sticky; bottom: 16px; z-index: 4; display: flex; justify-content: center; gap: 10px; width: max-content; margin: 24px auto 16px; padding: 6px 10px; border-radius: 999px; background: color-mix(in srgb, var(--color-bg) 85%, transparent); }
+  .fx-dots button { font: inherit; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border-radius: 50%; border: 1px solid var(--color-fg-muted); background: var(--color-bg); color: var(--color-fg-muted); font-size: 12px; font-variant-numeric: tabular-nums; cursor: pointer; }
+  .fx-dots button.is-on { background: var(--color-fg); border-color: var(--color-fg); color: var(--color-bg); font-weight: 600; }
+  .fx-dots button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
   .fx-sticky { margin: 0; padding: var(--cds-pad-md) var(--cds-pad-lg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-left: 3px solid var(--color-fg); border-radius: var(--cds-radius); font-size: var(--cds-font-size-body); line-height: 1.55; }
   .fx-sticky b { font-weight: 600; font-variant-numeric: tabular-nums; }
   @media (min-width: 761px) and (min-height: 700px) {
@@ -28,15 +33,15 @@
     .fx .fx-only-small { display: none; }
   }
   @media not ((min-width: 761px) and (min-height: 700px)) {
-    .fx-stage [data-at="2"], .fx-spacer, .fx-scroll { display: none; }
+    .fx-stage [data-at="2"], .fx-spacer { display: none; }
   }
 
   /* The chart: two equal halves on one scale, the axis title turned on its side in the left margin. */
   .fx-chart { position: relative; margin-top: 40px; padding-left: 32px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; }
-  .fx-axis { position: absolute; left: 0; top: 20px; height: 240px; display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); margin: 0; font-size: var(--cds-font-size-body); color: var(--color-fg); white-space: nowrap; }
+  .fx-axis { position: absolute; left: 0; top: 20px; height: 240px; display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); margin: 0; font-size: 17px; color: var(--color-fg); white-space: nowrap; }
   .fx-col { display: grid; gap: 8px; align-content: start; min-width: 0; }
   .fx-ask { margin: 0 0 0 56px; display: grid; justify-items: center; gap: 6px; text-align: center; }
-  .fx-ask q { quotes: "“" "”"; font-size: 19px; line-height: 26px; color: var(--color-fg); text-wrap: balance; }
+  .fx-ask q { quotes: "“" "”"; font-size: 17px; line-height: 24px; color: var(--color-fg); text-wrap: balance; }
   .fx-file { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border: 1px solid var(--color-border-line); border-radius: 4px; font-size: var(--cds-font-size-body); color: var(--color-fg); }
   .fx-file svg { flex: none; fill: none; stroke: var(--color-fg-muted); stroke-width: 1.5; }
   .fx-plot { position: relative; min-height: 180px; }
@@ -47,11 +52,15 @@
   .fx-dot { stroke: var(--color-bg); stroke-width: 2; }
   .fx-dot.is-picked { stroke: var(--color-fg); }
   .fx-ring { fill: none; stroke: var(--fx-red); stroke-width: 2; }
-  .fx-mark { fill: none; stroke: var(--color-fg); stroke-width: 2; opacity: 0; }
+  .fx-mark { fill: none; stroke: var(--color-fg); stroke-width: 3; opacity: 0; }
+  .fx-band { fill: var(--color-fg); opacity: 0; }
   /* The checksum spotlight: on the stage at step 2, and on the small-screen copy. */
   .at-2 .fx-ring, .fx-ck .fx-ring { opacity: 0; }
   .at-2 .fx-mark, .fx-ck .fx-mark { opacity: 1; }
-  .at-2 .fx-dot.fade2, .fx-ck .fx-dot.fade2 { opacity: .2; }
+  /* A strong spotlight: everything else greys out and recedes; claude.ai sits on a faint band. */
+  .at-2 .fx-dot.fade2, .fx-ck .fx-dot.fade2 { opacity: .12; fill: var(--color-fg-muted); }
+  .at-2 .fx-band, .fx-ck .fx-band { opacity: .06; }
+  .at-2 .fx-plot .grid line, .fx-ck .fx-plot .grid line { opacity: .5; }
   .fx-hit { fill: transparent; cursor: pointer; }
   .fx-bottom { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 24px; }
   .fx-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin: 0; padding: 0; list-style: none; font-size: var(--cds-font-size-body); color: var(--color-fg); }
@@ -63,9 +72,9 @@
   .fx-key.k-ai { background: var(--fx-orange); }
   .fx-key.k-ring { background: var(--color-border-line); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--fx-red); margin-inline: 4px; }
   .fx-key.k-mark { background: var(--color-border-line); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-fg); margin-inline: 4px; }
-  .fx-key.k-faded { background: var(--fx-blue); opacity: .2; }
+  .fx-key.k-faded { background: var(--color-fg-muted); opacity: .3; }
 
-  .fx-slide { display: grid; gap: 0; padding-block: 48px; border-top: 1px solid var(--color-border-line); }
+  .fx-slide { display: grid; gap: 0; padding-block: 96px 48px; border-top: 1px solid var(--color-border-line); }
   .fx-lede { margin: 12px 0 0; max-width: 46rem; font-size: var(--cds-font-size-body); line-height: 1.55; color: var(--color-fg-muted); }
   .fx-detail { margin-top: 24px; }
 
@@ -82,7 +91,7 @@
   .fx-label { font-size: var(--cds-font-size-caption); letter-spacing: .06em; text-transform: uppercase; color: var(--color-fg-muted); }
 
   @media (prefers-reduced-motion: no-preference) {
-    .fx-stage [data-at], .fx-ring, .fx-mark, .fx-dot { transition: opacity var(--cds-dur-slow) var(--cds-ease-out), visibility var(--cds-dur-slow); }
+    .fx-stage [data-at], .fx-ring, .fx-mark, .fx-dot, .fx-band { transition: opacity var(--cds-dur-slow) var(--cds-ease-out), visibility var(--cds-dur-slow); }
   }
 
   .fx-tip { position: absolute; z-index: 2; pointer-events: none; width: max-content; max-width: 19rem; background: var(--cds-surface-popover); border: 1px solid var(--cds-border);
@@ -129,9 +138,9 @@
   @media (max-width: 760px) {
     .fx-claim { font-size: 27px; }
     .fx-chart { margin-top: 28px; padding-left: 0; grid-template-columns: minmax(0, 1fr); row-gap: 28px; }
-    .fx-axis { position: static; height: auto; writing-mode: horizontal-tb; transform: none; justify-content: flex-start; margin-bottom: -16px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+    .fx-axis { position: static; height: auto; writing-mode: horizontal-tb; transform: none; justify-content: flex-start; margin-bottom: -16px; font-size: 15px; color: var(--color-fg); }
     .fx-ask { margin-left: 40px; }
-    .fx-ask q { font-size: 17px; line-height: 24px; }
+    .fx-ask q { font-size: 15px; line-height: 22px; }
     .fx-ex-pair { grid-template-columns: minmax(0, 1fr); }
     .fx-btn.is-quiet { margin-left: 0; }
     .d-pane { max-height: 13rem; }
@@ -144,7 +153,7 @@
     <section class="fx-stage" data-slot="1">
       <div class="fx-heads">
         <h1 class="fx-claim" data-at="1">When asked to use <em>fixity</em>, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-with">—</span>.</h1>
-        <h2 class="fx-claim" data-at="2" aria-live="polite">In claude.ai, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-with">—</span>, even though every checksum it gave was made up.</h2>
+        <h2 class="fx-claim fx-light" data-at="2" aria-live="polite">In claude.ai, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-with">—</span>, <strong>even though every checksum it gave was made up.</strong></h2>
       </div>
 
       <div class="fx-chart">
@@ -169,9 +178,6 @@
           <li class="for-2"><span class="fx-key k-mark"></span>Gave made-up checksums</li>
           <li class="for-2"><span class="fx-key k-faded"></span>Other test sessions</li>
         </ul>
-        <div class="fx-heads fx-notes-in">
-          <p class="fx-sticky" data-at="1">Each dot is one session, in the order run. A red ring marks a sheet with made-up content, such as an invented date. Hover over a dot for its biggest error, or click it to see the whole sheet beside the original.</p>
-        </div>
       </div>
     </section>
 
@@ -180,7 +186,7 @@
   </div>
 
   <section class="fx-slide fx-only-small fx-ck" id="checksums-small" data-slot="1">
-    <h2 class="fx-claim">In claude.ai, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-with">—</span>, even though every checksum it gave was made up.</h2>
+    <h2 class="fx-claim fx-light">In claude.ai, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-with">—</span>, <strong>even though every checksum it gave was made up.</strong></h2>
     <div class="fx-chart">
       <p class="fx-axis">Error rate (log scale)</p>
       <div class="fx-col"><div class="fx-plot" data-draw="panel" data-request="Without the fixity line" data-source="sessions synopsis"></div>
@@ -207,19 +213,24 @@
   </div>
 
   <section class="fx-slide" id="more">
-    <h2 class="fx-claim">Read more</h2>
+    <h2 class="fx-claim">About</h2>
     <p class="fx-intro">We asked Claude Haiku 4.5 to standardize a spreadsheet of 100 museum records from The Met’s Open Access data: once as is, and once with a line asking it to preserve fixity, use scripts, and checksum the sources and the results.</p>
     <ul class="fx-points">
       <li>Error rate is the share of a sheet that was lost, changed or invented. Minor changes, such as a stripped accent, count for a quarter; formatting counts for nothing; links aren’t graded.</li>
       <li>In the test setting, <b data-draw="n" data-source="summary" data-field="real" data-where="group=test-with">—</b> of <b data-draw="n" data-source="summary" data-field="sessions" data-where="group=test-with">—</b> sessions with the line computed a real checksum of the file. In claude.ai, none ran code, so every checksum was made up. These sheets <em>still</em> had fewer errors, though they weren’t free of made-up content: one claude.ai session added “19th century” where no date was given.</li>
       <li>I made the test setting deliberately prone to failure and hallucination: an overwhelming number of tools at once (24), a code tool that had to be searched for, and guidance that discouraged reading the file from disk. I ran the claude.ai sessions by hand, so there were fewer of them: five per request, in Incognito chats.</li>
       <li>This evaluation is limited: it mainly covers one model (Haiku 4.5) and one dataset. More measurements are needed for firmer conclusions.</li>
-      <li><b>Recommendation:</b> When data integrity matters, ask for a script and checksums, keep the script with the result, and recompute the checksums yourself, for example with <code>sha256sum</code>.</li>
+      <li><b>Recommendation:</b> When data integrity matters, ask for a script and checksums, keep the script with the result, and recompute the checksums yourself, for example, with <code>sha256sum</code>.</li>
     </ul>
     <p class="fx-cta"><a href="https://github.com/mbruinoo/fixity-eval">View on GitHub</a></p>
 
     <p class="fx-foot"><a href="https://github.com/mbruinoo/fixity-eval">github.com/mbruinoo/fixity-eval</a> · October 2026 · <a href="https://github.com/mbruinoo/fixity-eval">Method &amp; data</a></p>
   </section>
+  <nav class="fx-dots" aria-label="Sections">
+    <button type="button" data-go="finding" aria-label="Section 1" class="is-on">1</button>
+    <button type="button" data-go="checksums" aria-label="Section 2">2</button>
+    <button type="button" data-go="more" aria-label="Section 3">3</button>
+  </nav>
 </div>
 
 <script>
@@ -400,6 +411,10 @@
       el.append(tip);
       const synRow = (id) => (syn.status === 'ok' ? syn.data.find((r) => r.session === id) : null) || {};
 
+      // A faint band behind the claude.ai sessions, shown with the checksum spotlight.
+      const ai = pts.filter((p) => p.r.setting === 'claude.ai');
+      if (ai.length) svg.append('rect').attr('class', 'fx-band').attr('x', ai[0].x - step / 2).attr('width', ai[ai.length - 1].x - ai[0].x + step)
+        .attr('y', PT - 12).attr('height', PH + 20).attr('rx', 6);
       // Both views are drawn; the page's CSS shows one. Step 1: a red ring marks made-up content (made_up).
       // Step 2 (the checksum spotlight): a dark ring marks made-up checksums, and other test sessions fade.
       const made = (p) => p.r.checksum === 'made up';
@@ -597,13 +612,29 @@
 
     // The journey: the stage shows step 2 (the checksum spotlight) while its note is in view, on screens where it sticks.
     const big = window.matchMedia('(min-width: 761px) and (min-height: 700px)');
+    const mark = (name) => document.querySelectorAll('.fx-dots button').forEach((b) => b.classList.toggle('is-on', b.getAttribute('data-go') === name));
     const setAt = (k) => {
       document.querySelectorAll('.fx-stage').forEach((st) => st.classList.toggle('at-2', big.matches && k === 2));
+      if (big.matches) mark(k === 2 ? 'checksums' : 'finding');
     };
     const notes = new IntersectionObserver((entries) => entries.forEach((en) => {
       if (en.isIntersecting) setAt(Number(en.target.getAttribute('data-at')));
     }), { root: document, rootMargin: '-50% 0px -50% 0px' });
     document.querySelectorAll('.fx-spacer').forEach((n) => notes.observe(n));
     big.addEventListener('change', () => { if (!big.matches) setAt(1); });
+
+    // The wayfinding dots: mark the section in view, and take the reader to one.
+    const target = (name) => document.getElementById(name === 'checksums' ? (big.matches ? 'checksums-wide' : 'checksums-small') : name);
+    document.querySelectorAll('.fx-dots button').forEach((b) => b.addEventListener('click', () => {
+      const el = target(b.getAttribute('data-go'));
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); dash.setLink(el.id); }
+    }));
+    const where = new IntersectionObserver((entries) => entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      const id = en.target.id;
+      if (id === 'finding') mark(document.querySelector('.fx-stage.at-2') ? 'checksums' : 'finding');
+      else mark(id === 'checksums-small' ? 'checksums' : id);
+    }), { root: document, rootMargin: '-40% 0px -55% 0px' });
+    ['finding', 'checksums-small', 'more'].forEach((id) => { const el = document.getElementById(id); if (el) where.observe(el); });
   })();
 </script>
