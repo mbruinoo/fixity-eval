@@ -10,3 +10,6 @@ A scroll story of the main result, published as a private Claude artifact
   from the reviewed scores and changes of stage 1 and the claude.ai check.
 - `page.html`: a copy of the page as published (it runs inside the artifact's
   dashboard, which supplies `dash` and `d3`).
+- `first-slide.html`: the first slide on its own, as one file to open in any
+  browser and edit in any text editor: its words are plain HTML, its numbers
+  fill from the data written into the bottom of the file.
