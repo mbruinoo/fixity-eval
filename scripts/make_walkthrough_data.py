@@ -8,8 +8,15 @@ Columns: session, setting, request, error_rate (0-1, blank where no sheet came
 back), error_pct (as shown), checksum ("real": a checksum of the upload
 computed by a tool; "made up": invented or a placeholder; "none").
 
+With a second path, also writes every counted change in those sessions'
+sheets (from the reviewed changes.csv files; changes weighted 0, such as
+quote marks, are left out): session, row (in the original file), object_number,
+field, change ("changed", "row missing", "row invented", "invented value"),
+weight ("full" or "quarter"), before, after.
+
 Usage:
-    python scripts/make_walkthrough_data.py analysis/walkthrough/fixity_sessions.csv
+    python scripts/make_walkthrough_data.py analysis/walkthrough/fixity_sessions.csv \
+        [analysis/walkthrough/fixity_changes.csv]
 """
 import csv
 import json
@@ -45,6 +52,26 @@ def main():
             rate = r.get("fixity_error_rate") if r.get("outcome") == "sheet" else None
             w.writerow([sid, setting, "With the fixity line" if fix else "Without the fixity line",
                         "" if rate is None else f"{rate:.4f}", "No sheet" if rate is None else f"{rate * 100:.1f}%", ck])
+    if len(sys.argv) > 2:
+        write_changes(sys.argv[1], sys.argv[2])
+
+
+KIND = {"cell": "changed", "missing_row": "row missing", "invented_row": "row invented", "extra_column": "invented value"}
+
+
+def write_changes(sessions_csv, out):
+    keep = {r["session"] for r in csv.DictReader(open(sessions_csv, encoding="utf-8")) if r["error_rate"] != ""}
+    with open(out, "w", newline="", encoding="utf-8") as fh:
+        w = csv.writer(fh)
+        w.writerow(["session", "row", "object_number", "field", "change", "weight", "before", "after"])
+        for path, prefix in (("experiments/stage-1/changes_reviewed.csv", "stage-1/"),
+                             ("experiments/claude-ai-check/changes_reviewed.csv", "claude-ai-check/")):
+            for c in csv.DictReader(open(ROOT / path, encoding="utf-8")):
+                sid = prefix + c["run"]
+                if sid not in keep or c["tier"] not in ("1", "2"):
+                    continue
+                w.writerow([sid, c["input_row"], c["object_number"], c["column"].replace("[added] ", "added: "),
+                            KIND.get(c["kind"], c["kind"]), "full" if c["tier"] == "1" else "quarter", c["input"], c["output"]])
 
 
 if __name__ == "__main__":
