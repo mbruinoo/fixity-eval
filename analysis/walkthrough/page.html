@@ -1,13 +1,38 @@
 <meta name="dash-one-writer">
 <style>
-  /* Scroll story: chapters on the left; on the right, one sticky figure holding two graphs side by side (without / with fixity). Stacked when narrow. */
-  .fx { max-width: 76rem; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); }
-  .fx-head { padding-block: var(--cds-pad-lg) var(--cds-pad-xl); max-width: 46rem; }
-  .fx-head h1 { margin: 0; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: calc(var(--cds-font-size-title) * 1.7); line-height: 1.1; text-wrap: balance; }
+  /* First slide: the finding, one chart (the base prompt left, the fixity prompt right) with each prompt under its half, a legend.
+     Below it: the chapters, then every session in a table. Layout from the repo author's design canvas. */
+  .fx { --fx-blue: #3b74d1; --fx-orange: #d9703f; --fx-red: #b3261e; max-width: 80rem; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+  @media (prefers-color-scheme: dark) { .fx { --fx-blue: #6a9be6; --fx-orange: #e8875a; --fx-red: #ef6b62; } }
+  .fx-slide { display: grid; gap: 40px; padding-block: var(--cds-pad-xl); }
+  .fx-slide h1 { margin: 0; max-width: 62rem; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 38px; line-height: 1.2; }
+  .fx-slide h1 span { font-variant-numeric: tabular-nums; }
+  .fx-chart { display: grid; grid-template-columns: minmax(0, calc(50% + 34px)) minmax(0, 1fr); row-gap: 24px; }
+  .fx-col { display: grid; gap: 16px; align-content: start; min-width: 0; }
+  .fx-ask { margin: 0; padding-left: 68px; font-size: var(--cds-font-size-body); line-height: 1.45; color: var(--color-fg-muted); }
+  .fx-col-2 .fx-ask { padding-left: 24px; }
+  .fx-ask span { color: color-mix(in srgb, var(--color-fg-muted) 70%, var(--color-bg)); }
+  .fx-plot { position: relative; min-height: 200px; }
+  .fx-plot svg { display: block; overflow: visible; }
+  .fx-plot .grid line { stroke: var(--color-border-line); stroke-width: 1; }
+  .fx-plot .zero { stroke: var(--cds-chart-axis); stroke-width: 1; }
+  .fx-plot .divider { stroke: var(--color-border-line); stroke-width: 1; }
+  .fx-plot text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-body); font-family: var(--font-anthropic-sans); }
+  .fx-plot .med line { stroke: var(--color-fg-muted); stroke-width: 1; stroke-dasharray: 4 3; }
+  .fx-dot.is-picked { stroke: var(--color-fg); stroke-width: 2; }
+  .fx-ring { fill: none; stroke: var(--fx-red); stroke-width: 2; }
+  .fx-hit { fill: transparent; cursor: pointer; }
+  .fx-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin: 0; padding: 0; list-style: none; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); }
+  .fx-legend li { display: inline-flex; align-items: center; gap: 6px; }
+  .fx-key { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; forced-color-adjust: none; }
+  .fx-key.k-test { background: var(--fx-blue); }
+  .fx-key.k-ai { background: var(--fx-orange); }
+  .fx-key.k-ring { box-sizing: border-box; border: 2px solid var(--fx-red); }
+  .fx-foot { margin: 0; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); }
+  .fx-foot a, .fx-note a { color: inherit; }
 
-  .fx-story { display: grid; grid-template-columns: minmax(0, 19rem) minmax(0, 1fr); gap: var(--cds-gap-xl); align-items: start; }
-  .fx-steps { display: grid; padding-bottom: 30vh; }
-  .fx-step { min-height: 72vh; display: flex; flex-direction: column; justify-content: center; gap: var(--cds-gap-sm); opacity: .3; }
+  .fx-chapters { display: grid; gap: var(--cds-gap-xl); max-width: 46rem; padding-block: var(--cds-pad-xl); border-top: 1px solid var(--color-border-line); }
+  .fx-step { display: grid; gap: var(--cds-gap-sm); }
   .fx-step h2 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); line-height: 1.3; text-wrap: balance; }
   .fx-step p, .fx-step li { margin: 0; font-size: var(--cds-font-size-body); line-height: 1.6; }
   .fx-step ol { margin: 0; padding-left: 1.25rem; display: grid; gap: var(--cds-gap-xs); }
@@ -17,56 +42,17 @@
   .fx-prompt span { display: block; color: var(--color-fg-muted); }
   .fx-prompt strong { font-weight: 600; }
   .fx-note { font-size: var(--cds-font-size-caption) !important; color: var(--color-fg-muted); }
-  .fx-note a, .fx-foot a { color: inherit; }
-  .fx-story.at-0 .fx-step[data-step="0"], .fx-story.at-1 .fx-step[data-step="1"], .fx-story.at-2 .fx-step[data-step="2"],
-  .fx-story.at-3 .fx-step[data-step="3"], .fx-story.at-4 .fx-step[data-step="4"] { opacity: 1; }
 
-  .fx-figure { position: sticky; top: var(--cds-gap-md); margin: 0; display: grid; gap: var(--cds-gap-md); background: var(--color-bg); }
-  .fx-graphs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--cds-gap-md); }
-  .fx-graph { display: grid; gap: var(--cds-gap-sm); min-width: 0; align-content: start;
-    background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); }
-  .fx-graph h3 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
-  .fx-plot { position: relative; min-height: 300px; }
-  .fx-ask { margin: 0; font-size: var(--cds-font-size-body); line-height: 1.45; }
-  .fx-ask span { color: var(--color-fg-muted); }
-  .fx-ask strong { font-weight: 600; }
-  .fx-dek { margin: 0; font-size: var(--cds-font-size-caption); line-height: 1.55; color: var(--color-fg-muted); max-width: 46rem; }
-  .fx-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); margin: 0; padding: 0; list-style: none; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-  .fx-legend li { display: inline-flex; align-items: center; gap: .4rem; }
-  .fx-key { width: .6rem; height: .6rem; border-radius: 50%; display: inline-block; forced-color-adjust: none; }
-  .fx-key.k-one { background: var(--color-fg-muted); } .fx-key.k-test { background: var(--fx-c0); } .fx-key.k-ai { background: var(--fx-c1); }
-  .fx-key.k-made { background: var(--cds-chart-status-critical); }
-  .fx-key.k-med { width: 1.1rem; height: 0; border-radius: 0; border-top: 2px dashed var(--color-fg-muted); }
-  .fx-key.k-ring { background: none; width: .55rem; height: .55rem; border: 2px solid var(--cds-chart-status-critical); }
-  .fx-legend .only-3 { display: none; }
-  .fx-story.at-3 .fx-legend .not-3 { display: none; }
-  .fx-story.at-3 .fx-legend .only-3 { display: inline-flex; }
-
-  .fx-plot svg { display: block; overflow: visible; }
-  .fx-plot .grid line { stroke: var(--cds-chart-grid); stroke-width: 1; }
-  .fx-plot .base { stroke: var(--cds-chart-axis); stroke-width: 1; }
-  .fx-plot text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
-  .fx-plot .med line { stroke: var(--color-fg-muted); stroke-width: 1.5; stroke-dasharray: 4 4; }
-  .fx-plot .axis-title { fill: var(--color-fg-muted); }
-  .fx-plot .group line { stroke: var(--color-fg-muted); stroke-width: 1; }
-  .fx-plot .group text { fill: var(--color-fg); }
-  .fx-plot .peak { fill: var(--color-fg); font-variant-numeric: tabular-nums; }
-  .fx-dot { fill: var(--c); stroke: var(--color-panel); stroke-width: 1.5; }
-  .fx-dot.is-picked { stroke: var(--color-fg); stroke-width: 2.5; }
-  .fx-ring { fill: none; stroke: var(--cds-chart-status-critical); stroke-width: 2; }
-  .fx-story.at-3 .fx-ring { opacity: 0; }
-  .fx-hit { fill: transparent; cursor: pointer; }
-  .fx-story.at-3 .fx-dot.ck-none { opacity: .15; }
-  .fx-story.at-3 .fx-dot.ck-made { fill: var(--cds-chart-status-critical); }
   .fx-tip { position: absolute; z-index: 2; pointer-events: none; width: max-content; max-width: 15rem; background: var(--cds-surface-popover); border: 1px solid var(--cds-border);
     border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); line-height: 1.45; }
   .fx-tip .t1, .fx-tip .t4 { color: var(--cds-text-secondary); }
   .fx-tip .t2 { font-weight: 600; }
   .fx-tip .t5 { display: flex; align-items: center; gap: .4rem; }
   .fx-tip .t5:empty { display: none; }
-  .fx-tip .t5::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; border: 2px solid var(--cds-chart-status-critical); }
+  .fx-tip .t5::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; border: 2px solid var(--fx-red); }
 
   .fx-detail { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: grid; gap: var(--cds-gap-sm); }
+  .fx-detail[hidden] { display: none; }
   .fx-detail-bar { display: flex; justify-content: space-between; align-items: baseline; gap: var(--cds-gap-sm); }
   .fx-close { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); background: none; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 2px var(--cds-pad-sm); cursor: pointer; }
   .fx-close:focus-visible, .fx-table summary:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
@@ -100,94 +86,81 @@
   .fx-table th, .fx-table td { text-align: left; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
   .fx-table th { position: sticky; top: 0; background: var(--color-panel); font-weight: var(--cds-font-weight-medium); }
   .fx-table tbody tr { cursor: pointer; }
-  .fx-foot { margin: 0 0 var(--cds-gap-xl); font-size: var(--cds-font-size-caption); letter-spacing: .06em; text-transform: uppercase; color: var(--color-fg-muted); }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .fx-step { transition: opacity var(--cds-dur-slow) var(--cds-ease-out); }
-    .fx-dot { transition: opacity var(--cds-dur-slow) var(--cds-ease-out), fill var(--cds-dur-slow) var(--cds-ease-out); }
-  }
-  @media (max-width: 860px) {
-    .fx-story { grid-template-columns: minmax(0, 1fr); gap: var(--cds-gap-md); }
-    .fx-figure { top: 0; z-index: 1; padding-block: var(--cds-pad-sm); gap: var(--cds-gap-sm); }
-    .fx-graph { padding: var(--cds-pad-sm); }
-    .fx-graphs { gap: var(--cds-gap-sm); }
-    .fx-dek { display: none; }
-    .fx-plot { min-height: 190px; }
-    .fx-step { min-height: 60vh; }
+  @media (max-width: 700px) {
+    .fx-chart { grid-template-columns: minmax(0, 1fr); }
+    .fx-col-2 .fx-ask { padding-left: 68px; }
+    .fx-slide { gap: 28px; }
+    .fx-slide h1 { font-size: 28px; }
     .d-pane { max-height: 13rem; }
   }
-  @media (forced-colors: active) { .fx-key { background: CanvasText; } }
+  @media (forced-colors: active) { .fx-key { background: CanvasText; } .fx-key.k-ring { background: none; border-color: CanvasText; } }
 </style>
 
 <div class="fx">
-  <header class="fx-head">
-    <h1>Can fixity improve model outcomes?</h1>
-  </header>
+  <section class="fx-slide" id="slide">
+    <h1>When asked to use <em>fixity</em>, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-with">—</span>.</h1>
 
-  <div class="fx-story at-0">
-    <figure class="fx-figure" id="chart">
-      <div class="fx-graphs">
-        <div class="fx-graph" id="graph-without">
-          <h3>Without fixity</h3>
-          <p class="fx-ask"><span>“Can you standardize this spreadsheet?”</span></p>
-          <div class="fx-plot" data-draw="graph" data-request="Without the fixity line" data-source="sessions summary synopsis"></div>
-        </div>
-        <div class="fx-graph" id="graph-with">
-          <h3>With fixity</h3>
-          <p class="fx-ask"><span>“Can you standardize this spreadsheet?</span> <strong>Use fixity.”</strong></p>
-          <div class="fx-plot" data-draw="graph" data-request="With the fixity line" data-source="sessions summary synopsis"></div>
-        </div>
+    <div class="fx-chart" id="chart">
+      <div class="fx-col">
+        <div class="fx-plot" data-draw="panel" data-request="Without the fixity line" data-side="left" data-source="sessions summary synopsis"></div>
+        <p class="fx-ask">“Can you standardize this .tsv file?”</p>
       </div>
-      <p class="fx-dek">We asked Claude to tidy a spreadsheet of museum records, with and without one extra line about fixity: keeping data provably unchanged. Error rate is the share of the sheet lost, changed or invented. Each dot is one session, in the order they were run: the test setting first, then claude.ai. Hover over one to see its errors, or click it to see what came back beside the original.</p>
-      <ul class="fx-legend">
-        <li><span class="fx-key k-one"></span>One session:</li>
-        <li><span class="fx-key k-test"></span>Test setting (Claude API)</li>
-        <li><span class="fx-key k-ai"></span>claude.ai, run by hand</li>
-        <li><span class="fx-key k-med"></span>Median of all sessions</li>
-        <li class="not-3"><span class="fx-key k-ring"></span>Made up: a date or value that isn't in the original</li>
-        <li class="only-3"><span class="fx-key k-made"></span>Made-up checksum</li>
-      </ul>
-      <div class="fx-detail" id="detail" hidden>
-        <div class="fx-detail-bar">
-          <span class="fx-label">Original and standardized, side by side</span>
-          <button class="fx-close" type="button">Close</button>
-        </div>
-        <div class="fx-changes" data-draw="detail" data-source="sheets changes sessions">—</div>
+      <div class="fx-col fx-col-2">
+        <div class="fx-plot" data-draw="panel" data-request="With the fixity line" data-side="right" data-source="sessions summary synopsis"></div>
+        <p class="fx-ask"><span>“Can you standardize this .tsv file?</span> Preserve fixity: use scripts on the uploaded file, and checksum the sources and the results.”</p>
       </div>
-    </figure>
+    </div>
 
-    <div class="fx-steps" data-read>
-      <section class="fx-step" data-step="0" data-read-step>
+    <ul class="fx-legend">
+      <li>Error rate (log scale)</li>
+      <li><span class="fx-key k-test"></span>Claude API</li>
+      <li><span class="fx-key k-ai"></span>claude.ai</li>
+      <li><span class="fx-key k-ring"></span>Includes hallucinated content</li>
+    </ul>
+
+    <div class="fx-detail" id="detail" hidden>
+      <div class="fx-detail-bar">
+        <span class="fx-label">Original and standardized, side by side</span>
+        <button class="fx-close" type="button">Close</button>
+      </div>
+      <div class="fx-changes" data-draw="detail" data-source="sheets changes sessions">—</div>
+    </div>
+
+    <p class="fx-foot"><a href="https://github.com/mbruinoo/fixity-eval">github.com/mbruinoo/fixity-eval</a> · October 2026 · <a href="https://github.com/mbruinoo/fixity-eval">Method &amp; data</a></p>
+  </section>
+
+  <div class="fx-chapters">
+      <section class="fx-step" data-step="0">
         <span class="fx-label">The finding</span>
         <h2>One line about fixity, far fewer errors</h2>
         <p>With an extra line asking it to preserve fixity, Claude returned <b data-draw="n" data-source="summary" data-field="zero" data-where="group=all-with">—</b> of <b data-draw="n" data-source="summary" data-field="sheets" data-where="group=all-with">—</b> sheets with no errors. Without it, <b data-draw="n" data-source="summary" data-field="zero" data-where="group=all-without">—</b> of <b data-draw="n" data-source="summary" data-field="sheets" data-where="group=all-without">—</b> did.</p>
         <p>The median error rate fell from <b data-draw="n" data-source="summary" data-field="median" data-where="group=all-without">—</b> to <b data-draw="n" data-source="summary" data-field="median" data-where="group=all-with">—</b>.</p>
       </section>
 
-      <section class="fx-step" data-step="1" data-read-step>
+      <section class="fx-step" data-step="1">
         <span class="fx-label">The line</span>
         <h2>What the extra line said</h2>
-        <p>The labels under the graphs are shortened. These are the exact words:</p>
+        <p>The exact words, as sent:</p>
         <p class="fx-prompt"><span>Without fixity</span>Can you standardize this .tsv file?</p>
         <p class="fx-prompt"><span>With fixity</span>Can you standardize this .tsv file? <strong>Preserve fixity: use scripts on the uploaded file, and checksum the sources and the results.</strong></p>
         <p>Without the line, Claude shortened long titles, dropped the “(?)” from uncertain dates, and removed Chinese and Japanese text.</p>
       </section>
 
-      <section class="fx-step" data-step="2" data-read-step>
+      <section class="fx-step" data-step="2">
         <span class="fx-label">Where it ran</span>
         <h2>The real product did worse than our test</h2>
         <p>We ran both requests in two places: a test setting through the Claude API, built to make errors likely, and claude.ai, by hand.</p>
         <p>Without fixity, the median error rate was <b data-draw="n" data-source="summary" data-field="median" data-where="group=test-without">—</b> in the test setting and <b data-draw="n" data-source="summary" data-field="median" data-where="group=ai-without">—</b> in claude.ai. With it, <b data-draw="n" data-source="summary" data-field="median" data-where="group=test-with">—</b> and <b data-draw="n" data-source="summary" data-field="median" data-where="group=ai-with">—</b>.</p>
       </section>
 
-      <section class="fx-step" data-step="3" data-read-step>
+      <section class="fx-step" data-step="3">
         <span class="fx-label">The checksums</span>
         <h2>A checksum asked for isn't always a checksum made</h2>
         <p>In the test setting, <b data-draw="n" data-source="summary" data-field="real" data-where="group=test-with">—</b> of <b data-draw="n" data-source="summary" data-field="sessions" data-where="group=test-with">—</b> sessions computed a real checksum of the file.</p>
         <p>In claude.ai, no session ran code, and all <b data-draw="n" data-source="summary" data-field="madeup" data-where="group=ai-with">—</b> gave checksums that were made up. Yet their sheets still had fewer errors. A made-up checksum looks like proof, but it isn't.</p>
       </section>
 
-      <section class="fx-step" data-step="4" data-read-step>
+      <section class="fx-step" data-step="4">
         <span class="fx-label">What to do</span>
         <h2>Ask for fixity, then check it</h2>
         <ol>
@@ -197,7 +170,6 @@
         </ol>
         <p class="fx-note">Claude Haiku 4.5. The claude.ai results come from <b data-draw="n" data-source="summary" data-field="sessions" data-where="group=ai-with">—</b> sessions per request, in Incognito chats; sessions that returned no sheet aren't shown. The test setting was built to make errors likely.</p>
       </section>
-    </div>
   </div>
 
   <details class="fx-table">
@@ -215,7 +187,6 @@
       </table>
     </div>
   </details>
-  <p class="fx-foot">fixity-eval · October 2026 · <a href="https://github.com/mbruinoo/fixity-eval">Method, data and every session</a></p>
 </div>
 
 <script>
@@ -307,74 +278,61 @@
 
 <script>
   (() => {
-    const TICKS = [0, 0.01, 0.05, 0.1, 0.25, 0.5];
     const pct = (v) => (v * 100).toFixed(1) + '%';
     const REPO = 'https://github.com/mbruinoo/fixity-eval/tree/main/experiments/';
     const folder = (id) => REPO + (id.startsWith('stage-1/') ? 'stage-1/runs/' + id.slice(8) : id);
 
-    document.querySelectorAll('.fx').forEach((root) => {
-      root.style.setProperty('--fx-c0', dash.colors[0]);
-      root.style.setProperty('--fx-c1', dash.colors[1]);
-    });
-
-    dash.draw('graph', (el) => {
+    // One half of the chart: the sessions given one request, in the order run (the test setting, then claude.ai).
+    // Error rate on a log scale (log of 1 + the percentage, so 0% sits on the baseline). The left half carries the axis;
+    // a thin line marks the divide between halves. Stacked on a narrow screen, each half carries its own axis.
+    const TICKS = [0, 0.01, 0.02, 0.05, 0.1, 0.25, 0.5];
+    dash.draw('panel', (el) => {
       const d = dash.data('sessions');
       const s = dash.data('summary');
       const syn = dash.data('synopsis');
       el.replaceChildren();
       if (d.status !== 'ok') { el.textContent = '—'; return; }
       const req = el.getAttribute('data-request');
+      const left = el.getAttribute('data-side') === 'left';
+      const narrow = window.matchMedia('(max-width: 700px)').matches;
       const picked = dash.params().session;
-      const W = Math.max(150, el.clientWidth);
-      const narrow = window.matchMedia('(max-width: 860px)').matches;
-      const H = narrow ? 210 : 320;
-      const m = { top: 26, right: 52, bottom: 36, left: 34 };
-      const y = d3.scaleSqrt().domain([0, 0.55]).range([H - m.bottom, m.top]);
-      const color = { 'Test setting': dash.colors[0], 'claude.ai': dash.colors[1] };
+      const W = Math.max(200, el.clientWidth);
+      const axis = left || narrow;
+      const x0 = axis ? 68 : 24;
+      const pw = W - x0 - (left && !narrow ? 24 : 0);
+      const PH = narrow ? 200 : 330, TOP = 20, BOT = 22, H = TOP + PH + BOT;
+      const y = (v) => TOP + PH - (PH * Math.log10(1 + v * 100)) / Math.log10(61);
+      const cs = getComputedStyle(el);
+      const color = { 'Test setting': cs.getPropertyValue('--fx-blue').trim(), 'claude.ai': cs.getPropertyValue('--fx-orange').trim() };
+
       const pts = d.data.filter((r) => r.request === req && r.error_rate !== '')
         .map((r) => ({ r, v: Number(r.error_rate), k: Number((r.session.match(/(\d+)$/) || [0, 0])[1]) }))
         .sort((a, b) => (a.r.setting === 'claude.ai') - (b.r.setting === 'claude.ai') || a.k - b.k);
-      const n = pts.length;
-      const x = (i) => m.left + (i + 0.5) * ((W - m.left - m.right) / Math.max(1, n));
-      const R = Math.max(3.5, Math.min(5.5, ((W - m.left - m.right) / Math.max(1, n)) / 2 - 0.75));
+      const GAP = narrow ? 14 : 28;
+      const step = (pw - GAP) / Math.max(1, pts.length);
+      const x = (p, i) => x0 + step * (i + 0.5) + (p.r.setting === 'claude.ai' ? GAP : 0);
+      const R = Math.max(3, Math.min(6, step / 2 - 1));
 
       const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
         .attr('aria-label', `Error rate of each session, ${req.toLowerCase()}, in the order they were run`);
-      svg.append('g').attr('class', 'grid').selectAll('line').data(TICKS.slice(1)).join('line')
-        .attr('x1', m.left).attr('x2', W - m.right).attr('y1', (t) => y(t)).attr('y2', (t) => y(t));
-      svg.append('line').attr('class', 'base').attr('x1', m.left).attr('x2', W - m.right).attr('y1', y(0)).attr('y2', y(0));
-      svg.append('g').selectAll('text').data(TICKS).join('text')
-        .attr('x', m.left - 6).attr('y', (t) => y(t)).attr('dy', '0.32em').attr('text-anchor', 'end')
-        .text((t) => d3.format('.0%')(t));
-      svg.append('text').attr('class', 'axis-title').attr('x', 0).attr('y', 10).text('Error rate');
-
-      // Name each run of sessions under the dots, so the colours don't rely on the legend alone.
-      for (const setting of ['Test setting', 'claude.ai']) {
-        const idx = pts.map((p, i) => (p.r.setting === setting ? i : -1)).filter((i) => i >= 0);
-        if (!idx.length) continue;
-        const x0 = x(idx[0]) - R, x1 = x(idx[idx.length - 1]) + R;
-        const g = svg.append('g').attr('class', 'group');
-        g.append('line').attr('x1', x0).attr('x2', x1).attr('y1', H - m.bottom + 10).attr('y2', H - m.bottom + 10);
-        g.append('text').attr('x', (x0 + x1) / 2).attr('y', H - m.bottom + 26).attr('text-anchor', 'middle')
-          .text(setting === 'claude.ai' ? 'claude.ai' : (x1 - x0 < 90 ? 'Test' : 'Test setting'));
+      const grid = svg.append('g').attr('class', 'grid');
+      grid.selectAll('line').data(TICKS.slice(1)).join('line')
+        .attr('x1', axis ? 52 : 0).attr('x2', W).attr('y1', (t) => y(t)).attr('y2', (t) => y(t));
+      svg.append('line').attr('class', 'zero').attr('x1', axis ? 52 : 0).attr('x2', W).attr('y1', y(0)).attr('y2', y(0));
+      if (!left && !narrow) svg.append('line').attr('class', 'divider').attr('x1', 0.5).attr('x2', 0.5).attr('y1', 0).attr('y2', H);
+      if (axis) {
+        svg.append('g').selectAll('text').data(TICKS).join('text')
+          .attr('x', 40).attr('y', (t) => y(t)).attr('dy', '0.32em').attr('text-anchor', 'end')
+          .text((t) => `${Math.round(t * 100)}%`);
       }
 
-      // Label only the highest session.
-      const top = pts.reduce((a, p, i) => (p.v > a.v ? { v: p.v, i } : a), { v: -1, i: -1 });
-      if (top.v > 0) {
-        svg.append('text').attr('class', 'peak').attr('x', Math.min(x(top.i), W - m.right)).attr('y', y(top.v) - R - 5)
-          .attr('text-anchor', x(top.i) > W - 40 ? 'end' : 'middle').text(pct(top.v));
-      }
-
+      // The median: a dashed line, left out where it would lie on the baseline, and its value above it.
       if (s.status === 'ok') {
-        const row = s.data.find((r) => r.group === (req === 'With the fixity line' ? 'all-with' : 'all-without'));
+        const row = s.data.find((g) => g.group === (req === 'With the fixity line' ? 'all-with' : 'all-without'));
         if (row) {
           const g = svg.append('g').attr('class', 'med');
-          g.append('line').attr('x1', m.left).attr('x2', W - m.right).attr('y1', y(row.median_value)).attr('y2', y(row.median_value));
-          // In the right margin, clear of the dots.
-          const lab = g.append('text').attr('x', W - m.right + 6).attr('y', y(row.median_value) - 6);
-          lab.append('tspan').attr('x', W - m.right + 6).text('Median');
-          lab.append('tspan').attr('x', W - m.right + 6).attr('dy', '1.2em').text(row.median);
+          if (row.median_value > 0) g.append('line').attr('x1', x0).attr('x2', x0 + pw).attr('y1', y(row.median_value)).attr('y2', y(row.median_value));
+          g.append('text').attr('x', x0).attr('y', y(row.median_value) - 10).text(`Median ${row.median}`);
         }
       }
 
@@ -385,28 +343,27 @@
       tip.append(...lines);
       el.append(tip);
       const synRow = (id) => (syn.status === 'ok' ? syn.data.find((r) => r.session === id) : null) || {};
-      const synopsis = (id) => synRow(id).text || '';
 
       const dots = svg.append('g').selectAll('g').data(pts.map((p, i) => ({ ...p, i }))).join('g');
       dots.append('circle')
-        .attr('class', (p) => `fx-dot ck-${p.r.checksum === 'made up' ? 'made' : p.r.checksum}${p.r.session === picked ? ' is-picked' : ''}`)
-        .attr('cx', (p) => x(p.i)).attr('cy', (p) => y(p.v)).attr('r', R).style('--c', (p) => color[p.r.setting]);
-      // A red ring marks a session whose sheet has made-up content (made_up in the sessions file).
+        .attr('class', (p) => `fx-dot${p.r.session === picked ? ' is-picked' : ''}`)
+        .attr('cx', (p) => x(p, p.i)).attr('cy', (p) => y(p.v)).attr('r', R).attr('fill', (p) => color[p.r.setting]);
+      // A red ring marks a sheet with made-up content (made_up in the sessions file).
       dots.filter((p) => Number(p.r.made_up) > 0).append('circle').attr('class', 'fx-ring')
-        .attr('cx', (p) => x(p.i)).attr('cy', (p) => y(p.v)).attr('r', R + 3.5);
+        .attr('cx', (p) => x(p, p.i)).attr('cy', (p) => y(p.v)).attr('r', R + 3);
       dots.append('rect').attr('class', 'fx-hit')
-        .attr('x', (p) => x(p.i) - (W - m.left - m.right) / n / 2).attr('width', (W - m.left - m.right) / n)
-        .attr('y', m.top).attr('height', H - m.top - m.bottom + R)
+        .attr('x', (p) => x(p, p.i) - step / 2).attr('width', step)
+        .attr('y', TOP - 10).attr('height', PH + 20)
         .on('pointerenter', (ev, p) => {
-          lines[0].textContent = p.r.setting;
+          lines[0].textContent = p.r.setting === 'claude.ai' ? 'claude.ai' : 'Claude API';
           lines[1].textContent = `Error rate ${pct(p.v)}`;
-          lines[2].textContent = p.v === 0 ? 'Nothing lost, changed or invented' : (synopsis(p.r.session) || 'Minor changes only');
+          lines[2].textContent = p.v === 0 ? 'Nothing lost, changed or invented' : (synRow(p.r.session).text || 'Minor changes only');
           lines[3].textContent = synRow(p.r.session).made || '';
           lines[4].textContent = 'Click to see it beside the original';
           tip.hidden = false;
           const box = el.getBoundingClientRect();
           const sx = box.width / W;
-          tip.style.left = `${Math.min(Math.max(0, x(p.i) * sx + 10), box.width - tip.offsetWidth)}px`;
+          tip.style.left = `${Math.min(Math.max(0, x(p, p.i) * sx + 10), box.width - tip.offsetWidth)}px`;
           tip.style.top = `${Math.max(0, y(p.v) * sx - tip.offsetHeight - 12)}px`;
         })
         .on('pointerleave', () => { tip.hidden = true; })
@@ -571,13 +528,5 @@
       const tr = ev.target.closest('tr[data-key]');
       if (tr) dash.setParams({ session: tr.getAttribute('data-key') });
     }));
-
-    const set = (k) => document.querySelectorAll('.fx-story').forEach((st) => {
-      for (let i = 0; i < 5; i++) st.classList.toggle(`at-${i}`, i === k);
-    });
-    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
-      if (e.isIntersecting) set(Number(e.target.getAttribute('data-step')));
-    }), { root: document, rootMargin: '-45% 0px -45% 0px' });
-    document.querySelectorAll('.fx-step').forEach((st) => io.observe(st));
   })();
 </script>
