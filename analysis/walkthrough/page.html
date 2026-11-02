@@ -65,22 +65,33 @@
   .fx-tip .t5 { display: flex; align-items: center; gap: .4rem; }
   .fx-tip .t5:empty { display: none; }
   .fx-tip .t5::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; border: 2px solid var(--cds-chart-status-critical); }
-  .fx-changes li.is-made { box-shadow: inset 3px 0 0 var(--cds-chart-status-critical); padding-left: .6rem; }
-  .fx-changes .made-tag { font-weight: 600; }
 
   .fx-detail { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: grid; gap: var(--cds-gap-sm); }
   .fx-detail-bar { display: flex; justify-content: space-between; align-items: baseline; gap: var(--cds-gap-sm); }
   .fx-close { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); background: none; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 2px var(--cds-pad-sm); cursor: pointer; }
   .fx-close:focus-visible, .fx-table summary:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
-  .fx-changes { max-height: 15rem; overflow: auto; display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); line-height: 1.45; }
+  .fx-changes { display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); line-height: 1.45; }
   .fx-changes h4 { margin: 0; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
   .fx-changes .meta { color: var(--color-fg-muted); }
-  .fx-changes ul { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--cds-gap-xs); }
-  .fx-changes li { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: var(--cds-gap-sm); padding-block: 2px; border-bottom: 1px solid var(--color-border-line); }
-  .fx-changes .where { color: var(--color-fg-muted); }
-  .fx-changes .was { color: var(--color-fg-muted); text-decoration: line-through; overflow-wrap: anywhere; }
-  .fx-changes .now { overflow-wrap: anywhere; }
   .fx-changes a { color: inherit; }
+  .d-key { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin: 0; padding: 0; list-style: none; color: var(--color-fg-muted); }
+  .d-key li { display: inline-flex; align-items: center; gap: .4rem; }
+  .d-sw { width: .9rem; height: .7rem; border-radius: 2px; display: inline-block; forced-color-adjust: none; }
+  .d-bar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: var(--color-fg-muted); }
+  .d-panes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .5rem; }
+  .d-pane { max-height: 20rem; overflow: auto; border: 1px solid var(--color-border-line); border-radius: 6px; }
+  .d-pane:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  .d-pane table { border-collapse: collapse; font-size: 12px; line-height: 1.5rem; }
+  .d-pane th, .d-pane td { white-space: pre; height: 1.5rem; padding: 0 .5rem; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--color-border-line); }
+  .d-pane th { position: sticky; top: 0; z-index: 1; background: var(--color-panel); font-weight: 600; }
+  .d-pane .n { color: var(--color-fg-muted); text-align: right; font-variant-numeric: tabular-nums; position: sticky; left: 0; background: var(--color-panel); }
+  .d-pane th.n { z-index: 2; }
+  .d-pane th.d-added { font-style: italic; }
+  .d-chg { background: color-mix(in srgb, var(--cds-chart-status-warning, #d99a1e) 28%, transparent); }
+  .d-minor { background: color-mix(in srgb, var(--cds-chart-status-warning, #d99a1e) 12%, transparent); }
+  .d-fmt { background: color-mix(in srgb, var(--color-fg-muted) 16%, transparent); }
+  .d-made { background: color-mix(in srgb, var(--cds-chart-status-critical) 22%, transparent); box-shadow: inset 0 0 0 1.5px var(--cds-chart-status-critical); }
+  .d-none { color: var(--color-fg-muted); font-style: italic; }
 
   .fx-table { margin-block: var(--cds-gap-xl) var(--cds-gap-md); }
   .fx-table summary { cursor: pointer; font-size: var(--cds-font-size-body); }
@@ -103,7 +114,7 @@
     .fx-dek { display: none; }
     .fx-plot { min-height: 190px; }
     .fx-step { min-height: 60vh; }
-    .fx-changes { max-height: 9rem; }
+    .d-pane { max-height: 13rem; }
   }
   @media (forced-colors: active) { .fx-key { background: CanvasText; } }
 </style>
@@ -127,7 +138,7 @@
           <div class="fx-plot" data-draw="graph" data-request="With the fixity line" data-source="sessions summary synopsis"></div>
         </div>
       </div>
-      <p class="fx-dek">We asked Claude to tidy a spreadsheet of museum records, with and without one extra line about fixity: keeping data provably unchanged. Error rate is the share of the sheet lost, changed or invented. Each dot is one session, in the order they were run: the test setting first, then claude.ai. Hover over one to see its errors, or click it for every change.</p>
+      <p class="fx-dek">We asked Claude to tidy a spreadsheet of museum records, with and without one extra line about fixity: keeping data provably unchanged. Error rate is the share of the sheet lost, changed or invented. Each dot is one session, in the order they were run: the test setting first, then claude.ai. Hover over one to see its errors, or click it to see what came back beside the original.</p>
       <ul class="fx-legend">
         <li><span class="fx-key k-one"></span>One session:</li>
         <li><span class="fx-key k-test"></span>Test setting (Claude API)</li>
@@ -138,10 +149,10 @@
       </ul>
       <div class="fx-detail" id="detail" hidden>
         <div class="fx-detail-bar">
-          <span class="fx-label">Every change in this session</span>
+          <span class="fx-label">Original and standardized, side by side</span>
           <button class="fx-close" type="button">Close</button>
         </div>
-        <div class="fx-changes" data-draw="detail" data-source="changes sessions">—</div>
+        <div class="fx-changes" data-draw="detail" data-source="sheets changes sessions">—</div>
       </div>
     </figure>
 
@@ -391,7 +402,7 @@
           lines[1].textContent = `Error rate ${pct(p.v)}`;
           lines[2].textContent = p.v === 0 ? 'Nothing lost, changed or invented' : (synopsis(p.r.session) || 'Minor changes only');
           lines[3].textContent = synRow(p.r.session).made || '';
-          lines[4].textContent = p.v === 0 ? '' : 'Click for every change';
+          lines[4].textContent = 'Click to see it beside the original';
           tip.hidden = false;
           const box = el.getBoundingClientRect();
           const sx = box.width / W;
@@ -399,68 +410,156 @@
           tip.style.top = `${Math.max(0, y(p.v) * sx - tip.offsetHeight - 12)}px`;
         })
         .on('pointerleave', () => { tip.hidden = true; })
-        .on('click', (ev, p) => { if (p.v > 0) dash.setParams({ session: p.r.session }); });
+        .on('click', (ev, p) => dash.setParams({ session: p.r.session }));
     });
 
-    dash.draw('detail', (el) => {
-      const id = dash.params().session;
-      const c = dash.data('changes');
-      const d = dash.data('sessions');
+    // The original and the returned sheet side by side, rows lined up, the two panes scrolling together.
+    // sheets: rows of fixity_sheets.csv; changes: rows of fixity_changes.csv.
+    function renderDiff(el, id, sheets, changes, sess, link, btnClass) {
       el.replaceChildren();
-      if (!id || c.status !== 'ok' || d.status !== 'ok') { el.textContent = '—'; return; }
-      const sess = d.data.find((r) => r.session === id);
+      const str = (v) => (v == null ? '' : String(v));
+      sheets = sheets.map((r) => ({ session: str(r.session), pair: str(r.pair), row: str(r.row), cells: str(r.cells), map: str(r.map) }));
+      changes = changes.map((c) => ({ ...c, row: str(c.row) }));
+      const orig = sheets.filter((r) => r.session === 'original');
+      const origHead = JSON.parse(orig.find((r) => r.pair === '0').cells);
+      const origRow = {};
+      for (const r of orig) if (r.pair !== '0') origRow[r.row] = JSON.parse(r.cells);
+      const mine = sheets.filter((r) => r.session === id).sort((a, b) => a.pair - b.pair);
+      const headRow = mine.find((r) => r.pair === '0');
+      const head = JSON.parse(headRow.cells), map = JSON.parse(headRow.map);
+      const pairs = mine.filter((r) => r.pair !== '0');
+      const ch = changes.filter((c) => c.session === id);
+      const cell = {}, rowKind = {};
+      for (const c of ch) {
+        if (c.change === 'row missing' || c.change === 'row shifted') { if (c.row) rowKind[c.row] = c.change; }
+        else if (c.row) cell[c.row + '|' + c.field] = c;
+      }
+      const invented = ch.filter((c) => c.change === 'row invented');
+      const style = (c) => (!c ? 'd-fmt' : c.made_up === 'yes' ? 'd-made' : c.weight === 'quarter' ? 'd-minor' : 'd-chg');
+
       const h = document.createElement('h4');
       h.textContent = sess ? `${sess.setting} · ${sess.request.toLowerCase()} · error rate ${sess.error_pct}` : id;
       const meta = document.createElement('p');
       meta.className = 'meta';
-      meta.style.margin = '0';
-      meta.append(`Session ${id}. Struck through: the original. Marked in red: made up, not in the original. Formatting changes that weren't counted are left out. `);
+      meta.append(`Session ${id}. Left: the original file. Right: the sheet that came back, exactly as it was scored`
+        + (id.startsWith('claude-ai') ? ' (in claude.ai, the table in its reply)' : '') + '. Rows are lined up by link or object number. ');
       const a = document.createElement('a');
-      a.href = folder(id);
+      a.href = link;
       a.textContent = 'All of its files';
       meta.append(a);
-      const list = document.createElement('ul');
-      const seen = new Set();
-      const rows = c.data.filter((r) => r.session === id).sort((p, q) => Number(p.row) - Number(q.row));
-      for (const r of rows) {
+
+      const key = document.createElement('ul');
+      key.className = 'd-key';
+      for (const [cls, text] of [['d-chg', 'Counted change'], ['d-minor', 'Minor (counted at a quarter)'], ['d-fmt', 'Formatting only (not counted)'], ['d-made', 'Made up: not in the original']]) {
         const li = document.createElement('li');
-        const where = document.createElement('span');
-        where.className = 'where';
-        const what = document.createElement('span');
-        if (r.change === 'row shifted') {
-          if (!r.row) continue;  // the same row, as the scorer read it after the shift
-          const key = 'shift' + r.row;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          where.textContent = r.object_number || `Row ${r.row}`;
-          what.textContent = 'Formatting: an empty cell was dropped, so the row shifted one column. Each value in the wrong column counts as an error.';
-        } else if (r.change === 'row missing' || r.change === 'row invented') {
-          const key = r.change + r.row + r.object_number;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          where.textContent = r.object_number || `Row ${r.row}`;
-          what.textContent = r.change === 'row missing' ? 'Whole row missing' : 'Row invented';
-        } else {
-          where.textContent = `${r.object_number} · ${r.field === 'Object Date' ? 'date' : r.field.toLowerCase()}`;
-          const was = document.createElement('span');
-          was.className = 'was';
-          was.textContent = r.before || '(blank)';
-          const now = document.createElement('span');
-          now.className = 'now';
-          now.textContent = ` ${r.after || '(blank)'}${r.weight === 'quarter' ? ' (minor)' : ''}`;
-          what.append(was, now);
-        }
-        if (r.made_up === 'yes') {
-          li.className = 'is-made';
-          const tag = document.createElement('span');
-          tag.className = 'made-tag';
-          tag.textContent = ' Made up.';
-          what.append(tag);
-        }
-        li.append(where, what);
-        list.append(li);
+        const sw = document.createElement('span');
+        sw.className = 'd-sw ' + cls;
+        li.append(sw, text);
+        key.append(li);
       }
-      el.append(h, meta, list);
+
+      const panes = document.createElement('div');
+      panes.className = 'd-panes';
+      const mk = (title) => {
+        const box = document.createElement('div');
+        box.className = 'd-pane';
+        box.tabIndex = 0;
+        box.setAttribute('aria-label', title);
+        const t = document.createElement('table');
+        const thead = t.createTHead().insertRow();
+        const tb = t.createTBody();
+        box.append(t);
+        return { box, thead, tb };
+      };
+      const L = mk('Original'), R = mk('What came back');
+      const th = (row, text, cls) => { const e = document.createElement('th'); e.textContent = text; if (cls) e.className = cls; row.append(e); };
+      th(L.thead, 'Row', 'n');
+      origHead.forEach((c) => th(L.thead, c));
+      th(R.thead, 'Line', 'n');
+      head.forEach((c, j) => th(R.thead, c + (map[j] ? '' : ' (added)'), map[j] ? '' : 'd-added'));
+      const td = (row, text, cls) => { const e = row.insertCell(); e.textContent = String(text).replace(/\r?\n/g, '↵'); if (cls) e.className = cls; return e; };
+
+      let line = 0;
+      const marked = [];
+      pairs.forEach((p, k) => {
+        const o = p.row ? origRow[p.row] : null;
+        const out = p.cells ? JSON.parse(p.cells) : null;
+        const lr = L.tb.insertRow(), rr = R.tb.insertRow();
+        let any = false;
+        td(lr, p.row || '', 'n');
+        td(rr, out ? String(++line) : '', 'n');
+        const kind = p.row ? rowKind[p.row] : null;
+        if (kind === 'row shifted') { lr.title = rr.title = 'Formatting: an empty cell was dropped, so the row shifted one column. Each value in the wrong column counts as an error.'; }
+        const leftCls = {};
+        if (out) {
+          head.forEach((_, j) => {
+            const v = out[j] ?? '';
+            let cls = '';
+            if (!o) {
+              const c = invented.find((x) => x.after === v && v !== '');
+              cls = c && c.made_up === 'yes' ? 'd-made' : 'd-chg';
+              rr.title = 'A row the scorer couldn’t match to the original: counted as invented.';
+            } else if (map[j]) {
+              const src = o[origHead.indexOf(map[j])] ?? '';
+              if (v !== src) cls = kind ? 'd-chg' : style(cell[p.row + '|' + map[j]]);
+              if (cls) leftCls[map[j]] = cls;
+            } else {
+              const c = cell[p.row + '|added: ' + head[j]];
+              if (c) cls = style(c);
+            }
+            if (cls) any = true;
+            td(rr, v, cls);
+          });
+        } else {
+          td(rr, 'missing', 'd-none').colSpan = head.length;
+          any = true;
+        }
+        if (o) {
+          origHead.forEach((c, j) => td(lr, o[j], out ? leftCls[c] || '' : 'd-chg'));
+        } else {
+          td(lr, 'not in the original', 'd-none').colSpan = origHead.length;
+        }
+        if (any) marked.push(k);
+      });
+
+      // Scroll together, and step through the rows that differ.
+      let lock = null;
+      const sync = (from, to) => from.addEventListener('scroll', () => {
+        if (lock && lock !== from) return;
+        lock = from;
+        to.scrollTop = from.scrollTop;
+        requestAnimationFrame(() => { lock = null; });
+      });
+      sync(L.box, R.box);
+      sync(R.box, L.box);
+      const bar = document.createElement('div');
+      bar.className = 'd-bar';
+      const count = document.createElement('span');
+      count.textContent = marked.length ? `${marked.length} of ${pairs.length} rows differ` : 'No row differs from the original';
+      bar.append(count);
+      if (marked.length) {
+        let at = -1;
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.className = btnClass;
+        next.textContent = 'Next difference';
+        next.addEventListener('click', () => {
+          at = (at + 1) % marked.length;
+          const tr = L.tb.rows[marked[at]];
+          L.box.scrollTop = tr.offsetTop - L.thead.parentElement.offsetHeight - 4;
+        });
+        bar.append(next);
+      }
+      panes.append(L.box, R.box);
+      el.append(h, meta, key, bar, panes);
+    }
+
+    dash.draw('detail', (el) => {
+      const id = dash.params().session;
+      const sh = dash.data('sheets'), c = dash.data('changes'), d = dash.data('sessions');
+      el.replaceChildren();
+      if (!id || sh.status !== 'ok' || c.status !== 'ok' || d.status !== 'ok') { el.textContent = '—'; return; }
+      renderDiff(el, id, sh.data, c.data, d.data.find((r) => r.session === id), folder(id), 'fx-close');
     });
 
     dash.onData(() => {
