@@ -5,8 +5,9 @@
   .fx { --fx-blue: #3b74d1; --fx-orange: #d9703f; --fx-red: #b3261e; max-width: 80rem; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); }
   @media (prefers-color-scheme: dark) { .fx { --fx-blue: #6a9be6; --fx-orange: #e8875a; --fx-red: #ef6b62; } }
   .fx-slide { display: grid; gap: 0; padding-block: var(--cds-pad-xl); }
-  .fx-slide h1 { margin: 0; max-width: 58rem; font-family: var(--font-anthropic-sans); font-weight: 600; font-size: 40px; line-height: 1.2; letter-spacing: -0.005em; }
-  .fx-slide h1 span { font-variant-numeric: tabular-nums; }
+  .fx-slide h1, .fx-slide .fx-claim { margin: 0; max-width: 58rem; font-family: var(--font-anthropic-sans); font-weight: 600; font-size: 40px; line-height: 1.2; letter-spacing: -0.005em; }
+  .fx-slide h1 span, .fx-slide .fx-claim span { font-variant-numeric: tabular-nums; }
+  .fx-slide + .fx-slide { border-top: 1px solid var(--color-border-line); }
   /* The chart: two equal halves on one scale, the axis title turned on its side in the left margin. */
   .fx-chart { position: relative; margin-top: 64px; padding-left: 32px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; }
   .fx-axis { position: absolute; left: 0; top: 20px; height: 240px; display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); margin: 0; font-size: var(--cds-font-size-body); color: var(--color-fg); white-space: nowrap; }
@@ -23,6 +24,8 @@
   .fx-dot { stroke: var(--color-bg); stroke-width: 2; }
   .fx-dot.is-picked { stroke: var(--color-fg); }
   .fx-ring { fill: none; stroke: var(--fx-red); stroke-width: 2; }
+  .fx-dot.is-faded { opacity: .2; }
+  .fx-mark { fill: none; stroke: var(--color-fg); stroke-width: 2; }
   .fx-hit { fill: transparent; cursor: pointer; }
   .fx-bottom { margin-top: 48px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
   .fx-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin: 0; padding: 0; list-style: none; font-size: var(--cds-font-size-body); color: var(--color-fg); }
@@ -31,6 +34,9 @@
   .fx-key.k-test { background: var(--fx-blue); }
   .fx-key.k-ai { background: var(--fx-orange); }
   .fx-key.k-ring { background: var(--color-border-line); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--fx-red); margin-inline: 4px; }
+  .fx-key.k-mark { background: var(--color-border-line); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-fg); margin-inline: 4px; }
+  .fx-key.k-faded { background: var(--fx-blue); opacity: .2; }
+  .fx-note2 { margin: 12px 0 0; max-width: 46rem; font-size: var(--cds-font-size-caption); line-height: 1.5; color: var(--color-fg-muted); }
   .fx-foot { margin: 0; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); }
   .fx-slide .fx-detail { margin-top: 24px; }
   .fx-foot a, .fx-note a { color: inherit; }
@@ -91,7 +97,7 @@
   .fx-table th { position: sticky; top: 0; background: var(--color-panel); font-weight: var(--cds-font-weight-medium); }
   .fx-table tbody tr { cursor: pointer; }
   @media (max-width: 760px) {
-    .fx-slide h1 { font-size: 28px; }
+    .fx-slide h1, .fx-slide .fx-claim { font-size: 28px; }
     .fx-chart { margin-top: 32px; padding-left: 0; grid-template-columns: minmax(0, 1fr); row-gap: 32px; }
     .fx-axis { position: static; height: auto; writing-mode: horizontal-tb; transform: none; justify-content: flex-start; margin-bottom: -16px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
     .fx-ask { margin-left: 40px; }
@@ -103,10 +109,10 @@
 </style>
 
 <div class="fx">
-  <section class="fx-slide" id="slide">
+  <section class="fx-slide" id="slide" data-slot="1">
     <h1>When asked to use <em>fixity</em>, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-with">—</span>.</h1>
 
-    <div class="fx-chart" id="chart">
+    <div class="fx-chart">
       <p class="fx-axis">Error rate (log scale)</p>
       <div class="fx-col">
         <div class="fx-plot" data-draw="panel" data-request="Without the fixity line" data-source="sessions synopsis"></div>
@@ -129,7 +135,43 @@
       <p class="fx-foot"><a href="https://github.com/mbruinoo/fixity-eval">github.com/mbruinoo/fixity-eval</a> · October 2026 · <a href="https://github.com/mbruinoo/fixity-eval">Method &amp; data</a></p>
     </div>
 
-    <div class="fx-detail" id="detail" hidden>
+    <div class="fx-detail" data-slot="1" hidden>
+      <div class="fx-detail-bar">
+        <span class="fx-label">Original and standardized, side by side</span>
+        <button class="fx-close" type="button">Close</button>
+      </div>
+      <div class="fx-changes" data-draw="detail" data-source="sheets changes sessions">—</div>
+    </div>
+  </section>
+
+  <section class="fx-slide" data-slot="2">
+    <h2 class="fx-claim">In claude.ai, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-with">—</span>, even though every checksum it gave was made up.</h2>
+
+    <div class="fx-chart">
+      <p class="fx-axis">Error rate (log scale)</p>
+      <div class="fx-col">
+        <div class="fx-plot" data-draw="panel" data-mode="checksum" data-request="Without the fixity line" data-source="sessions synopsis"></div>
+        <p class="fx-ask"><q>Can you standardize this .tsv file?</q>
+          <span class="fx-file"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M2 1h7l3 3v11H2z"></path><path d="M9 1v3h3"></path></svg>met_inventory.tsv</span></p>
+      </div>
+      <div class="fx-col">
+        <div class="fx-plot" data-draw="panel" data-mode="checksum" data-request="With the fixity line" data-source="sessions synopsis"></div>
+        <p class="fx-ask"><q>Can you standardize this .tsv file? Preserve fixity: use scripts on the uploaded file, and checksum the sources and the results.</q>
+          <span class="fx-file"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M2 1h7l3 3v11H2z"></path><path d="M9 1v3h3"></path></svg>met_inventory.tsv</span></p>
+      </div>
+    </div>
+
+    <div class="fx-bottom">
+      <ul class="fx-legend">
+        <li><span class="fx-key k-test"></span>Claude API</li>
+        <li><span class="fx-key k-ai"></span>claude.ai</li>
+        <li><span class="fx-key k-mark"></span>Gave made-up checksums</li>
+        <li><span class="fx-key k-faded"></span>Other test sessions</li>
+      </ul>
+    </div>
+    <p class="fx-note2">Few sessions: three claude.ai sheets with the line, five without. Two of the five claude.ai sessions with the line returned no sheet and aren’t shown. None of the claude.ai sessions with the line ran code, so none could have computed a real checksum.</p>
+
+    <div class="fx-detail" data-slot="2" hidden>
       <div class="fx-detail-bar">
         <span class="fx-label">Original and standardized, side by side</span>
         <button class="fx-close" type="button">Close</button>
@@ -335,12 +377,15 @@
       el.append(tip);
       const synRow = (id) => (syn.status === 'ok' ? syn.data.find((r) => r.session === id) : null) || {};
 
+      // Checksum mode (slide 2): claude.ai and every session that gave made-up checksums in full; other test sessions faded;
+      // a dark ring marks made-up checksums. Otherwise (slide 1): a red ring marks made-up content (made_up).
+      const ck = el.getAttribute('data-mode') === 'checksum';
+      const made = (p) => p.r.checksum === 'made up';
       const dots = svg.append('g').selectAll('g').data(pts).join('g');
       dots.append('circle')
-        .attr('class', (p) => `fx-dot${p.r.session === picked ? ' is-picked' : ''}`)
+        .attr('class', (p) => `fx-dot${p.r.session === picked ? ' is-picked' : ''}${ck && p.r.setting !== 'claude.ai' && !made(p) ? ' is-faded' : ''}`)
         .attr('cx', (p) => p.x).attr('cy', (p) => y(p.v)).attr('r', R).attr('fill', (p) => color[p.r.setting]);
-      // A red ring marks a sheet with made-up content (made_up in the sessions file).
-      dots.filter((p) => Number(p.r.made_up) > 0).append('circle').attr('class', 'fx-ring')
+      dots.filter((p) => (ck ? made(p) : Number(p.r.made_up) > 0)).append('circle').attr('class', ck ? 'fx-mark' : 'fx-ring')
         .attr('cx', (p) => p.x).attr('cy', (p) => y(p.v)).attr('r', R + 3);
       dots.append('rect').attr('class', 'fx-hit')
         .attr('x', (p) => p.x - step / 2).attr('width', step)
@@ -349,7 +394,8 @@
           lines[0].textContent = p.r.setting === 'claude.ai' ? 'claude.ai' : 'Claude API';
           lines[1].textContent = `Error rate ${pct(p.v)}`;
           lines[2].textContent = p.v === 0 ? 'Nothing lost, changed or invented' : (synRow(p.r.session).text || 'Minor changes only');
-          lines[3].textContent = synRow(p.r.session).made || '';
+          lines[3].textContent = ck ? '' : (synRow(p.r.session).made || '');
+          if (ck) lines[0].textContent += made(p) ? ' · made-up checksums' : (p.r.checksum === 'real' ? ' · real checksum' : ' · no checksum');
           lines[4].textContent = 'Click to see it beside the original';
           tip.hidden = false;
           const box = el.getBoundingClientRect();
@@ -358,7 +404,7 @@
           tip.style.top = `${Math.max(0, y(p.v) * sx - tip.offsetHeight - 12)}px`;
         })
         .on('pointerleave', () => { tip.hidden = true; })
-        .on('click', (ev, p) => dash.setParams({ session: p.r.session }));
+        .on('click', (ev, p) => dash.setParams({ session: p.r.session, slot: (el.closest('[data-slot]') || {}).dataset?.slot || '1' }));
     });
 
     // The original and the returned sheet side by side, rows lined up, the two panes scrolling together.
@@ -512,12 +558,13 @@
 
     dash.onData(() => {
       const id = dash.params().session;
-      document.querySelectorAll('#detail').forEach((p) => { p.hidden = !id; });
+      const slot = dash.params().slot || '1';
+      document.querySelectorAll('.fx-detail').forEach((p) => { p.hidden = !id || p.getAttribute('data-slot') !== slot; });
     });
-    document.querySelectorAll('.fx-close').forEach((b) => b.addEventListener('click', () => dash.setParams({ session: null })));
+    document.querySelectorAll('.fx-close').forEach((b) => b.addEventListener('click', () => dash.setParams({ session: null, slot: null })));
     document.querySelectorAll('.fx-table table').forEach((t) => t.addEventListener('click', (ev) => {
       const tr = ev.target.closest('tr[data-key]');
-      if (tr) dash.setParams({ session: tr.getAttribute('data-key') });
+      if (tr) dash.setParams({ session: tr.getAttribute('data-key'), slot: '1' });
     }));
   })();
 </script>
