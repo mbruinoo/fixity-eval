@@ -1,18 +1,11 @@
 <meta name="dash-one-writer">
 <style>
-  /* A journey in four steps. A sticky step guide on top. Steps 1 and 2 share one chart that stays in view
-     (sticky) while two notes scroll past beneath it; the headline and the spotlight change with the note.
-     Step 3 steps through the clearest errors; step 4 sums up and links out. On a small screen nothing sticks
-     but the guide, and step 2 gets its own copy of the chart. Layout from the repo author's design canvas. */
-  .fx { --fx-blue: #3b74d1; --fx-orange: #d9703f; --fx-red: #b3261e; --fx-nav: 44px; max-width: 80rem; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+  /* Two steps and a summary. Steps 1 and 2 share one chart that stays in view (sticky) while the reader scrolls;
+     the headline, the note and the spotlight change between them. Then "Read more". On a small screen nothing
+     sticks, and step 2 gets its own copy of the chart. Layout from the repo author's design canvas. */
+  .fx { --fx-blue: #3b74d1; --fx-orange: #d9703f; --fx-red: #b3261e; max-width: 80rem; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); }
   @media (prefers-color-scheme: dark) { .fx { --fx-blue: #6a9be6; --fx-orange: #e8875a; --fx-red: #ef6b62; } }
 
-  .fx-nav { position: sticky; top: 0; z-index: 3; display: flex; gap: 4px 20px; align-items: center; min-height: var(--fx-nav); margin: 0; padding: 0; list-style: none; overflow-x: auto; scrollbar-width: none; background: var(--color-bg); border-bottom: 1px solid var(--color-border-line); font-size: var(--cds-font-size-caption); }
-  .fx-nav button { font: inherit; display: inline-flex; align-items: center; gap: 6px; padding: 6px 0; border: 0; background: none; color: var(--color-fg-muted); cursor: pointer; white-space: nowrap; }
-  .fx-nav button span { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; border: 1px solid currentColor; font-size: 11px; font-variant-numeric: tabular-nums; }
-  .fx-nav button.is-on { color: var(--color-fg); font-weight: 600; }
-  .fx-nav button.is-on span { background: var(--color-fg); border-color: var(--color-fg); color: var(--color-bg); }
-  .fx-nav button:focus-visible, .fx-btn:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
 
   .fx-claim { margin: 0; max-width: 58rem; font-family: var(--font-anthropic-sans); font-weight: 600; font-size: 36px; line-height: 1.2; letter-spacing: -0.005em; }
   .fx-claim span { font-variant-numeric: tabular-nums; }
@@ -31,7 +24,7 @@
   .fx-sticky { margin: 0; padding: var(--cds-pad-md) var(--cds-pad-lg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-left: 3px solid var(--color-fg); border-radius: var(--cds-radius); font-size: var(--cds-font-size-body); line-height: 1.55; }
   .fx-sticky b { font-weight: 600; font-variant-numeric: tabular-nums; }
   @media (min-width: 761px) and (min-height: 700px) {
-    .fx-stage { position: sticky; top: var(--fx-nav); z-index: 1; }
+    .fx-stage { position: sticky; top: 0; z-index: 1; }
     .fx .fx-only-small { display: none; }
   }
   @media not ((min-width: 761px) and (min-height: 700px)) {
@@ -76,27 +69,11 @@
   .fx-lede { margin: 12px 0 0; max-width: 46rem; font-size: var(--cds-font-size-body); line-height: 1.55; color: var(--color-fg-muted); }
   .fx-detail { margin-top: 24px; }
 
-  /* Step 3: one error at a time. */
-  .fx-ex { margin-top: 28px; min-height: 230px; }
-  .fx-ex-card { display: grid; gap: 14px; padding: var(--cds-pad-lg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); }
-  .fx-ex-kind { margin: 0; font-size: 22px; font-weight: 600; line-height: 1.25; }
-  .fx-ex-who { margin: 0; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); }
-  .fx-ex-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
-  .fx-ex-pair > div { display: grid; gap: 4px; align-content: start; min-width: 0; }
-  .fx-ex-lab { font-size: var(--cds-font-size-caption); letter-spacing: .06em; text-transform: uppercase; color: var(--color-fg-muted); }
-  .fx-ex-val { font-size: 19px; line-height: 1.4; overflow-wrap: anywhere; }
-  .fx-ex-val.is-blank { color: var(--color-fg-muted); font-style: italic; }
-  .fx-ex-val.is-bad { padding: 2px 6px; justify-self: start; border-radius: 4px; background: color-mix(in srgb, var(--fx-red) 14%, transparent); box-shadow: inset 0 0 0 1.5px var(--fx-red); }
-  .fx-ex-val.is-cut { text-decoration: line-through; text-decoration-color: var(--fx-red); text-decoration-thickness: 2px; }
-  .fx-ex-ctx { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-  .fx-ex-bar { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
-  .fx-ex-count { font-size: var(--cds-font-size-body); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; min-width: 4.5rem; text-align: center; }
-  .fx-btn { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 6px 14px; min-height: 36px; cursor: pointer; }
-  .fx-btn:disabled { color: var(--color-fg-muted); cursor: default; opacity: .6; }
-  .fx-btn.is-quiet { margin-left: auto; }
 
   /* Step 4. */
-  .fx-points { margin: 24px 0 0; padding-left: 1.25rem; display: grid; gap: 10px; max-width: 46rem; font-size: var(--cds-font-size-body); line-height: 1.6; }
+  .fx-intro { margin: 24px 0 0; max-width: 46rem; font-size: var(--cds-font-size-body); line-height: 1.6; }
+  .fx-points { margin: 16px 0 0; padding-left: 1.25rem; list-style: disc outside; display: grid; gap: 10px; max-width: 46rem; font-size: var(--cds-font-size-body); line-height: 1.6; }
+  .fx-points li { display: list-item; }
   .fx-points b { font-weight: 600; font-variant-numeric: tabular-nums; }
   .fx-cta { margin: 28px 0 0; }
   .fx-cta a { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: var(--cds-radius); background: var(--color-fg); color: var(--color-bg); text-decoration: none; font-weight: 600; }
@@ -163,13 +140,6 @@
 </style>
 
 <div class="fx">
-  <ol class="fx-nav" aria-label="Steps">
-    <li><button type="button" data-go="finding" class="is-on"><span>1</span>The finding</button></li>
-    <li><button type="button" data-go="checksums"><span>2</span>The checksums</button></li>
-    <li><button type="button" data-go="browse"><span>3</span>Browse the data</button></li>
-    <li><button type="button" data-go="more"><span>4</span>Read more</button></li>
-  </ol>
-
   <div class="fx-journey" id="finding">
     <section class="fx-stage" data-slot="1">
       <div class="fx-heads">
@@ -200,8 +170,7 @@
           <li class="for-2"><span class="fx-key k-faded"></span>Other test sessions</li>
         </ul>
         <div class="fx-heads fx-notes-in">
-          <p class="fx-sticky" data-at="1">Each dot is one session, in the order run. A red ring marks a sheet with made-up content, such as an invented date. Hover over a dot for its biggest error, or click it to see the whole sheet beside the original. <span class="fx-scroll">Scroll on for step 2.</span></p>
-          <p class="fx-sticky" data-at="2">A dark ring marks the sessions that gave made-up checksums. In claude.ai that was all of them: none ran code, so none could have computed a real one. Few sessions, though: three claude.ai sheets with the line and five without, and two sessions with the line returned no sheet at all.</p>
+          <p class="fx-sticky" data-at="1">Each dot is one session, in the order run. A red ring marks a sheet with made-up content, such as an invented date. Hover over a dot for its biggest error, or click it to see the whole sheet beside the original.</p>
         </div>
       </div>
     </section>
@@ -227,7 +196,6 @@
         <li><span class="fx-key k-faded"></span>Other test sessions</li>
       </ul>
     </div>
-    <p class="fx-lede">None of the claude.ai sessions with the line ran code, so none could have computed a real checksum. Few sessions: three claude.ai sheets with the line and five without; two sessions with the line returned no sheet.</p>
   </section>
 
   <div class="fx-detail" data-slot="1" hidden>
@@ -238,59 +206,18 @@
     <div class="fx-changes" data-draw="detail" data-source="sheets changes sessions">—</div>
   </div>
 
-  <section class="fx-slide" id="browse" data-slot="3">
-    <h2 class="fx-claim">Browse the data</h2>
-    <p class="fx-lede">The clearest errors in the sheets that came back, one at a time: what the original said, and what came back.</p>
-    <div class="fx-ex" data-draw="excerpt" data-source="excerpts sessions"></div>
-    <div class="fx-ex-bar">
-      <button class="fx-btn fx-prev" type="button">Previous</button>
-      <span class="fx-ex-count" data-draw="excount" data-source="excerpts">—</span>
-      <button class="fx-btn fx-next" type="button">Next</button>
-      <button class="fx-btn is-quiet fx-whole" type="button">See the whole sheet</button>
-    </div>
-    <div class="fx-detail" data-slot="3" hidden>
-      <div class="fx-detail-bar">
-        <span class="fx-label">Original and standardized, side by side</span>
-        <button class="fx-close" type="button">Close</button>
-      </div>
-      <div class="fx-changes" data-draw="detail" data-source="sheets changes sessions">—</div>
-    </div>
-  </section>
-
   <section class="fx-slide" id="more">
     <h2 class="fx-claim">Read more</h2>
+    <p class="fx-intro">We asked Claude Haiku 4.5 to standardize a spreadsheet of 100 museum records from The Met’s Open Access data: once as is, and once with a line asking it to preserve fixity, use scripts, and checksum the sources and the results.</p>
     <ul class="fx-points">
-      <li>We asked Claude Haiku 4.5 to standardize a spreadsheet of 100 museum records from The Met’s Open Access data: once as is, and once with a line asking it to preserve fixity, use scripts, and checksum the sources and the results.</li>
       <li>Error rate is the share of a sheet that was lost, changed or invented. Minor changes, such as a stripped accent, count for a quarter; formatting counts for nothing; links aren’t graded.</li>
-      <li>In the test setting, <b data-draw="n" data-source="summary" data-field="real" data-where="group=test-with">—</b> of <b data-draw="n" data-source="summary" data-field="sessions" data-where="group=test-with">—</b> sessions with the line computed a real checksum of the file. In claude.ai, none ran code, so every checksum was made up, and those sheets still had fewer errors.</li>
-      <li>Asking for fixity didn’t stop every invention: one claude.ai sheet with the line still filled two blank dates with “19th century”.</li>
-      <li>The test setting was built to make errors likely: 24 tools, a code tool that had to be searched for, and guidance that discouraged reading the file from disk. The claude.ai sessions were run by hand, five per request, in Incognito chats.</li>
-      <li>One model, one 100-row file and few claude.ai sessions: read these as strong hints, not final measurements.</li>
-      <li>If data integrity matters: ask for a script and checksums, keep the script with the result, and recompute the checksums yourself, for example with <code>sha256sum</code>.</li>
+      <li>In the test setting, <b data-draw="n" data-source="summary" data-field="real" data-where="group=test-with">—</b> of <b data-draw="n" data-source="summary" data-field="sessions" data-where="group=test-with">—</b> sessions with the line computed a real checksum of the file. In claude.ai, none ran code, so every checksum was made up. These sheets <em>still</em> had fewer errors, though they weren’t free of made-up content: one claude.ai session added “19th century” where no date was given.</li>
+      <li>I made the test setting deliberately prone to failure and hallucination: an overwhelming number of tools at once (24), a code tool that had to be searched for, and guidance that discouraged reading the file from disk. I ran the claude.ai sessions by hand, so there were fewer of them: five per request, in Incognito chats.</li>
+      <li>This evaluation is limited: it mainly covers one model (Haiku 4.5) and one dataset. More measurements are needed for firmer conclusions.</li>
+      <li><b>Recommendation:</b> When data integrity matters, ask for a script and checksums, keep the script with the result, and recompute the checksums yourself, for example with <code>sha256sum</code>.</li>
     </ul>
-    <p class="fx-cta"><a href="https://github.com/mbruinoo/fixity-eval">Method, data and every session on GitHub</a></p>
-<details class="fx-table">
-      <summary>Every session, in a table</summary>
-      <div class="fx-tablewrap">
-        <table data-source="sessions" data-row-key="session">
-          <thead><tr>
-            <th data-field="session">Session</th>
-            <th data-field="setting">Setting</th>
-            <th data-field="request">Request</th>
-            <th data-field="error_pct">Error rate</th>
-            <th data-field="checksum">Checksum</th>
-          </tr></thead>
-          <tbody data-draw="rows"></tbody>
-        </table>
-      </div>
-    </details>
-    <div class="fx-detail" data-slot="4" hidden>
-      <div class="fx-detail-bar">
-        <span class="fx-label">Original and standardized, side by side</span>
-        <button class="fx-close" type="button">Close</button>
-      </div>
-      <div class="fx-changes" data-draw="detail" data-source="sheets changes sessions">—</div>
-    </div>
+    <p class="fx-cta"><a href="https://github.com/mbruinoo/fixity-eval">View on GitHub</a></p>
+
     <p class="fx-foot"><a href="https://github.com/mbruinoo/fixity-eval">github.com/mbruinoo/fixity-eval</a> · October 2026 · <a href="https://github.com/mbruinoo/fixity-eval">Method &amp; data</a></p>
   </section>
 </div>
@@ -420,65 +347,7 @@
     }
   });
 
-  // Step 3: the clearest errors, one per card. Made-up content first (from the sessions with the highest error
-  // rate), then deleted Chinese, Japanese or Korean text, then whole rows dropped, then rows shifted one column.
-  dash.calc('excerpts', {
-    inputs: ['changes', 'sessions', 'sheets'],
-    title: 'The clearest errors',
-    description: 'A short list of single errors to step through: each made-up value (once per session and value), four deletions of Chinese, Japanese or Korean text from different records, each session’s dropped rows, and shifted rows, with the original value and what came back.',
-    fn: (changes, sessions, sheets) => {
-      const CJK = /[　-〿぀-ヿ㐀-鿿가-힯豈-﫿]/;
-      const rate = {};
-      for (const s of sessions) rate[s.session] = Number(s.error_rate || 0);
-      const orig = {};
-      for (const r of sheets) if (r.session === 'original' && String(r.pair) !== '0') orig[String(r.row)] = JSON.parse(r.cells);
-      const byRate = (a, b) => rate[b.session] - rate[a.session] || Number(a.row) - Number(b.row);
-      const out = [];
-      const add = (kind, c, before, after, note = '', field = c.field) => out.push({
-        id: String(out.length), kind, session: c.session, row: String(c.row || ''), object_number: c.object_number,
-        field, title: (orig[String(c.row)] || [])[1] || '', before, after, note, bad: kind.startsWith('Invented') || kind.startsWith('Changed') || kind.startsWith('Filled') ? 'after' : '',
-      });
 
-      // Made-up content: once per session and row, and once per session and value.
-      const seen = new Set();
-      for (const c of changes.filter((x) => x.made_up === 'yes').sort(byRate)) {
-        const k1 = c.session + '|' + c.row, k2 = c.session + '|' + c.after;
-        if (seen.has(k1) || seen.has(k2)) continue;
-        seen.add(k1); seen.add(k2);
-        const added = c.field.startsWith('added: ');
-        const year = /^\d{3,4}$/.test(c.after.trim());
-        const kind = added ? (year ? 'Invented a year' : 'Invented a date') : c.before ? 'Changed a date to one not in the original' : 'Filled a blank date with an invented one';
-        add(kind, c, added ? ((orig[String(c.row)] || [])[0] || '') : c.before, c.after, '', added ? c.field.slice(7).replace(/_/g, ' ') : c.field);
-      }
-      // Deleted Chinese, Japanese or Korean text: four different records.
-      const recs = new Set(), sess = new Set();
-      for (const c of changes.filter((x) => x.change === 'changed' && CJK.test(x.before) && !CJK.test(x.after)).sort(byRate)) {
-        if (recs.size >= 4) break;
-        if (recs.has(c.object_number) || sess.has(c.session)) continue;
-        recs.add(c.object_number); sess.add(c.session);
-        const gone = c.before.split(/[|\s]+/).filter((w) => CJK.test(w)).join(' ');
-        add(`Deleted “${gone.length > 30 ? gone.slice(0, 29) + '…' : gone}”`, c, c.before, c.after, 'The title’s original-language half is gone; the English half stayed.');
-      }
-      // Whole rows dropped (not a row re-matched after brackets were dropped), one card per session.
-      const bySess = {};
-      for (const c of changes) (bySess[c.session] = bySess[c.session] || []).push(c);
-      for (const [s, cs] of Object.entries(bySess).sort((a, b) => rate[b[0]] - rate[a[0]])) {
-        const back = new Set(cs.filter((c) => c.change === 'row invented' && c.field === 'Link Resource').map((c) => c.after));
-        const rows = cs.filter((c) => c.change === 'row missing' && c.field === 'Title' && !cs.some((d) => d.change === 'row missing' && d.row === c.row && d.field === 'Link Resource' && back.has(d.before)));
-        if (rows.length) add('Dropped a whole row', rows[0], (orig[String(rows[0].row)] || []).join(' · '), '', rows.length > 1 ? `and ${rows.length - 1} more rows in this sheet` : '');
-        const shifted = cs.filter((c) => c.change === 'row shifted' && c.row && c.field === 'Object Number');
-        if (shifted.length) add('Shifted a row one column (formatting)', shifted[0], (orig[String(shifted[0].row)] || []).join(' · '), '', shifted.length > 1 ? `and ${shifted.length - 1} more rows in this sheet` : '');
-      }
-      return out;
-    },
-  });
-
-  dash.draw('excount', (el) => {
-    const e = dash.data('excerpts');
-    const n = e.status === 'ok' ? e.data.length : 0;
-    const i = Math.min(Math.max(0, Number(dash.params().ex || 0)), Math.max(0, n - 1));
-    el.textContent = n ? `${i + 1} of ${n}` : '—';
-  });
 </script>
 
 <script>
@@ -713,33 +582,6 @@
       renderDiff(el, id, sh.data, c.data, d.data.find((r) => r.session === id), folder(id), 'fx-close');
     });
 
-    // Step 3: one error at a time.
-    dash.draw('excerpt', (el) => {
-      const e = dash.data('excerpts');
-      const d = dash.data('sessions');
-      el.replaceChildren();
-      if (e.status !== 'ok' || d.status !== 'ok' || !e.data.length) { el.textContent = '—'; return; }
-      const i = Math.min(Math.max(0, Number(dash.params().ex || 0)), e.data.length - 1);
-      const x = e.data[i];
-      const s = d.data.find((r) => r.session === x.session) || {};
-      const mk = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
-      const card = mk('article', 'fx-ex-card');
-      card.append(mk('p', 'fx-ex-kind', x.kind));
-      card.append(mk('p', 'fx-ex-who', `${s.setting === 'claude.ai' ? 'claude.ai' : 'Claude API'} — ${s.error_pct} error rate · ${String(s.request || '').toLowerCase()}`));
-      const pair = mk('div', 'fx-ex-pair');
-      const side = (label, value, bad) => {
-        const box = mk('div');
-        box.append(mk('span', 'fx-ex-lab', label));
-        box.append(mk('span', `fx-ex-val${value ? '' : ' is-blank'}${bad && value ? ' is-bad' : ''}`, value || (label === 'Original' ? '(blank)' : '(not in the sheet)')));
-        return box;
-      };
-      pair.append(side('Original', x.before, false), side('What came back', x.after, x.bad === 'after'));
-      card.append(pair);
-      const ctx = [`Object ${x.object_number}`, x.field ? x.field.replace(/^added: /, 'added column: ').toLowerCase() : '', x.note].filter(Boolean).join(' · ');
-      card.append(mk('p', 'fx-ex-ctx', ctx));
-      el.append(card);
-    });
-
     // Open a session's whole sheet beside the original, in the panel for that part of the page.
     function openSheet(session, slot) {
       dash.setParams({ session, slot });
@@ -750,57 +592,18 @@
       const id = dash.params().session;
       const slot = dash.params().slot || '1';
       document.querySelectorAll('.fx-detail').forEach((p) => { p.hidden = !id || p.getAttribute('data-slot') !== slot; });
-      const e = dash.data('excerpts');
-      const n = e.status === 'ok' ? e.data.length : 0;
-      const i = Number(dash.params().ex || 0);
-      document.querySelectorAll('.fx-prev').forEach((b) => { b.disabled = i <= 0; });
-      document.querySelectorAll('.fx-next').forEach((b) => { b.disabled = i >= n - 1; });
-      document.querySelectorAll('.fx-whole').forEach((b) => { b.disabled = !n; });
     });
-    const stepEx = (k) => {
-      const e = dash.data('excerpts');
-      const n = e.status === 'ok' ? e.data.length : 0;
-      dash.setParams({ ex: String(Math.min(Math.max(0, Number(dash.params().ex || 0) + k), Math.max(0, n - 1))) });
-    };
-    document.querySelectorAll('.fx-prev').forEach((b) => b.addEventListener('click', () => stepEx(-1)));
-    document.querySelectorAll('.fx-next').forEach((b) => b.addEventListener('click', () => stepEx(1)));
-    document.querySelectorAll('.fx-whole').forEach((b) => b.addEventListener('click', () => {
-      const e = dash.data('excerpts');
-      if (e.status !== 'ok' || !e.data.length) return;
-      const x = e.data[Math.min(Number(dash.params().ex || 0), e.data.length - 1)];
-      openSheet(x.session, '3');
-    }));
     document.querySelectorAll('.fx-close').forEach((b) => b.addEventListener('click', () => dash.setParams({ session: null, slot: null })));
-    document.querySelectorAll('.fx-table table').forEach((t) => t.addEventListener('click', (ev) => {
-      const tr = ev.target.closest('tr[data-key]');
-      if (tr) openSheet(tr.getAttribute('data-key'), '4');
-    }));
 
     // The journey: the stage shows step 2 (the checksum spotlight) while its note is in view, on screens where it sticks.
     const big = window.matchMedia('(min-width: 761px) and (min-height: 700px)');
     const setAt = (k) => {
       document.querySelectorAll('.fx-stage').forEach((st) => st.classList.toggle('at-2', big.matches && k === 2));
-      if (big.matches) mark(k === 2 ? 'checksums' : 'finding');
     };
     const notes = new IntersectionObserver((entries) => entries.forEach((en) => {
       if (en.isIntersecting) setAt(Number(en.target.getAttribute('data-at')));
     }), { root: document, rootMargin: '-50% 0px -50% 0px' });
     document.querySelectorAll('.fx-spacer').forEach((n) => notes.observe(n));
     big.addEventListener('change', () => { if (!big.matches) setAt(1); });
-
-    // The step guide: marks the step in view, and takes the reader to a step.
-    const target = (name) => document.getElementById(name === 'checksums' ? (big.matches ? 'checksums-wide' : 'checksums-small') : name);
-    const mark = (name) => document.querySelectorAll('.fx-nav button').forEach((b) => b.classList.toggle('is-on', b.getAttribute('data-go') === name));
-    document.querySelectorAll('.fx-nav button').forEach((b) => b.addEventListener('click', () => {
-      const el = target(b.getAttribute('data-go'));
-      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); dash.setLink(el.id); }
-    }));
-    const where = new IntersectionObserver((entries) => entries.forEach((en) => {
-      if (!en.isIntersecting) return;
-      const id = en.target.id;
-      if (id === 'finding') mark(document.querySelector('.fx-stage.at-2') ? 'checksums' : 'finding');
-      else mark(id === 'checksums-small' ? 'checksums' : id);
-    }), { root: document, rootMargin: '-35% 0px -60% 0px' });
-    ['finding', 'checksums-small', 'browse', 'more'].forEach((id) => { const el = document.getElementById(id); if (el) where.observe(el); });
   })();
 </script>
