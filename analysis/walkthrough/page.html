@@ -11,14 +11,14 @@
   .fx-claim span { font-variant-numeric: tabular-nums; }
 
   /* Steps 1–2: the stage. */
-  .fx-stage { display: grid; padding-block: 32px 24px; background: var(--cds-page-bg, var(--color-bg)); }
+  .fx-stage { display: grid; padding-block: 32px 24px; }  /* no background: nothing scrolls under it, and the page's own black shows through */
   .fx-heads { display: grid; }
   .fx-heads > * { grid-area: 1 / 1; }
   .fx-stage [data-at="2"] { visibility: hidden; opacity: 0; }
   .fx-stage.at-2 [data-at="1"] { visibility: hidden; opacity: 0; }
   .fx-stage.at-2 [data-at="2"] { visibility: visible; opacity: 1; }
   /* Each step holds for a while before the next: about a screen of scrolling per step. */
-  .fx-spacer[data-at="1"] { height: 55vh; }
+  .fx-spacer[data-at="1"] { height: 10vh; }
   .fx-spacer[data-at="1b"], .fx-spacer[data-at="1c"], .fx-spacer[data-at="1d"] { height: 75vh; }
   .fx-spacer[data-at="2"] { height: 130vh; }
   /* Step 1 builds up: s1 the headline alone, mid-screen; s2 the base half; s3 a spotlight on the worst session,
@@ -37,8 +37,8 @@
   .fx-stage.st-3 .fx-pin { opacity: 1; visibility: visible; }
   .fx-light { font-weight: 400; }
   .fx-light strong { font-weight: 600; }
-  .fx-dots { position: sticky; bottom: 16px; z-index: 4; display: flex; justify-content: center; gap: 10px; width: max-content; margin: 24px auto 16px; padding: 6px 10px; border-radius: 999px; background: color-mix(in srgb, var(--cds-page-bg, var(--color-bg)) 85%, transparent); }
-  .fx-dots button { font: inherit; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border-radius: 50%; border: 1px solid var(--color-fg-muted); background: var(--cds-page-bg, var(--color-bg)); color: var(--color-fg-muted); font-size: 12px; font-variant-numeric: tabular-nums; cursor: pointer; }
+  .fx-dots { position: sticky; bottom: 16px; z-index: 4; display: flex; justify-content: center; gap: 10px; width: max-content; margin: 24px auto 16px; padding: 6px 10px; border-radius: 999px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  .fx-dots button { font: inherit; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border-radius: 50%; border: 1px solid var(--color-fg-muted); background: transparent; color: var(--color-fg-muted); font-size: 12px; font-variant-numeric: tabular-nums; cursor: pointer; }
   .fx-dots button.is-on { background: var(--fx-ink); border-color: var(--fx-ink); color: var(--fx-on-ink); font-weight: 600; }
   .fx-dots button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
   .fx-sticky { margin: 0; padding: var(--cds-pad-md) var(--cds-pad-lg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-left: 3px solid var(--color-fg); border-radius: var(--cds-radius); font-size: var(--cds-font-size-body); line-height: 1.55; }
@@ -64,8 +64,8 @@
   .fx-plot .grid line { stroke: var(--color-border-line); stroke-width: 1; }
   .fx-plot .zero { stroke: var(--color-fg-muted); stroke-width: 1; }
   .fx-plot text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-body); font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; }
-  .fx-dot { stroke: var(--cds-page-bg, var(--color-bg)); stroke-width: 2; }
-  .fx-dot.is-picked { stroke: var(--fx-ink); }
+  .fx-dot { stroke: none; }
+  .fx-dot.is-picked { stroke: var(--fx-ink); stroke-width: 2; }
   .fx-ring { fill: none; stroke: var(--fx-red); stroke-width: 2; }
   .fx-mark { fill: none; stroke: var(--fx-ink); stroke-width: 3; opacity: 0; }
   .fx-band { fill: var(--color-fg); opacity: 0; }
@@ -85,8 +85,8 @@
   .fx-key { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; forced-color-adjust: none; }
   .fx-key.k-test { background: var(--fx-blue); }
   .fx-key.k-ai { background: var(--fx-orange); }
-  .fx-key.k-ring { background: var(--color-border-line); box-shadow: 0 0 0 2px var(--cds-page-bg, var(--color-bg)), 0 0 0 4px var(--fx-red); margin-inline: 4px; }
-  .fx-key.k-mark { background: var(--color-border-line); box-shadow: 0 0 0 2px var(--cds-page-bg, var(--color-bg)), 0 0 0 4px var(--fx-ink); margin-inline: 4px; }
+  .fx-key.k-ring { background: var(--color-border-line); outline: 2px solid var(--fx-red); outline-offset: 2px; margin-inline: 4px; }
+  .fx-key.k-mark { background: var(--color-border-line); outline: 2px solid var(--fx-ink); outline-offset: 2px; margin-inline: 4px; }
   .fx-key.k-faded { background: var(--color-fg-muted); opacity: .3; }
 
   .fx-slide { display: grid; gap: 0; padding-block: 96px 48px; border-top: 1px solid var(--color-border-line); }
