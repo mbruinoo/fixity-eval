@@ -87,7 +87,7 @@
   .fx-cta { margin: 28px 0 0; }
   .fx-cta a { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: var(--cds-radius); background: var(--color-fg); color: var(--color-bg); text-decoration: none; font-weight: 600; }
   .fx-foot { margin: 32px 0 0; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); }
-  .fx-foot a { color: inherit; }
+  .fx-foot a, .fx-intro a { color: inherit; }
   .fx-label { font-size: var(--cds-font-size-caption); letter-spacing: .06em; text-transform: uppercase; color: var(--color-fg-muted); }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -214,9 +214,9 @@
 
   <section class="fx-slide" id="more">
     <h2 class="fx-claim">About</h2>
-    <p class="fx-intro">We asked Claude Haiku 4.5 to standardize a spreadsheet of 100 museum records from The Met’s Open Access data: once as is, and once with a line asking it to preserve fixity, use scripts, and checksum the sources and the results.</p>
+    <p class="fx-intro">We asked Claude Haiku 4.5 to standardize a spreadsheet of 100 museum records from The Met’s Open Access data, with prompt variations covering different aspects of <a href="https://en.wikipedia.org/wiki/File_fixity">digital fixity</a>. The charts above compare two of them: the plain request, and the request with one line about fixity.</p>
     <ul class="fx-points">
-      <li>Error rate is the share of a sheet that was lost, changed or invented. Minor changes, such as a stripped accent, count for a quarter; formatting counts for nothing; links aren’t graded.</li>
+      <li>We calculated the error rate as the share of a sheet that was lost, changed or invented (“hallucinated”). Minor changes, such as a stripped accent, counted as a quarter of an error; formatting changes a reasonable standardization would make, such as dash style or extra spaces, weren’t counted; links weren’t graded.</li>
       <li>In the test setting, <b data-draw="n" data-source="summary" data-field="real" data-where="group=test-with">—</b> of <b data-draw="n" data-source="summary" data-field="sessions" data-where="group=test-with">—</b> sessions with the line computed a real checksum of the file. In claude.ai, none ran code, so every checksum was made up. These sheets <em>still</em> had fewer errors, though they weren’t free of made-up content: one claude.ai session added “19th century” where no date was given.</li>
       <li>I made the test setting deliberately prone to failure and hallucination: an overwhelming number of tools at once (24), a code tool that had to be searched for, and guidance that discouraged reading the file from disk. I ran the claude.ai sessions by hand, so there were fewer of them: five per request, in Incognito chats.</li>
       <li>This evaluation is limited: it mainly covers one model (Haiku 4.5) and one dataset. More measurements are needed for firmer conclusions.</li>
