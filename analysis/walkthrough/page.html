@@ -3,8 +3,8 @@
   /* Two steps and a summary. Steps 1 and 2 share one chart that stays in view (sticky) while the reader scrolls;
      the headline, the note and the spotlight change between them. Then "Read more". On a small screen nothing
      sticks, and step 2 gets its own copy of the chart. Layout from the repo author's design canvas. */
-  .fx { --fx-blue: #3b74d1; --fx-orange: #d9703f; --fx-red: #b3261e; max-width: 80rem; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); }
-  @media (prefers-color-scheme: dark) { .fx { --fx-blue: #6a9be6; --fx-orange: #e8875a; --fx-red: #ef6b62; } }
+  .fx { --fx-blue: #3b74d1; --fx-orange: #d9703f; --fx-red: #b3261e; --fx-ink: #1f1f1c; --fx-on-ink: #fafaf8; max-width: 80rem; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+  @media (prefers-color-scheme: dark) { .fx { --fx-blue: #6a9be6; --fx-orange: #e8875a; --fx-red: #ef6b62; --fx-ink: #ecebe7; --fx-on-ink: #1a1a18; } }
 
 
   .fx-claim { margin: 0; max-width: 58rem; font-family: var(--font-anthropic-sans); font-weight: 600; font-size: 36px; line-height: 1.2; letter-spacing: -0.005em; }
@@ -24,7 +24,7 @@
   .fx-light strong { font-weight: 600; }
   .fx-dots { position: sticky; bottom: 16px; z-index: 4; display: flex; justify-content: center; gap: 10px; width: max-content; margin: 24px auto 16px; padding: 6px 10px; border-radius: 999px; background: color-mix(in srgb, var(--color-bg) 85%, transparent); }
   .fx-dots button { font: inherit; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border-radius: 50%; border: 1px solid var(--color-fg-muted); background: var(--color-bg); color: var(--color-fg-muted); font-size: 12px; font-variant-numeric: tabular-nums; cursor: pointer; }
-  .fx-dots button.is-on { background: var(--color-fg); border-color: var(--color-fg); color: var(--color-bg); font-weight: 600; }
+  .fx-dots button.is-on { background: var(--fx-ink); border-color: var(--fx-ink); color: var(--fx-on-ink); font-weight: 600; }
   .fx-dots button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
   .fx-sticky { margin: 0; padding: var(--cds-pad-md) var(--cds-pad-lg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-left: 3px solid var(--color-fg); border-radius: var(--cds-radius); font-size: var(--cds-font-size-body); line-height: 1.55; }
   .fx-sticky b { font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -50,9 +50,9 @@
   .fx-plot .zero { stroke: var(--color-fg-muted); stroke-width: 1; }
   .fx-plot text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-body); font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; }
   .fx-dot { stroke: var(--color-bg); stroke-width: 2; }
-  .fx-dot.is-picked { stroke: var(--color-fg); }
+  .fx-dot.is-picked { stroke: var(--fx-ink); }
   .fx-ring { fill: none; stroke: var(--fx-red); stroke-width: 2; }
-  .fx-mark { fill: none; stroke: var(--color-fg); stroke-width: 3; opacity: 0; }
+  .fx-mark { fill: none; stroke: var(--fx-ink); stroke-width: 3; opacity: 0; }
   .fx-band { fill: var(--color-fg); opacity: 0; }
   /* The checksum spotlight: on the stage at step 2, and on the small-screen copy. */
   .at-2 .fx-ring, .fx-ck .fx-ring { opacity: 0; }
@@ -71,7 +71,7 @@
   .fx-key.k-test { background: var(--fx-blue); }
   .fx-key.k-ai { background: var(--fx-orange); }
   .fx-key.k-ring { background: var(--color-border-line); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--fx-red); margin-inline: 4px; }
-  .fx-key.k-mark { background: var(--color-border-line); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-fg); margin-inline: 4px; }
+  .fx-key.k-mark { background: var(--color-border-line); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--fx-ink); margin-inline: 4px; }
   .fx-key.k-faded { background: var(--color-fg-muted); opacity: .3; }
 
   .fx-slide { display: grid; gap: 0; padding-block: 96px 48px; border-top: 1px solid var(--color-border-line); }
@@ -85,7 +85,7 @@
   .fx-points li { display: list-item; }
   .fx-points b { font-weight: 600; font-variant-numeric: tabular-nums; }
   .fx-cta { margin: 28px 0 0; }
-  .fx-cta a { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: var(--cds-radius); background: var(--color-fg); color: var(--color-bg); text-decoration: none; font-weight: 600; }
+  .fx-cta a { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: var(--cds-radius); background: var(--fx-ink); color: var(--fx-on-ink); text-decoration: none; font-weight: 600; }
   .fx-foot { margin: 32px 0 0; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); }
   .fx-foot a, .fx-intro a { color: inherit; }
   .fx-label { font-size: var(--cds-font-size-caption); letter-spacing: .06em; text-transform: uppercase; color: var(--color-fg-muted); }
