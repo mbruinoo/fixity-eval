@@ -20,3 +20,7 @@ A scroll story of the main result, published as a private Claude artifact
 - `first-slide.html`: the first slide on its own, as one file to open in any
   browser and edit in any text editor: its words are plain HTML, its numbers
   fill from the data written into the bottom of the file.
+- `docs/` (at the top of the repository): the same page as a standalone website for GitHub
+  Pages, built by `python scripts/build_pages.py` from `page.html` and the three data files.
+  It supplies what the claude.ai dashboard otherwise provides (its data API, d3, colours, light
+  and dark). Rebuild it after any change to the page or the data.
