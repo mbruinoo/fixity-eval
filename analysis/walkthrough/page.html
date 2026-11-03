@@ -102,7 +102,7 @@
 
   .fx-detail { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: grid; gap: var(--cds-gap-sm); }
   .fx-detail[hidden] { display: none; }
-  .fx-detail-bar { display: flex; justify-content: space-between; align-items: baseline; gap: var(--cds-gap-sm); }
+  .fx-detail-bar { display: flex; justify-content: flex-end; align-items: baseline; gap: var(--cds-gap-sm); }
   .fx-close { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); background: none; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 2px var(--cds-pad-sm); cursor: pointer; }
   .fx-close:focus-visible, .fx-table summary:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
   .fx-changes { display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); line-height: 1.45; }
@@ -206,7 +206,6 @@
 
   <div class="fx-detail" data-slot="1" hidden>
     <div class="fx-detail-bar">
-      <span class="fx-label">Original and standardized, side by side</span>
       <button class="fx-close" type="button">Close</button>
     </div>
     <div class="fx-changes" data-draw="detail" data-source="sheets changes sessions">—</div>
@@ -214,7 +213,7 @@
 
   <section class="fx-slide" id="more">
     <h2 class="fx-claim">About</h2>
-    <p class="fx-intro">We asked Claude Haiku 4.5 to standardize a spreadsheet of 100 museum records from The Met’s Open Access data, with prompt variations covering different aspects of <a href="https://en.wikipedia.org/wiki/File_fixity">digital fixity</a>. The charts above compare two of them: the plain request, and the request with one line about fixity.</p>
+    <p class="fx-intro">We asked Claude Haiku 4.5 to standardize a spreadsheet of 100 museum records from The Met’s Open Access data, with prompt variations covering different aspects of <a href="https://en.wikipedia.org/wiki/File_fixity">digital fixity</a>. The charts above compare two cases: the base request, and the addition of the fixity prompt: “Preserve fixity: use scripts on the uploaded file, and checksum the sources and the results.”</p>
     <ul class="fx-points">
       <li>We calculated the error rate as the share of a sheet that was lost, changed or invented (“hallucinated”). Minor changes, such as a stripped accent, counted as a quarter of an error; formatting changes a reasonable standardization would make, such as dash style or extra spaces, weren’t counted; links weren’t graded.</li>
       <li>In the test setting, <b data-draw="n" data-source="summary" data-field="real" data-where="group=test-with">—</b> of <b data-draw="n" data-source="summary" data-field="sessions" data-where="group=test-with">—</b> sessions with the line computed a real checksum of the file. In claude.ai, none ran code, so every checksum was made up. These sheets <em>still</em> had fewer errors, though they weren’t free of made-up content: one claude.ai session added “19th century” where no date was given.</li>
@@ -473,19 +472,11 @@
       const style = (c) => (!c ? 'd-fmt' : c.made_up === 'yes' ? 'd-made' : c.weight === 'quarter' ? 'd-minor' : 'd-chg');
 
       const h = document.createElement('h4');
-      h.textContent = sess ? `${sess.setting} · ${sess.request.toLowerCase()} · error rate ${sess.error_pct}` : id;
-      const meta = document.createElement('p');
-      meta.className = 'meta';
-      meta.append(`Session ${id}. Left: the original file. Right: the sheet that came back, exactly as it was scored`
-        + (id.startsWith('claude-ai') ? ' (in claude.ai, the table in its reply)' : '') + '. Rows are lined up by link or object number. ');
-      const a = document.createElement('a');
-      a.href = link;
-      a.textContent = 'All of its files';
-      meta.append(a);
+      h.textContent = `Session ${id}`;
 
       const key = document.createElement('ul');
       key.className = 'd-key';
-      for (const [cls, text] of [['d-chg', 'Counted change'], ['d-minor', 'Minor (counted at a quarter)'], ['d-fmt', 'Formatting only (not counted)'], ['d-made', 'Made up: not in the original']]) {
+      for (const [cls, text] of [['d-chg', 'Undesired change'], ['d-minor', 'Minor undesired change'], ['d-fmt', 'Formatting change only'], ['d-made', 'Fabricated content not found in original (“hallucination”)']]) {
         const li = document.createElement('li');
         const sw = document.createElement('span');
         sw.className = 'd-sw ' + cls;
@@ -586,7 +577,7 @@
         bar.append(next);
       }
       panes.append(L.box, R.box);
-      el.append(h, meta, key, bar, panes);
+      el.append(h, key, bar, panes);
     }
 
     dash.draw('detail', (el) => {
