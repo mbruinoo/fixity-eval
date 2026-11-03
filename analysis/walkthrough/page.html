@@ -1,0 +1,683 @@
+<meta name="dash-one-writer">
+<style>
+  /* Two steps and a summary. Steps 1 and 2 share one chart that stays in view (sticky) while the reader scrolls;
+     the headline, the note and the spotlight change between them. Then "Read more". On a small screen nothing
+     sticks, and step 2 gets its own copy of the chart. Layout from the repo author's design canvas. */
+  .fx { --fx-blue: #3b74d1; --fx-orange: #d9703f; --fx-red: #b3261e; --fx-ink: #1f1f1c; --fx-on-ink: #fafaf8; max-width: 80rem; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+  @media (prefers-color-scheme: dark) { .fx { --fx-blue: #6a9be6; --fx-orange: #e8875a; --fx-red: #ef6b62; --fx-ink: #ecebe7; --fx-on-ink: #1a1a18; } }
+
+
+  .fx-claim { margin: 0; max-width: 58rem; font-family: var(--font-anthropic-sans); font-weight: 600; font-size: 36px; line-height: 1.2; letter-spacing: -0.005em; }
+  .fx-claim span { font-variant-numeric: tabular-nums; }
+
+  /* Steps 1–2: the stage. */
+  .fx-stage { display: grid; padding-block: 32px 24px; }  /* no background: nothing scrolls under it, and the page's own black shows through */
+  .fx-heads { display: grid; }
+  .fx-heads > * { grid-area: 1 / 1; }
+  .fx-stage [data-at="2"] { visibility: hidden; opacity: 0; }
+  .fx-stage.at-2 [data-at="1"] { visibility: hidden; opacity: 0; }
+  .fx-stage.at-2 [data-at="2"] { visibility: visible; opacity: 1; }
+  /* Each step holds for a while before the next: about a screen of scrolling per step. */
+  .fx-spacer[data-at="1"] { height: 10vh; }
+  .fx-spacer[data-at="1b"], .fx-spacer[data-at="1c"], .fx-spacer[data-at="1d"] { height: 75vh; }
+  .fx-spacer[data-at="2"] { height: 130vh; }
+  /* Step 1 builds up: s1 the headline alone, mid-screen; s2 both halves of the chart; s3 a spotlight on the worst
+     session, its hover card pinned open; then the chart without the spotlight. */
+  .fx-stage .fx-heads { transition: transform var(--cds-dur-slow) var(--cds-ease-out); }
+  .fx-stage.st-1 .fx-heads { transform: translateY(calc(50vh - 96px)); }
+  .fx-stage.st-1 .fx-chart, .fx-stage.st-1 .fx-bottom { opacity: 0; visibility: hidden; }
+  .fx-stage .fx-chart, .fx-stage .fx-bottom, .fx-stage .fx-col-r { transition: opacity var(--cds-dur-slow) var(--cds-ease-out), visibility var(--cds-dur-slow); }
+  .fx-stage.st-3 .fx-dot:not(.is-star), .fx-stage.st-3 .fx-ring:not(.is-star) { opacity: .15; }
+  .fx-pin { position: absolute; z-index: 2; pointer-events: none; width: max-content; max-width: 19rem; background: var(--cds-surface-popover); border: 1px solid var(--cds-border);
+    border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-body); line-height: 1.45;
+    opacity: 0; visibility: hidden; transition: opacity var(--cds-dur-slow) var(--cds-ease-out), visibility var(--cds-dur-slow); }
+  .fx-pin .t1 { font-weight: 600; }
+  .fx-pin .t2 span { color: var(--color-fg-muted); }
+  .fx-stage.st-3 .fx-pin { opacity: 1; visibility: visible; }
+  .fx-light { font-weight: 400; }
+  .fx-light strong { font-weight: 600; }
+  .fx-dots { position: sticky; bottom: 16px; z-index: 4; display: flex; justify-content: center; gap: 10px; width: max-content; margin: 24px auto 16px; padding: 6px 10px; border-radius: 999px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  .fx-dots button { font: inherit; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border-radius: 50%; border: 1px solid var(--color-fg-muted); background: transparent; color: var(--color-fg-muted); font-size: 12px; font-variant-numeric: tabular-nums; cursor: pointer; }
+  .fx-dots button.is-on { background: var(--fx-ink); border-color: var(--fx-ink); color: var(--fx-on-ink); font-weight: 600; }
+  .fx-dots button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  .fx-sticky { margin: 0; padding: var(--cds-pad-md) var(--cds-pad-lg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-left: 3px solid var(--color-fg); border-radius: var(--cds-radius); font-size: var(--cds-font-size-body); line-height: 1.55; }
+  .fx-sticky b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  @media (min-width: 761px) and (min-height: 700px) {
+    .fx-stage { position: sticky; top: 0; z-index: 1; }
+    .fx .fx-only-small { display: none; }
+  }
+  @media not ((min-width: 761px) and (min-height: 700px)) {
+    .fx-stage [data-at="2"], .fx-spacer { display: none; }
+  }
+
+  /* The chart: two equal halves on one scale, the axis title turned on its side in the left margin. */
+  .fx-chart { position: relative; margin-top: 40px; padding-left: 32px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; }
+  .fx-axis { position: absolute; left: 0; top: 20px; height: 240px; display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); margin: 0; font-size: 17px; color: var(--color-fg); white-space: nowrap; }
+  .fx-col { display: grid; gap: 8px; align-content: start; min-width: 0; }
+  .fx-ask { margin: 0 0 0 56px; display: grid; justify-items: center; gap: 6px; text-align: center; }
+  .fx-ask q { quotes: "“" "”"; font-size: 17px; line-height: 24px; color: var(--color-fg); text-wrap: balance; }
+  .fx-file { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border: 1px solid var(--color-border-line); border-radius: 4px; font-size: var(--cds-font-size-body); color: var(--color-fg); }
+  .fx-file svg { flex: none; fill: none; stroke: var(--color-fg-muted); stroke-width: 1.5; }
+  .fx-plot { position: relative; min-height: 180px; }
+  .fx-plot svg { display: block; overflow: visible; }
+  .fx-plot .grid line { stroke: var(--color-border-line); stroke-width: 1; }
+  .fx-plot .zero { stroke: var(--color-fg-muted); stroke-width: 1; }
+  .fx-plot text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-body); font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; }
+  .fx-dot { stroke: none; }
+  .fx-dot.is-picked { stroke: var(--fx-ink); stroke-width: 2; }
+  .fx-ring { fill: none; stroke: var(--fx-red); stroke-width: 2; }
+  .fx-mark { fill: none; stroke: var(--fx-ink); stroke-width: 3; opacity: 0; }
+  .fx-band { fill: var(--color-fg); opacity: 0; }
+  /* The checksum spotlight: on the stage at step 2, and on the small-screen copy. */
+  .at-2 .fx-ring, .fx-ck .fx-ring { opacity: 0; }
+  .at-2 .fx-mark, .fx-ck .fx-mark { opacity: 1; }
+  /* A strong spotlight: everything else greys out and recedes; claude.ai sits on a faint band. */
+  .at-2 .fx-dot.fade2, .fx-ck .fx-dot.fade2 { opacity: .12; fill: var(--color-fg-muted); }
+  .at-2 .fx-band, .fx-ck .fx-band { opacity: .06; }
+  .at-2 .fx-plot .grid line, .fx-ck .fx-plot .grid line { opacity: .5; }
+  .fx-hit { fill: transparent; cursor: pointer; }
+  .fx-bottom { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 24px; }
+  .fx-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin: 0; padding: 0; list-style: none; font-size: var(--cds-font-size-body); color: var(--color-fg); }
+  .fx-legend li { display: inline-flex; align-items: center; gap: 8px; }
+  .fx-stage .fx-legend .for-2, .fx-stage.at-2 .fx-legend .for-1 { display: none; }
+  .fx-stage.at-2 .fx-legend .for-2 { display: inline-flex; }
+  .fx-key { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; forced-color-adjust: none; }
+  .fx-key.k-test { background: var(--fx-blue); }
+  .fx-key.k-ai { background: var(--fx-orange); }
+  .fx-key.k-ring { background: var(--color-border-line); outline: 2px solid var(--fx-red); outline-offset: 2px; margin-inline: 4px; }
+  .fx-key.k-mark { background: var(--color-border-line); outline: 2px solid var(--fx-ink); outline-offset: 2px; margin-inline: 4px; }
+  .fx-key.k-faded { background: var(--color-fg-muted); opacity: .3; }
+
+  .fx-slide { display: grid; gap: 0; padding-block: 96px 48px; border-top: 1px solid var(--color-border-line); }
+  .fx-lede { margin: 12px 0 0; max-width: 46rem; font-size: var(--cds-font-size-body); line-height: 1.55; color: var(--color-fg-muted); }
+  .fx-detail { margin-top: 24px; }
+
+
+  /* Step 4. */
+  .fx-intro { margin: 24px 0 0; max-width: 46rem; font-size: var(--cds-font-size-body); line-height: 1.6; }
+  .fx-points { margin: 16px 0 0; padding-left: 1.25rem; list-style: disc outside; display: grid; gap: 10px; max-width: 46rem; font-size: var(--cds-font-size-body); line-height: 1.6; }
+  .fx-points li { display: list-item; }
+  .fx-points b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .fx-cta { margin: 28px 0 0; }
+  .fx-cta a { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: var(--cds-radius); background: var(--fx-ink); color: var(--fx-on-ink); text-decoration: none; font-weight: 600; }
+  .fx-foot { margin: 32px 0 0; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); }
+  .fx-foot a, .fx-intro a { color: inherit; }
+  .fx-label { font-size: var(--cds-font-size-caption); letter-spacing: .06em; text-transform: uppercase; color: var(--color-fg-muted); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .fx-stage [data-at], .fx-ring, .fx-mark, .fx-dot, .fx-band { transition: opacity var(--cds-dur-slow) var(--cds-ease-out), visibility var(--cds-dur-slow); }
+  }
+
+  .fx-tip { position: absolute; z-index: 2; pointer-events: none; width: max-content; max-width: 19rem; background: var(--cds-surface-popover); border: 1px solid var(--cds-border);
+    border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); line-height: 1.45; }
+  .fx-tip .t1 { font-weight: 600; }
+  .fx-tip .t2 span, .fx-tip .t3 { color: var(--color-fg-muted); }
+  .fx-tip .t3:empty { display: none; }
+
+  .fx-detail { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: grid; gap: var(--cds-gap-sm); }
+  .fx-detail[hidden] { display: none; }
+  .fx-detail-bar { display: flex; justify-content: flex-end; align-items: baseline; gap: var(--cds-gap-sm); }
+  .fx-close { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); background: none; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 2px var(--cds-pad-sm); cursor: pointer; }
+  .fx-close:focus-visible, .fx-table summary:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  .fx-changes { display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); line-height: 1.45; }
+  .fx-changes h4 { margin: 0; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+  .fx-changes .meta { color: var(--color-fg-muted); }
+  .fx-changes a { color: inherit; }
+  .d-key { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin: 0; padding: 0; list-style: none; color: var(--color-fg-muted); }
+  .d-key li { display: inline-flex; align-items: center; gap: .4rem; }
+  .d-sw { width: .9rem; height: .7rem; border-radius: 2px; display: inline-block; forced-color-adjust: none; }
+  .d-bar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: var(--color-fg-muted); }
+  .d-panes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .5rem; }
+  .d-pane { max-height: 20rem; overflow: auto; border: 1px solid var(--color-border-line); border-radius: 6px; }
+  .d-pane:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  .d-pane table { border-collapse: collapse; font-size: 12px; line-height: 1.5rem; }
+  .d-pane th, .d-pane td { white-space: pre; height: 1.5rem; padding: 0 .5rem; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--color-border-line); }
+  .d-pane th { position: sticky; top: 0; z-index: 1; background: var(--color-panel); font-weight: 600; }
+  .d-pane .n { color: var(--color-fg-muted); text-align: right; font-variant-numeric: tabular-nums; position: sticky; left: 0; background: var(--color-panel); }
+  .d-pane th.n { z-index: 2; }
+  .d-pane th.d-added { font-style: italic; }
+  .d-chg { background: color-mix(in srgb, var(--cds-chart-status-warning, #d99a1e) 28%, transparent); }
+  .d-minor { background: color-mix(in srgb, var(--cds-chart-status-warning, #d99a1e) 12%, transparent); }
+  .d-fmt { background: color-mix(in srgb, var(--color-fg-muted) 16%, transparent); }
+  .d-made { background: color-mix(in srgb, var(--cds-chart-status-critical) 22%, transparent); box-shadow: inset 0 0 0 1.5px var(--cds-chart-status-critical); }
+  .d-none { color: var(--color-fg-muted); font-style: italic; }
+
+  .fx-table { margin-block: var(--cds-gap-xl) var(--cds-gap-md); }
+  .fx-table summary { cursor: pointer; font-size: var(--cds-font-size-body); }
+  .fx-tablewrap { max-height: 24rem; overflow: auto; margin-top: var(--cds-gap-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); }
+  .fx-table table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .fx-table th, .fx-table td { text-align: left; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .fx-table th { position: sticky; top: 0; background: var(--color-panel); font-weight: var(--cds-font-weight-medium); }
+  .fx-table tbody tr { cursor: pointer; }
+  @media (max-width: 760px) {
+    .fx-claim { font-size: 27px; }
+    .fx-chart { margin-top: 28px; padding-left: 0; grid-template-columns: minmax(0, 1fr); row-gap: 28px; }
+    .fx-axis { position: static; height: auto; writing-mode: horizontal-tb; transform: none; justify-content: flex-start; margin-bottom: -16px; font-size: 15px; color: var(--color-fg); }
+    .fx-ask { margin-left: 40px; }
+    .fx-ask q { font-size: 15px; line-height: 22px; }
+    .fx-ex-pair { grid-template-columns: minmax(0, 1fr); }
+    .fx-btn.is-quiet { margin-left: 0; }
+    .d-pane { max-height: 13rem; }
+  }
+  @media (forced-colors: active) { .fx-key { background: CanvasText; } }
+</style>
+
+<div class="fx">
+  <div class="fx-journey" id="finding">
+    <section class="fx-stage" data-slot="1">
+      <div class="fx-heads">
+        <h1 class="fx-claim" data-at="1">When asked to use <em>fixity</em>, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-with">—</span>.</h1>
+        <h2 class="fx-claim fx-light" data-at="2" aria-live="polite">In claude.ai, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-with">—</span>, <strong>even though every checksum it gave was made up.</strong></h2>
+      </div>
+
+      <div class="fx-chart">
+        <p class="fx-axis">Error rate (log scale)</p>
+        <div class="fx-col fx-col-l">
+          <div class="fx-plot" data-draw="panel" data-request="Without the fixity line" data-source="sessions synopsis"></div>
+          <p class="fx-ask"><q>Can you standardize this .tsv file?</q>
+            <span class="fx-file"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M2 1h7l3 3v11H2z"></path><path d="M9 1v3h3"></path></svg>met_inventory.tsv</span></p>
+        </div>
+        <div class="fx-col fx-col-r">
+          <div class="fx-plot" data-draw="panel" data-request="With the fixity line" data-source="sessions synopsis"></div>
+          <p class="fx-ask"><q>Can you standardize this .tsv file? Preserve fixity: use scripts on the uploaded file, and checksum the sources and the results.</q>
+            <span class="fx-file"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M2 1h7l3 3v11H2z"></path><path d="M9 1v3h3"></path></svg>met_inventory.tsv</span></p>
+        </div>
+      </div>
+
+      <div class="fx-bottom">
+        <ul class="fx-legend">
+          <li><span class="fx-key k-test"></span>Claude API</li>
+          <li><span class="fx-key k-ai"></span>claude.ai</li>
+          <li class="for-1"><span class="fx-key k-ring"></span>Includes hallucinated content</li>
+          <li class="for-2"><span class="fx-key k-mark"></span>Gave made-up checksums</li>
+          <li class="for-2"><span class="fx-key k-faded"></span>Other test sessions</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="fx-spacer" data-at="1" id="finding-note" aria-hidden="true"></div>
+    <div class="fx-spacer" data-at="1b" aria-hidden="true"></div>
+    <div class="fx-spacer" data-at="1c" aria-hidden="true"></div>
+    <div class="fx-spacer" data-at="1d" aria-hidden="true"></div>
+    <div class="fx-spacer" data-at="2" id="checksums-wide" aria-hidden="true"></div>
+  </div>
+
+  <section class="fx-slide fx-only-small fx-ck" id="checksums-small" data-slot="1">
+    <h2 class="fx-claim fx-light">In claude.ai, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-with">—</span>, <strong>even though every checksum it gave was made up.</strong></h2>
+    <div class="fx-chart">
+      <p class="fx-axis">Error rate (log scale)</p>
+      <div class="fx-col"><div class="fx-plot" data-draw="panel" data-request="Without the fixity line" data-source="sessions synopsis"></div>
+        <p class="fx-ask"><q>Can you standardize this .tsv file?</q></p></div>
+      <div class="fx-col"><div class="fx-plot" data-draw="panel" data-request="With the fixity line" data-source="sessions synopsis"></div>
+        <p class="fx-ask"><q>Can you standardize this .tsv file? Preserve fixity: use scripts on the uploaded file, and checksum the sources and the results.</q></p></div>
+    </div>
+    <div class="fx-bottom">
+      <ul class="fx-legend">
+        <li><span class="fx-key k-test"></span>Claude API</li>
+        <li><span class="fx-key k-ai"></span>claude.ai</li>
+        <li><span class="fx-key k-mark"></span>Gave made-up checksums</li>
+        <li><span class="fx-key k-faded"></span>Other test sessions</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="fx-detail" data-slot="1" hidden>
+    <div class="fx-detail-bar">
+      <button class="fx-close" type="button">Close</button>
+    </div>
+    <div class="fx-changes" data-draw="detail" data-source="sheets changes sessions">—</div>
+  </div>
+
+  <section class="fx-slide" id="more">
+    <h2 class="fx-claim">About</h2>
+    <p class="fx-intro">We asked Claude Haiku 4.5 to standardize a spreadsheet of 100 museum records from The Met’s Open Access data, with prompt variations covering different aspects of <a href="https://en.wikipedia.org/wiki/File_fixity">digital fixity</a>. The charts above compare two cases: the base request, and the addition of the fixity prompt: “Preserve fixity: use scripts on the uploaded file, and checksum the sources and the results.”</p>
+    <ul class="fx-points">
+      <li>We calculated the error rate as the share of a sheet that was lost, changed or invented (“hallucinated”). Minor changes, such as a stripped accent, counted as a quarter of an error; formatting changes a reasonable standardization would make, such as dash style or extra spaces, weren’t counted; links weren’t graded.</li>
+      <li>In the test setting, <b data-draw="n" data-source="summary" data-field="real" data-where="group=test-with">—</b> of <b data-draw="n" data-source="summary" data-field="sessions" data-where="group=test-with">—</b> sessions with the line computed a real checksum of the file. In claude.ai, none ran code, so every checksum was made up. These sheets <em>still</em> had fewer errors, though they weren’t free of made-up content: one claude.ai session added “19th century” where no date was given.</li>
+      <li>Test settings were deliberately prone to failure and hallucination, to simulate worst-case scenarios. For example, models had an overwhelming number of tools available to them at once (24), a code tool that had to be searched for, and guidance that discouraged reading the file from disk. The claude.ai sessions were run by hand, so fewer were completed than those dispatched in batches via the API.</li>
+      <li>This evaluation is limited: it mainly covers one model (Haiku 4.5) and one dataset. More measurements are needed for firmer conclusions.</li>
+      <li><b>Recommendation:</b> When data integrity matters, ask for a script and checksums, keep the script with the result, and recompute the checksums yourself, for example, with <code>sha256sum</code>.</li>
+    </ul>
+    <p class="fx-cta"><a href="https://github.com/mbruinoo/fixity-eval">View on GitHub</a></p>
+
+    <p class="fx-foot"><a href="https://github.com/mbruinoo/fixity-eval">github.com/mbruinoo/fixity-eval</a> · October 2026 · <a href="https://github.com/mbruinoo/fixity-eval">Method &amp; data</a></p>
+  </section>
+  <nav class="fx-dots" aria-label="Sections">
+    <button type="button" data-go="finding" aria-label="Section 1" class="is-on">1</button>
+    <button type="button" data-go="checksums" aria-label="Section 2">2</button>
+    <button type="button" data-go="more" aria-label="Section 3">3</button>
+  </nav>
+</div>
+
+<script>
+  dash.calc('summary', {
+    inputs: ['sessions'],
+    title: 'Medians and counts by group',
+    description: 'For each request, overall and by setting: sessions, sheets delivered, the median error rate of the sheets, sheets with no error, and real or made-up checksums.',
+    fn: (sessions) => {
+      const groups = {};
+      for (const r of sessions) {
+        const req = r.request === 'With the fixity line' ? '-with' : '-without';
+        const set = r.setting === 'claude.ai' ? 'ai' : 'test';
+        for (const g of [set + req, 'all' + req]) (groups[g] = groups[g] || []).push(r);
+      }
+      return Object.entries(groups).map(([group, rows]) => {
+        const rates = rows.filter((r) => r.error_rate !== '' && r.error_rate != null).map((r) => Number(r.error_rate)).sort((a, b) => a - b);
+        const n = rates.length;
+        const med = n % 2 ? rates[(n - 1) / 2] : (rates[n / 2 - 1] + rates[n / 2]) / 2;
+        return {
+          group,
+          sessions: String(rows.length),
+          sheets: String(n),
+          median: (med * 100).toFixed(1) + '%',
+          median_value: med,
+          zero: String(rates.filter((x) => x === 0).length),
+          real: String(rows.filter((r) => r.checksum === 'real').length),
+          madeup: String(rows.filter((r) => r.checksum === 'made up').length),
+        };
+      });
+    },
+  });
+
+  dash.calc('synopsis', {
+    inputs: ['changes'],
+    title: 'Each session’s biggest error',
+    description: 'For each session: its single most telling error (made-up content first, then dropped rows, deleted Chinese, Japanese or Korean text, shifted rows, then the first other change) and how many other counted errors it has. A dropped, invented or shifted row counts as one error.',
+    fn: (changes) => {
+      const CJK = /[　-〿぀-ヿ㐀-鿿가-힯豈-﫿]/;
+      const YEAR = /\b\d{3,4}\b/g;
+      const short = (t, n = 36) => (t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t);
+      const field = (f) => (f === 'Object Date' ? 'date' : f.startsWith('added: ') ? 'added ' + f.slice(7).replace(/_/g, ' ').toLowerCase() : f.toLowerCase());
+      const by = {};
+      for (const c of changes) (by[c.session] = by[c.session] || []).push(c);
+      return Object.entries(by).map(([session, cs]) => {
+        // Errors, with a whole dropped, invented or shifted row counted once.
+        const units = [], seen = new Set();
+        for (const c of cs) {
+          if (c.change === 'row missing' || c.change === 'row invented' || c.change === 'row shifted') {
+            const k = c.change + (c.row || c.object_number);
+            if (seen.has(k)) continue;
+            seen.add(k);
+          }
+          units.push(c);
+        }
+        const newYear = (c) => (c.after.match(YEAR) || []).some((y) => !c.before.includes(y));
+        // What changed in one cell, in a few words: brackets dropped, or the words that differ.
+        const describe = (c) => {
+          const f = field(c.field);
+          if (!c.before) return `Filled a blank ${f}: ${short(c.after)}`;
+          const bare = (t) => t.replace(/[\[\]()"]/g, '').trim();
+          if (bare(c.before) === bare(c.after) && /[\[\]()]/.test(c.before)) return `Dropped the brackets from a ${f}`;
+          let a = 0, z = 0;
+          while (a < c.before.length && c.before[a] === c.after[a]) a++;
+          while (z < c.before.length - a && z < c.after.length - a && c.before[c.before.length - 1 - z] === c.after[c.after.length - 1 - z]) z++;
+          while (a > 0 && /\S/.test(c.before[a - 1])) a--;
+          while (z > 0 && /\S/.test(c.before[c.before.length - z])) z--;
+          const gone = c.before.slice(a, c.before.length - z).trim(), put = c.after.slice(a, c.after.length - z).trim();
+          if (!put) return `Deleted “${short(gone, 30)}” from a ${f}`;
+          if (!gone) return `Added “${short(put, 30)}” to a ${f}`;
+          return `Changed “${short(gone, 22)}” to “${short(put, 22)}” in a ${f}`;
+        };
+        const madeUp = units.filter((c) => c.made_up === 'yes');
+        // A row counted missing whose link comes back in an invented row was rewritten, not dropped: not a headline.
+        const back = new Set(cs.filter((c) => c.change === 'row invented' && c.field === 'Link Resource').map((c) => c.after));
+        const rewrote = new Set(cs.filter((c) => c.change === 'row missing' && c.field === 'Link Resource' && back.has(c.before)).map((c) => c.row));
+        const missing = units.filter((c) => c.change === 'row missing' && !rewrote.has(c.row));
+        const cjk = units.filter((c) => c.change === 'changed' && CJK.test(c.before) && !CJK.test(c.after));
+        const shifted = units.filter((c) => c.change === 'row shifted' && c.row);
+        let lead = '', used = 1;
+        const yearOnly = (c) => /^\d{3,4}$/.test(c.after.trim());
+        const m = madeUp.find((c) => c.before && newYear(c)) || madeUp.find((c) => !c.field.startsWith('added: '))
+          || madeUp.find(yearOnly) || madeUp[0];
+        if (m) {
+          const what = yearOnly(m) ? 'year' : (m.field.startsWith('added: ') ? 'date' : field(m.field));
+          lead = m.before ? `Invented ${what}: ${short(m.after)} (was ${short(m.before, 24)})` : `Invented ${what}: ${short(m.after)}`;
+        } else if (missing.length) {
+          lead = missing.length === 1 ? `Dropped a whole row (${missing[0].object_number})` : `Dropped ${missing.length} whole rows`;
+          used = missing.length;
+        } else if (cjk.length) {
+          const c = cjk[0];
+          const gone = c.before.split(/[|\s]+/).filter((w) => CJK.test(w)).join(' ');
+          lead = `Deleted ${short(gone, 28)}`;
+        } else if (shifted.length) {
+          lead = shifted.length === 1 ? 'Shifted a row one column' : `Shifted ${shifted.length} rows one column`;
+          used = shifted.length;
+        } else if (units.length) {
+          lead = describe(units.find((x) => x.weight === 'full' && x.change === 'changed') || units[0]);
+        }
+        const others = Math.max(0, units.length - used);
+        return { session, lead, others: others ? `+ ${others} other error${others === 1 ? '' : 's'}` : '' };
+      });
+    },
+  });
+
+  dash.draw('n', (el) => {
+    const s = dash.data('summary');
+    const group = (el.getAttribute('data-where') || '').split('=')[1];
+    const row = s.status === 'ok' ? s.data.find((r) => r.group === group) : null;
+    el.textContent = row ? row[el.getAttribute('data-field')] : '—';
+  });
+
+  dash.draw('rows', (tb) => {
+    const d = dash.data('sessions');
+    tb.replaceChildren();
+    if (d.status !== 'ok') return;
+    for (const r of d.data) {
+      const tr = document.createElement('tr');
+      if (r.error_rate !== '') tr.dataset.key = r.session;
+      for (const f of ['session', 'setting', 'request', 'error_pct', 'checksum']) {
+        const td = document.createElement('td');
+        td.textContent = r[f];
+        tr.append(td);
+      }
+      tb.append(tr);
+    }
+  });
+
+
+</script>
+
+<script>
+  (() => {
+    const pct = (v) => (v * 100).toFixed(1) + '%';
+    const REPO = 'https://github.com/mbruinoo/fixity-eval/tree/main/experiments/';
+    const folder = (id) => REPO + (id.startsWith('stage-1/') ? 'stage-1/runs/' + id.slice(8) : id);
+
+    // One half of the chart: the sessions given one request, in the order run (Claude API, a gap, then claude.ai),
+    // spread across the half. Error rate on a log scale (log of 1 + the percentage, so 0% sits on the baseline);
+    // each half carries its own percentages. No median is drawn: the headline states it.
+    const TICKS = [0, 0.01, 0.02, 0.05, 0.1, 0.25, 0.5];
+    dash.draw('panel', (el) => {
+      const d = dash.data('sessions');
+      const syn = dash.data('synopsis');
+      el.replaceChildren();
+      if (d.status !== 'ok') { el.textContent = '—'; return; }
+      const req = el.getAttribute('data-request');
+      const narrow = window.matchMedia('(max-width: 760px)').matches;
+      const picked = dash.params().session;
+      const W = Math.max(200, el.clientWidth);
+      const x0 = narrow ? 40 : 56;
+      const PT = 20, PH = narrow ? 200 : 240, H = PT + PH + 12;
+      const y = (v) => PT + PH - (PH * Math.log10(1 + v * 100)) / Math.log10(61);
+      const cs = getComputedStyle(el);
+      const color = { 'Test setting': cs.getPropertyValue('--fx-blue').trim(), 'claude.ai': cs.getPropertyValue('--fx-orange').trim() };
+
+      const pts = d.data.filter((r) => r.request === req && r.error_rate !== '')
+        .map((r) => ({ r, v: Number(r.error_rate), k: Number((r.session.match(/(\d+)$/) || [0, 0])[1]) }))
+        .sort((a, b) => (a.r.setting === 'claude.ai') - (b.r.setting === 'claude.ai') || a.k - b.k);
+      // One slot per session plus one empty slot between the settings, 12px in from each end.
+      const step = (W - x0 - 24) / Math.max(1, pts.length);
+      let slot = -1, prev = null;
+      pts.forEach((p) => { if (prev !== null && p.r.setting !== prev) slot++; prev = p.r.setting; p.x = x0 + 12 + (++slot) * step; });
+      const R = narrow ? 4 : 5;
+
+      const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+        .attr('aria-label', `Error rate of each session, ${req.toLowerCase()}, in the order they were run`);
+      svg.append('g').attr('class', 'grid').selectAll('line').data(TICKS.slice(1)).join('line')
+        .attr('x1', x0).attr('x2', W).attr('y1', (t) => y(t)).attr('y2', (t) => y(t));
+      svg.append('line').attr('class', 'zero').attr('x1', x0).attr('x2', W).attr('y1', y(0)).attr('y2', y(0));
+      svg.append('g').selectAll('text').data(TICKS).join('text')
+        .attr('x', 0).attr('y', (t) => y(t)).attr('dy', '0.32em').text((t) => `${Math.round(t * 100)}%`);
+
+      const tip = document.createElement('div');
+      tip.className = 'fx-tip';
+      tip.hidden = true;
+      const lines = ['t1', 't2', 't3'].map((c) => { const e = document.createElement('div'); e.className = c; return e; });
+      tip.append(...lines);
+      el.append(tip);
+      const synRow = (id) => (syn.status === 'ok' ? syn.data.find((r) => r.session === id) : null) || {};
+
+      // A faint band behind the claude.ai sessions, shown with the checksum spotlight.
+      const ai = pts.filter((p) => p.r.setting === 'claude.ai');
+      if (ai.length) svg.append('rect').attr('class', 'fx-band').attr('x', ai[0].x - step / 2).attr('width', ai[ai.length - 1].x - ai[0].x + step)
+        .attr('y', PT - 12).attr('height', PH + 20).attr('rx', 6);
+      // Both views are drawn; the page's CSS shows one. Step 1: a red ring marks made-up content (made_up).
+      // Step 2 (the checksum spotlight): a dark ring marks made-up checksums, and other test sessions fade.
+      const made = (p) => p.r.checksum === 'made up';
+      const dots = svg.append('g').selectAll('g').data(pts).join('g');
+      dots.append('circle')
+        .attr('class', (p) => `fx-dot${p.r.session === picked ? ' is-picked' : ''}${p.r.setting !== 'claude.ai' && !made(p) ? ' fade2' : ''}`)
+        .attr('cx', (p) => p.x).attr('cy', (p) => y(p.v)).attr('r', R).attr('fill', (p) => color[p.r.setting]);
+      dots.filter((p) => Number(p.r.made_up) > 0).append('circle').attr('class', 'fx-ring')
+        .attr('cx', (p) => p.x).attr('cy', (p) => y(p.v)).attr('r', R + 3);
+      dots.filter(made).append('circle').attr('class', 'fx-mark')
+        .attr('cx', (p) => p.x).attr('cy', (p) => y(p.v)).attr('r', R + 3);
+      // The worst session of the base half, spotlit in step 1 with its hover card pinned open.
+      if (req === 'Without the fixity line' && pts.length) {
+        const star = pts.reduce((a, p) => (p.v > a.v ? p : a));
+        dots.filter((p) => p === star).selectAll('circle').classed('is-star', true);
+        const row = synRow(star.r.session);
+        const pin = document.createElement('div');
+        pin.className = 'fx-pin';
+        pin.setAttribute('aria-hidden', 'true');
+        const l1 = document.createElement('div'); l1.className = 't1';
+        l1.textContent = `${star.r.setting === 'claude.ai' ? 'claude.ai' : 'Claude API'} — ${pct(star.v)} error rate`;
+        const l2 = document.createElement('div'); l2.className = 't2';
+        l2.append(row.lead || '');
+        if (row.others) { const more = document.createElement('span'); more.textContent = ` ${row.others}`; l2.append(more); }
+        pin.append(l1, l2);
+        el.append(pin);
+        const box = el.getBoundingClientRect(), sx = box.width / W;
+        pin.style.left = `${Math.max(0, star.x * sx - pin.offsetWidth - 16)}px`;
+        pin.style.top = `${Math.max(0, y(star.v) * sx - 8)}px`;
+      }
+      dots.append('rect').attr('class', 'fx-hit')
+        .attr('x', (p) => p.x - step / 2).attr('width', step)
+        .attr('y', PT - 10).attr('height', PH + 20)
+        .on('pointerenter', (ev, p) => {
+          // The session's single biggest error, with the rest as a count.
+          const row = synRow(p.r.session);
+          lines[0].textContent = `${p.r.setting === 'claude.ai' ? 'claude.ai' : 'Claude API'} — ${pct(p.v)} error rate`;
+          lines[1].replaceChildren(p.v === 0 || !row.lead ? 'Nothing lost, changed or invented' : row.lead);
+          if (p.v > 0 && row.others) { const more = document.createElement('span'); more.textContent = ` ${row.others}`; lines[1].append(more); }
+          const ck = !!el.closest('.at-2, .fx-ck');
+          lines[2].textContent = ck ? (made(p) ? 'Gave made-up checksums' : (p.r.checksum === 'real' ? 'Computed a real checksum' : 'Gave no checksum')) : '';
+          tip.hidden = false;
+          const box = el.getBoundingClientRect();
+          const sx = box.width / W;
+          tip.style.left = `${Math.min(Math.max(0, p.x * sx + 10), box.width - tip.offsetWidth)}px`;
+          const above = y(p.v) * sx - tip.offsetHeight - 12;
+          tip.style.top = `${above >= 0 ? above : y(p.v) * sx + 14}px`;  // below the dot when there's no room above
+        })
+        .on('pointerleave', () => { tip.hidden = true; })
+        .on('click', (ev, p) => openSheet(p.r.session, (el.closest('[data-slot]') || {}).dataset?.slot || '1'));
+    });
+
+    // The original and the returned sheet side by side, rows lined up, the two panes scrolling together.
+    // sheets: rows of fixity_sheets.csv; changes: rows of fixity_changes.csv.
+    function renderDiff(el, id, sheets, changes, sess, link, btnClass) {
+      el.replaceChildren();
+      const str = (v) => (v == null ? '' : String(v));
+      sheets = sheets.map((r) => ({ session: str(r.session), pair: str(r.pair), row: str(r.row), cells: str(r.cells), map: str(r.map) }));
+      changes = changes.map((c) => ({ ...c, row: str(c.row) }));
+      const orig = sheets.filter((r) => r.session === 'original');
+      const origHead = JSON.parse(orig.find((r) => r.pair === '0').cells);
+      const origRow = {};
+      for (const r of orig) if (r.pair !== '0') origRow[r.row] = JSON.parse(r.cells);
+      const mine = sheets.filter((r) => r.session === id).sort((a, b) => a.pair - b.pair);
+      const headRow = mine.find((r) => r.pair === '0');
+      const head = JSON.parse(headRow.cells), map = JSON.parse(headRow.map);
+      const pairs = mine.filter((r) => r.pair !== '0');
+      const ch = changes.filter((c) => c.session === id);
+      const cell = {}, rowKind = {};
+      for (const c of ch) {
+        if (c.change === 'row missing' || c.change === 'row shifted') { if (c.row) rowKind[c.row] = c.change; }
+        else if (c.row) cell[c.row + '|' + c.field] = c;
+      }
+      const invented = ch.filter((c) => c.change === 'row invented');
+      const style = (c) => (!c ? 'd-fmt' : c.made_up === 'yes' ? 'd-made' : c.weight === 'quarter' ? 'd-minor' : 'd-chg');
+
+      const h = document.createElement('h4');
+      h.textContent = `Session ${id}`;
+
+      const key = document.createElement('ul');
+      key.className = 'd-key';
+      for (const [cls, text] of [['d-chg', 'Undesired change'], ['d-minor', 'Minor undesired change'], ['d-fmt', 'Formatting change only'], ['d-made', 'Fabricated content not found in original (“hallucination”)']]) {
+        const li = document.createElement('li');
+        const sw = document.createElement('span');
+        sw.className = 'd-sw ' + cls;
+        li.append(sw, text);
+        key.append(li);
+      }
+
+      const panes = document.createElement('div');
+      panes.className = 'd-panes';
+      const mk = (title) => {
+        const box = document.createElement('div');
+        box.className = 'd-pane';
+        box.tabIndex = 0;
+        box.setAttribute('aria-label', title);
+        const t = document.createElement('table');
+        const thead = t.createTHead().insertRow();
+        const tb = t.createTBody();
+        box.append(t);
+        return { box, thead, tb };
+      };
+      const L = mk('Original'), R = mk('What came back');
+      const th = (row, text, cls) => { const e = document.createElement('th'); e.textContent = text; if (cls) e.className = cls; row.append(e); };
+      th(L.thead, 'Row', 'n');
+      origHead.forEach((c) => th(L.thead, c));
+      th(R.thead, 'Line', 'n');
+      head.forEach((c, j) => th(R.thead, c + (map[j] ? '' : ' (added)'), map[j] ? '' : 'd-added'));
+      const td = (row, text, cls) => { const e = row.insertCell(); e.textContent = String(text).replace(/\r?\n/g, '↵'); if (cls) e.className = cls; return e; };
+
+      let line = 0;
+      const marked = [];
+      pairs.forEach((p, k) => {
+        const o = p.row ? origRow[p.row] : null;
+        const out = p.cells ? JSON.parse(p.cells) : null;
+        const lr = L.tb.insertRow(), rr = R.tb.insertRow();
+        let any = false;
+        td(lr, p.row || '', 'n');
+        td(rr, out ? String(++line) : '', 'n');
+        const kind = p.row ? rowKind[p.row] : null;
+        if (kind === 'row shifted') { lr.title = rr.title = 'Formatting: an empty cell was dropped, so the row shifted one column. Each value in the wrong column counts as an error.'; }
+        const leftCls = {};
+        if (out) {
+          head.forEach((_, j) => {
+            const v = out[j] ?? '';
+            let cls = '';
+            if (!o) {
+              const c = invented.find((x) => x.after === v && v !== '');
+              cls = c && c.made_up === 'yes' ? 'd-made' : 'd-chg';
+              rr.title = 'A row the scorer couldn’t match to the original: counted as invented.';
+            } else if (map[j]) {
+              const src = o[origHead.indexOf(map[j])] ?? '';
+              if (v !== src) cls = kind ? 'd-chg' : style(cell[p.row + '|' + map[j]]);
+              if (cls) leftCls[map[j]] = cls;
+            } else {
+              const c = cell[p.row + '|added: ' + head[j]];
+              if (c) cls = style(c);
+            }
+            if (cls) any = true;
+            td(rr, v, cls);
+          });
+        } else {
+          td(rr, 'missing', 'd-none').colSpan = head.length;
+          any = true;
+        }
+        if (o) {
+          origHead.forEach((c, j) => td(lr, o[j], out ? leftCls[c] || '' : 'd-chg'));
+        } else {
+          td(lr, 'not in the original', 'd-none').colSpan = origHead.length;
+        }
+        if (any) marked.push(k);
+      });
+
+      // Scroll together, and step through the rows that differ.
+      let lock = null;
+      const sync = (from, to) => from.addEventListener('scroll', () => {
+        if (lock && lock !== from) return;
+        lock = from;
+        to.scrollTop = from.scrollTop;
+        requestAnimationFrame(() => { lock = null; });
+      });
+      sync(L.box, R.box);
+      sync(R.box, L.box);
+      const bar = document.createElement('div');
+      bar.className = 'd-bar';
+      const count = document.createElement('span');
+      count.textContent = marked.length ? `${marked.length} of ${pairs.length} rows differ` : 'No row differs from the original';
+      bar.append(count);
+      if (marked.length) {
+        let at = -1;
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.className = btnClass;
+        next.textContent = 'Next difference';
+        next.addEventListener('click', () => {
+          at = (at + 1) % marked.length;
+          const tr = L.tb.rows[marked[at]];
+          L.box.scrollTop = tr.offsetTop - L.thead.parentElement.offsetHeight - 4;
+        });
+        bar.append(next);
+      }
+      panes.append(L.box, R.box);
+      el.append(h, key, bar, panes);
+    }
+
+    dash.draw('detail', (el) => {
+      const id = dash.params().session;
+      const sh = dash.data('sheets'), c = dash.data('changes'), d = dash.data('sessions');
+      el.replaceChildren();
+      if (!id || sh.status !== 'ok' || c.status !== 'ok' || d.status !== 'ok') { el.textContent = '—'; return; }
+      renderDiff(el, id, sh.data, c.data, d.data.find((r) => r.session === id), folder(id), 'fx-close');
+    });
+
+    // Open a session's whole sheet beside the original, in the panel for that part of the page.
+    function openSheet(session, slot) {
+      dash.setParams({ session, slot });
+      requestAnimationFrame(() => document.querySelectorAll(`.fx-detail[data-slot="${slot}"]`).forEach((p) => p.scrollIntoView({ behavior: 'smooth', block: 'nearest' })));
+    }
+
+    dash.onData(() => {
+      const id = dash.params().session;
+      const slot = dash.params().slot || '1';
+      document.querySelectorAll('.fx-detail').forEach((p) => { p.hidden = !id || p.getAttribute('data-slot') !== slot; });
+    });
+    document.querySelectorAll('.fx-close').forEach((b) => b.addEventListener('click', () => dash.setParams({ session: null, slot: null })));
+
+    // The journey: the stage shows step 2 (the checksum spotlight) while its note is in view, on screens where it sticks.
+    const big = window.matchMedia('(min-width: 761px) and (min-height: 700px)');
+    const mark = (name) => document.querySelectorAll('.fx-dots button').forEach((b) => b.classList.toggle('is-on', b.getAttribute('data-go') === name));
+    // Steps: '1' headline alone, '1b' the base half, '1c' the spotlight, '1d' the whole chart, '2' the checksums.
+    const STATE = { 1: 'st-1', '1b': 'st-2', '1c': 'st-3', 2: 'at-2' };
+    const setAt = (k) => {
+      document.querySelectorAll('.fx-stage').forEach((st) => {
+        for (const cls of ['st-1', 'st-2', 'st-3', 'at-2']) st.classList.toggle(cls, big.matches && STATE[k] === cls);
+      });
+      if (big.matches) mark(k === '2' ? 'checksums' : 'finding');
+    };
+    // The step is the last scroll step whose top has passed the middle of the screen (before any: the headline alone).
+    let ticking = false, current = null;
+    const update = () => {
+      ticking = false;
+      let k = '1';
+      document.querySelectorAll('.fx-spacer').forEach((n) => { if (n.getBoundingClientRect().top < window.innerHeight / 2) k = n.getAttribute('data-at'); });
+      if (k !== current) { current = k; setAt(k); }
+    };
+    // The page may scroll inside the dashboard's own panel rather than the window: a scroll listener on the
+    // document in the capture phase hears either. A scroll step crossing the middle of the screen also updates it.
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    window.addEventListener('resize', onScroll);
+    const cross = new IntersectionObserver(onScroll, { root: document, rootMargin: '-50% 0px -50% 0px' });
+    document.querySelectorAll('.fx-spacer').forEach((n) => cross.observe(n));
+    update();
+    big.addEventListener('change', () => { current = null; update(); });
+
+    // The wayfinding dots: mark the section in view, and take the reader to one.
+    const target = (name) => document.getElementById(name === 'checksums' ? (big.matches ? 'checksums-wide' : 'checksums-small') : name);
+    document.querySelectorAll('.fx-dots button').forEach((b) => b.addEventListener('click', () => {
+      const el = target(b.getAttribute('data-go'));
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); dash.setLink(el.id); }
+    }));
+    const where = new IntersectionObserver((entries) => entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      const id = en.target.id;
+      if (id === 'finding') mark(document.querySelector('.fx-stage.at-2') ? 'checksums' : 'finding');
+      else mark(id === 'checksums-small' ? 'checksums' : id);
+    }), { root: document, rootMargin: '-40% 0px -55% 0px' });
+    ['finding', 'checksums-small', 'more'].forEach((id) => { const el = document.getElementById(id); if (el) where.observe(el); });
+  })();
+</script>

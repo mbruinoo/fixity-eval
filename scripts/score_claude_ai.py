@@ -1,10 +1,11 @@
 """Score the claude.ai check (decision record 24) with stage 1's scorer.
 
-claude.ai's conversations are exported by hand (transcript.txt, a plain-text
-copy), not saved call by call, so each session is scored from:
+claude.ai's conversations are exported (transcript.txt, a plain-text copy by
+hand, or transcript.md, saved from the page), not saved call by call, so each
+session is scored from:
   - output_files/, the files the session produced, if any; else
   - the largest table in its replies (hallu_score's rule for a table in a
-    reply), read from transcript.txt up to the debrief.
+    reply), read from the transcript up to the debrief.
 No tool calls are known, so no checksum counts as computed by a tool here;
 whether code ran is judged from the transcript by the research coordinator.
 
@@ -14,6 +15,7 @@ writes <dir>/hallucination_scores.json and <dir>/changes.csv.
 """
 import json
 import pathlib
+import re
 import shutil
 import sys
 import tempfile
@@ -40,6 +42,12 @@ def replies(transcript):
     return "\n".join(out) + "\n"
 
 
+def transcript(d):
+    """transcript.txt (copied by hand) or transcript.md (saved from the page by
+    a local session, decision record 31)."""
+    return next((d / f for f in ("transcript.txt", "transcript.md") if (d / f).exists()), None)
+
+
 def condition(name):
     """session-N: the fix line; base-N: the base request; session-with-tools-N
     (or tools-N): the fix line with tools always loaded; base-with-tools-N: the
@@ -48,17 +56,20 @@ def condition(name):
         return "claude-ai-base-tools-loaded"
     if name.startswith("session-with-tools-"):
         return "claude-ai-fix-tools-loaded"
+    m = re.match(r"(opus|sonnet|haiku)-(\d+-\d+)-\d+$", name)
+    if m:  # the fix line with another model (decision record 31)
+        return f"claude-ai-fix-{m.group(1)}-{m.group(2)}"
     return {"base": "claude-ai-base", "tools": "claude-ai-fix-tools-loaded"}.get(name.split("-")[0], "claude-ai-fix")
 
 
 def main():
     root = pathlib.Path(sys.argv[1])
     report = []
-    for d in sorted(p for p in root.iterdir() if p.is_dir() and (p / "transcript.txt").exists()):
+    for d in sorted(p for p in root.iterdir() if p.is_dir() and transcript(p)):
         with tempfile.TemporaryDirectory() as tmp:
             run = pathlib.Path(tmp) / d.name
             run.mkdir()
-            (run / "response.md").write_text(replies(d / "transcript.txt"), encoding="utf-8")
+            (run / "response.md").write_text(replies(transcript(d)), encoding="utf-8")
             if (d / "output_files").is_dir():
                 shutil.copytree(d / "output_files", run / "output_files")
             res = H.score_run(run, INPUT, events=[])
