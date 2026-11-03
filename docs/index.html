@@ -82,6 +82,8 @@
 
   .fx-claim { margin: 0; max-width: 58rem; font-family: var(--font-anthropic-sans); font-weight: 600; font-size: 36px; line-height: 1.2; letter-spacing: -0.005em; }
   .fx-claim span { font-variant-numeric: tabular-nums; }
+  .fx-claim a { color: inherit; text-decoration-thickness: 2px; text-underline-offset: .14em; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); }
+  .fx-claim a:hover { text-decoration-color: currentColor; }
 
   /* Steps 1–2: the stage. */
   .fx-stage { display: grid; padding-block: 32px 24px; }  /* no background: nothing scrolls under it, and the page's own black shows through */
@@ -107,6 +109,9 @@
   .fx-pin .t1 { font-weight: 600; }
   .fx-pin .t2 span { color: var(--color-fg-muted); }
   .fx-stage.st-3 .fx-pin { opacity: 1; visibility: visible; }
+  /* The button under the opening headline: only while the headline is alone; About has its own. */
+  .fx-head1 { position: relative; }
+  .fx-cta.fx-start { margin: 20px 0 0; }
   .fx-light { font-weight: 400; }
   .fx-light strong { font-weight: 600; }
   .fx-dots { position: sticky; bottom: 16px; z-index: 4; display: flex; justify-content: center; gap: 10px; width: max-content; margin: 24px auto 16px; padding: 6px 10px; border-radius: 999px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
@@ -117,10 +122,14 @@
   .fx-sticky b { font-weight: 600; font-variant-numeric: tabular-nums; }
   @media (min-width: 761px) and (min-height: 700px) {
     .fx-stage { position: sticky; top: 0; z-index: 1; }
+    .fx-start { position: absolute; top: 100%; left: 0; transition: opacity var(--cds-dur-slow) var(--cds-ease-out), visibility var(--cds-dur-slow); }
+    .fx-stage:not(.st-1) .fx-start { opacity: 0; visibility: hidden; }
     .fx .fx-only-small { display: none; }
   }
   @media not ((min-width: 761px) and (min-height: 700px)) {
     .fx-stage [data-at="2"], .fx-spacer { display: none; }
+    .fx-stage.sm-spot .fx-dot:not(.is-star), .fx-stage.sm-spot .fx-ring:not(.is-star) { opacity: .15; }
+    .fx-stage.sm-spot .fx-pin { opacity: 1; visibility: visible; }
   }
 
   /* The chart: two equal halves on one scale, the axis title turned on its side in the left margin. */
@@ -239,7 +248,10 @@
   <div class="fx-journey" id="finding">
     <section class="fx-stage" data-slot="1">
       <div class="fx-heads">
-        <h1 class="fx-claim" data-at="1">When asked to use <em>fixity</em>, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-with">—</span>.</h1>
+        <div class="fx-head1" data-at="1">
+          <h1 class="fx-claim">When asked to use <a href="https://en.wikipedia.org/wiki/File_fixity"><em>fixity</em></a>, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=all-with">—</span>.</h1>
+          <p class="fx-cta fx-start"><a href="https://github.com/mbruinoo/fixity-eval">View on GitHub</a></p>
+        </div>
         <h2 class="fx-claim fx-light" data-at="2" aria-live="polite">In claude.ai, Claude’s median error rate fell from <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-without">—</span> to <span data-draw="n" data-source="summary" data-field="median" data-where="group=ai-with">—</span>, <strong>even though every checksum it gave was made up.</strong></h2>
       </div>
 
@@ -504,6 +516,11 @@
       const ai = pts.filter((p) => p.r.setting === 'claude.ai');
       if (ai.length) svg.append('rect').attr('class', 'fx-band').attr('x', ai[0].x - step / 2).attr('width', ai[ai.length - 1].x - ai[0].x + step)
         .attr('y', PT - 12).attr('height', PH + 20).attr('rx', 6);
+      // Touch: the first tap on a dot shows its card, a second tap opens the sheet; a tap elsewhere closes the card.
+      let lastType = 'mouse', armed = null;
+      if (el._off) document.removeEventListener('pointerdown', el._off, true);
+      el._off = (ev) => { if (!el.contains(ev.target)) { tip.hidden = true; armed = null; } };
+      document.addEventListener('pointerdown', el._off, true);
       // Both views are drawn; the page's CSS shows one. Step 1: a red ring marks made-up content (made_up).
       // Step 2 (the checksum spotlight): a dark ring marks made-up checksums, and other test sessions fade.
       const made = (p) => p.r.checksum === 'made up';
@@ -538,6 +555,7 @@
         .attr('x', (p) => p.x - step / 2).attr('width', step)
         .attr('y', PT - 10).attr('height', PH + 20)
         .on('pointerenter', (ev, p) => {
+          lastType = ev.pointerType || 'mouse';
           // The session's single biggest error, with the rest as a count.
           const row = synRow(p.r.session);
           lines[0].textContent = `${p.r.setting === 'claude.ai' ? 'claude.ai' : 'Claude API'} — ${pct(p.v)} error rate`;
@@ -545,6 +563,7 @@
           if (p.v > 0 && row.others) { const more = document.createElement('span'); more.textContent = ` ${row.others}`; lines[1].append(more); }
           const ck = !!el.closest('.at-2, .fx-ck');
           lines[2].textContent = ck ? (made(p) ? 'Gave made-up checksums' : (p.r.checksum === 'real' ? 'Computed a real checksum' : 'Gave no checksum')) : '';
+          if (lastType === 'touch' && !lines[2].textContent) lines[2].textContent = 'Tap again to see the whole sheet';
           tip.hidden = false;
           const box = el.getBoundingClientRect();
           const sx = box.width / W;
@@ -552,8 +571,12 @@
           const above = y(p.v) * sx - tip.offsetHeight - 12;
           tip.style.top = `${above >= 0 ? above : y(p.v) * sx + 14}px`;  // below the dot when there's no room above
         })
-        .on('pointerleave', () => { tip.hidden = true; })
-        .on('click', (ev, p) => openSheet(p.r.session, (el.closest('[data-slot]') || {}).dataset?.slot || '1'));
+        .on('pointerleave', () => { if (lastType !== 'touch') tip.hidden = true; })
+        .on('click', (ev, p) => {
+          if (lastType === 'touch' && armed !== p.r.session) { armed = p.r.session; return; }  // first tap: the card only
+          armed = null;
+          openSheet(p.r.session, (el.closest('[data-slot]') || {}).dataset?.slot || '1');
+        });
     });
 
     // The original and the returned sheet side by side, rows lined up, the two panes scrolling together.
@@ -752,6 +775,12 @@
       else mark(id === 'checksums-small' ? 'checksums' : id);
     }), { root: document, rootMargin: '-40% 0px -55% 0px' });
     ['finding', 'checksums-small', 'more'].forEach((id) => { const el = document.getElementById(id); if (el) where.observe(el); });
+
+    // Phones (no build-up): a spotlight on the worst session while the base chart is in the middle of the screen.
+    const spot = new IntersectionObserver((entries) => entries.forEach((en) => {
+      document.querySelectorAll('.fx-stage').forEach((st) => st.classList.toggle('sm-spot', !big.matches && en.isIntersecting));
+    }), { root: document, rootMargin: '-35% 0px -35% 0px' });
+    document.querySelectorAll('.fx-stage .fx-col-l .fx-plot').forEach((n) => spot.observe(n));
   })();
 </script>
 
